@@ -1,0 +1,1926 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esnoloji - Gelişmiş Yönetim Üssü</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        html, body { max-width: 100%; overflow-x: hidden; }
+        #sidebarNav { scrollbar-width: none; }
+        #sidebarNav::-webkit-scrollbar { display: none; }
+
+        @media (max-width: 767px) {
+            body { display: block; min-height: 100dvh; }
+
+            aside {
+                position: sticky;
+                top: 0;
+                z-index: 40;
+                border-right: 0;
+                box-shadow: 0 12px 30px rgba(15, 23, 42, 0.22);
+            }
+
+            aside > div:first-child { padding: 14px 16px 10px; }
+            aside > div:first-child h1 { font-size: 18px; line-height: 1.3; }
+            #panelDukkanAdi {
+                max-width: calc(100vw - 32px);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            #sidebarNav {
+                display: flex;
+                flex-grow: 0;
+                gap: 8px;
+                overflow-x: auto;
+                padding: 10px 12px;
+                scroll-snap-type: x proximity;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            #sidebarNav > a {
+                flex: 0 0 auto;
+                min-height: 44px;
+                padding: 10px 12px !important;
+                border-radius: 12px;
+                scroll-snap-align: start;
+                white-space: nowrap;
+            }
+
+            #sidebarNav > a span:first-child { font-size: 16px; }
+            #sidebarNav > a span:last-child { font-size: 12px; }
+
+            aside > div:last-child {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                padding: 10px 12px;
+            }
+
+            aside > div:last-child > div {
+                min-width: 0;
+                flex: 1;
+            }
+
+            #sidebarPersonelAdi {
+                display: block;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            aside > div:last-child button {
+                width: auto;
+                flex: 0 0 auto;
+                padding: 8px 12px;
+            }
+
+            main {
+                padding: 16px !important;
+                overflow: visible;
+            }
+
+            main section > .border-b {
+                padding-bottom: 14px;
+                margin-bottom: 16px;
+            }
+
+            main h2 {
+                font-size: 1.25rem !important;
+                line-height: 1.65rem !important;
+            }
+
+            main p { line-height: 1.45; }
+            main .rounded-2xl { border-radius: 14px; }
+            main .p-6 { padding: 16px !important; }
+            main .p-5 { padding: 14px !important; }
+            main table { min-width: 680px; }
+
+            #rezTakvimGrid > div { min-height: 38px; }
+
+            #duzenleModal {
+                align-items: flex-start;
+                overflow-y: auto;
+            }
+
+            #duzenleModal > div {
+                margin-top: 12px;
+                margin-bottom: 12px;
+                max-height: calc(100dvh - 24px);
+                overflow-y: auto;
+                padding: 16px !important;
+                border-radius: 16px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            #sidebarNav > a { padding: 9px 10px !important; }
+            #sidebarNav > a span:last-child {
+                max-width: 140px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            main { padding: 12px !important; }
+            main table { min-width: 620px; }
+            #rezTakvimGrid { gap: 4px; }
+            #rezTakvimGrid > div {
+                min-height: 34px;
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans min-h-screen flex flex-col md:flex-row">
+
+    <aside class="w-full md:w-64 bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800 shrink-0">
+        <div class="p-6 border-b border-slate-800">
+            <h1 class="text-xl font-black tracking-wider text-blue-400">esnoloji<span class="text-white">.com</span></h1>
+            <p id="panelDukkanAdi" class="text-[11px] text-slate-500 uppercase font-bold mt-1">Yönetim Paneli</p>
+        </div>
+        
+        <nav id="sidebarNav" class="flex-grow p-4 space-y-2">
+            <a href="#" id="nav-ozet" onclick="sekmeDegistir('ozet')" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600 text-white transition font-medium text-sm">
+                <span>📊</span> <span>Genel Özet</span>
+            </a>
+            <a href="#" id="nav-dukkan-bilgileri" onclick="sekmeDegistir('dukkan-bilgileri')" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition font-medium text-sm text-slate-400 hover:text-white">
+                <span>🏷️</span> <span>Dükkan Bilgileri</span>
+            </a>
+            <a href="#" id="nav-oge-yonetimi" onclick="sekmeDegistir('oge-yonetimi')" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition font-medium text-sm text-slate-400 hover:text-white">
+                <span>📦</span> <span>Dükkan Düzeni (Masa/Araç)</span>
+            </a>
+            <a href="#" id="nav-rezervasyon" onclick="sekmeDegistir('rezervasyon')" class="hidden flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition font-medium text-sm text-slate-400 hover:text-white">
+                <span>📅</span> <span>Rezervasyon Takvimi</span>
+            </a>
+            <a href="#" id="nav-urunler" onclick="sekmeDegistir('urunler')" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition font-medium text-sm text-slate-400 hover:text-white">
+                <span>☕</span> <span>Ürünlerim & Fiyatlar</span>
+            </a>
+            <a href="#" id="nav-personel" onclick="sekmeDegistir('personel')" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition font-medium text-sm text-slate-400 hover:text-white">
+                <span>👥</span> <span>Personellerim</span>
+            </a>
+            <a href="#" id="nav-gelir-gider" onclick="sekmeDegistir('gelir-gider')" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition font-medium text-sm text-slate-400 hover:text-white">
+                <span>💰</span> <span>Gelir-Gider Takibi</span>
+            </a>
+            <a href="#" id="nav-ambar" onclick="sekmeDegistir('ambar')" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition font-medium text-sm text-slate-400 hover:text-white">
+                <span>📦</span> <span>Ambar</span>
+            </a>
+            <a href="#" id="nav-mesajlar" onclick="sekmeDegistir('mesajlar')" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition font-medium text-sm text-slate-400 hover:text-white">
+                <span>📣</span> <span>Duyurular & İletişim</span>
+            </a>
+            <a href="#" onclick="window.open(`/${dukkanSlug}`, '_blank')"
+   class="flex items-center gap-3 px-4 py-3 text-slate-750 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all font-semibold text-sm">
+    <span class="text-lg">🏠</span> Dükkan Ana Sayfa
+</a>
+        </nav>
+        
+        <div class="p-4 border-t border-slate-800 text-xs text-slate-500 space-y-3">
+            <div class="flex justify-between items-center">
+                <span id="sidebarPersonelAdi">Rol: Admin</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            </div>
+            <button onclick="cikisYap()" class="w-full py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-red-400 hover:border-red-400/40 transition text-xs font-semibold">
+                Çıkış Yap
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-grow p-6 md:p-10 overflow-y-auto">
+        
+        <section id="ozetSekmesi">
+            <div class="border-b border-slate-200 pb-5 mb-6">
+                <h2 class="text-2xl font-black text-slate-800 tracking-tight">Genel Özet</h2>
+                <p class="text-sm text-slate-500 mt-1">İşletmenizin anlık durumu ve hızlı performans göstergeleri.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Bugünkü Ciro</span>
+                    <h3 class="text-2xl font-black text-slate-800 mt-2">0.00 ₺</h3>
+                </div>
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Aktif Siparişler / Kiralamalar</span>
+                    <h3 class="text-2xl font-black text-slate-800 mt-2">0 Adet</h3>
+                </div>
+            </div>
+        </section>
+
+        <section id="dukkanBilgileriSekmesi" class="hidden">
+            <div class="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"><div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Dükkan Bilgileri</h2>
+                    <p class="text-sm text-slate-500 mt-1">Vitrin sayfasında üstte gösterilecek iletişim ve tanıtım bilgilerini güncelle.</p>
+                </div>
+                <button onclick="dukkanBilgileriniKaydet()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">
+                    Bilgileri Kaydet
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Dukkan Adi</label>
+                            <input type="text" id="dukkanAdInput" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700" placeholder="Isletme adi">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Telefon</label>
+                            <input type="text" id="dukkanTelefonInput" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700" placeholder="05xx xxx xx xx">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Adres</label>
+                            <textarea id="dukkanAdresInput" rows="3" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700" placeholder="Acik adres"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Tanitim Yazisi</label>
+                            <textarea id="dukkanAciklamaInput" rows="4" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700" placeholder="Kisa tanitim metni"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Logo URL</label>
+                            <input type="url" id="dukkanLogoUrlInput" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700" placeholder="https://drive.google.com/file/d/.../view">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Arkaplan URL</label>
+                            <input type="url" id="dukkanArkaPlanUrlInput" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700" placeholder="https://drive.google.com/file/d/.../view">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <div class="border-b border-slate-100 pb-4 mb-4">
+                        <h3 class="text-lg font-black text-slate-800">Vitrin Önizleme</h3>
+                        <p class="text-sm text-slate-500 mt-1">Bu alan vitrinin üst bölümünde müşteriye görünür.</p>
+                    </div>
+                    <div id="dukkanOnizlemeKarti" class="rounded-2xl bg-slate-950 bg-cover bg-center text-white p-6">
+                        <div class="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-black uppercase tracking-wide text-slate-200">Tanitim</div>
+                        <div class="mt-4 flex items-start gap-4">
+                            <div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/10">
+                                <img id="dukkanOnizlemeLogo" class="hidden h-full w-full object-cover" alt="Dukkan logosu">
+                                <div id="dukkanOnizlemeLogoFallback" class="text-2xl">SHOP</div>
+                            </div>
+                            <h3 id="dukkanOnizlemeAd" class="text-3xl font-black tracking-tight">-</h3>
+                        </div>
+                        <p id="dukkanOnizlemeAciklama" class="mt-3 text-slate-300 leading-6">-</p>
+                        <div class="mt-5 grid gap-3 text-sm">
+                            <div class="rounded-xl bg-white/10 px-4 py-3">
+                                <div class="text-[11px] uppercase font-black text-slate-400">Telefon</div>
+                                <div id="dukkanOnizlemeTelefon" class="font-semibold text-white mt-1">-</div>
+                            </div>
+                            <div class="rounded-xl bg-white/10 px-4 py-3">
+                                <div class="text-[11px] uppercase font-black text-slate-400">Adres</div>
+                                <div id="dukkanOnizlemeAdres" class="font-semibold text-white mt-1">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="ogeYonetimiSekmesi" class="hidden">
+            <div class="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"><div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Dükkan Düzeni & Varlık Yönetimi</h2>
+                    <p class="text-sm text-slate-500 mt-1">Sisteminize kayıtlı masa, araç, oda veya diğer tüm ticari ögeler.</p>
+                </div>
+                <button onclick="formuKapatAc('yeniOgeFormu', 'butonMetniOge', '+ Yeni Birim')" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">
+                    <span id="butonMetniOge">+ Yeni Birim</span>
+                </button>
+            </div>
+
+            <div id="yeniOgeFormu" class="hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 mb-8 max-w-2xl">
+                <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center space-x-2">
+                    <span>⚙️</span> <span>Sisteme Yeni Varlık Ekle</span>
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Birim Adı / Kimliği</label>
+                        <input type="text" id="ogeAdiInput" placeholder="Örn: Masa 1, Masa 5, 34 PUMA 123" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Birim Türü / Kategorisi</label>
+                        <select id="ogeTuruSelect" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700 bg-white">
+                            <option value="Masa">🪑 Masa (Restoran/Kafe)</option>
+                            <option value="Araç">🚗 Araç / Otomobil (Kiralama)</option>
+                            <option value="Oda">🛏️ Oda / Salon (Otel/Alan)</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="kiralamaOgeAlanlari" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Varlik Detayi</label>
+                        <input type="text" id="ogeDetayInput" placeholder="Orn: Otomatik, dizel, 2022 model" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Gunluk / Birim Fiyat</label>
+                        <input type="number" id="ogeFiyatInput" placeholder="Orn: 2500" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-end">
+                    <button onclick="yeniOgeEkle()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-6 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">Değişiklikleri Kaydet</button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-5 border-b border-slate-50 bg-slate-50/70 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <span class="font-bold text-slate-700 text-sm tracking-wide uppercase">Kayıtlı Birimler</span>
+                    <span id="toplamOgeSayisi" class="bg-blue-50 text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full">0 Öğe</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-100 text-slate-400 text-[11px] font-bold uppercase bg-slate-50/30">
+                                <th class="p-4">Birim Tanımı</th>
+                                <th class="p-4">Türü</th>
+                                <th class="p-4">QR Kod / Erişim Linki</th>
+                                <th class="p-4 text-right">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ogelerTabloGövdesi"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="rezervasyonSekmesi" class="hidden">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center border-b border-slate-200 pb-5 mb-6 gap-4">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Rezervasyon & Doluluk Takvimi</h2>
+                    <p class="text-sm text-slate-500 mt-1">Arac, oda, ev veya ekipman icin dolu tarihleri buradan isleyin.</p>
+                </div>
+                <button onclick="rezervasyonKaydet()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">
+                    Rezervasyonu Kaydet
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-6">
+                <div class="space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+                        <h3 class="font-black text-slate-800 mb-4">Yeni Rezervasyon</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Varlik</label>
+                                <select id="rezOgeSelect" onchange="rezervasyonTakvimiCiz(); rezervasyonlariListele();" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700 bg-white"></select>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Baslangic</label>
+                                    <input type="date" id="rezBaslangicInput" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Bitis</label>
+                                    <input type="date" id="rezBitisInput" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Musteri Adi</label>
+                                <input type="text" id="rezMusteriInput" placeholder="Orn: Ahmet Yilmaz" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Telefon</label>
+                                    <input type="text" id="rezTelefonInput" placeholder="05xx..." class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Tutar</label>
+                                    <input type="number" id="rezTutarInput" placeholder="0" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Durum</label>
+                                <select id="rezDurumSelect" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700 bg-white">
+                                    <option value="aktif">Aktif</option>
+                                    <option value="beklemede">Beklemede</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Not</label>
+                                <textarea id="rezNotInput" rows="3" placeholder="Teslim saati, kapora, ek not..." class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                        <div class="flex items-center justify-between mb-4">
+                            <button onclick="rezAyDegistir(-1)" class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-600">Onceki</button>
+                            <div id="rezAyBaslik" class="font-black text-slate-800"></div>
+                            <button onclick="rezAyDegistir(1)" class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-600">Sonraki</button>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-black text-slate-400 mb-2">
+                            <div>Pzt</div><div>Sal</div><div>Car</div><div>Per</div><div>Cum</div><div>Cmt</div><div>Paz</div>
+                        </div>
+                        <div id="rezTakvimGrid" class="grid grid-cols-7 gap-1"></div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="p-5 border-b border-slate-50 bg-slate-50/70 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <span class="font-bold text-slate-700 text-sm tracking-wide uppercase">Kayitli Rezervasyonlar</span>
+                        <span id="toplamRezervasyonSayisi" class="bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">0 Kayit</span>
+                    </div>
+                    <div id="rezervasyonListesi" class="divide-y divide-slate-100"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="urunlerSekmesi" class="hidden">
+            <div class="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"><div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Ürün & Hizmet Kataloğu</h2>
+                    <p class="text-sm text-slate-500 mt-1">Müşterilerin sipariş edebileceği yemekler, çaylar veya kiralama paketleri.</p>
+                </div>
+                <button onclick="formuKapatAc('yeniUrunFormu', 'butonMetniUrun', '+ Yeni Ürün')" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]"><span id="butonMetniUrun">+ Yeni Ürün</span></button>
+            </div>
+
+            <div id="yeniUrunFormu" class="hidden mb-8 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                <div class="mb-5 flex items-start justify-between gap-4"><div><div class="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Yeni Kayıt</div><h3 class="mt-1 text-xl font-black text-slate-900">Kataloğa Yeni Ürün Tanımla</h3></div><div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-right"><div class="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">İpucu</div><div class="mt-1 text-sm font-semibold text-slate-700">Ürün kartı ne kadar netse satış kararı o kadar hızlı gelir.</div></div></div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Ürün Adı</label>
+                        <input type="text" id="urunAdiInput" placeholder="Örn: Çay, Mercimek Çorbası" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-xs font-black uppercase tracking-[0.18em] text-slate-500">Kategori / Tür</label>
+                        <input type="text" id="urunKategoriInput" placeholder="Örn: İçecek, Çorba, Tatlı" class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-950">
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-xs font-black uppercase tracking-[0.18em] text-slate-500">Ürün Detayı</label>
+                        <input type="text" id="urunDetayInput" placeholder="Örn: Taze demlenmiş, özel harman, marka bilgisi" class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-950">
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-xs font-black uppercase tracking-[0.18em] text-slate-500">Satış Fiyatı (₺)</label>
+                        <input type="number" id="urunFiyatInput" placeholder="Örn: 20, 80, 250" class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-950">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">KDV Oranı (%)</label>
+                        <input type="number" id="urunKdvInput" value="0" class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-950">
+                    </div>
+                    <label class="flex items-center gap-2 text-sm font-bold text-slate-600 pt-8">
+                        <input type="checkbox" id="urunStokTakibiInput" class="w-4 h-4">
+                        Ambar takibi
+                    </label>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Başlangıç Stoğu</label>
+                        <input type="number" id="urunStokMiktarInput" value="0" class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-950">
+                    </div>
+                </div>
+                <div class="mt-6 flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between"><p class="text-xs font-medium text-slate-400">Kaydettiğin ürün, menü ya da hizmet sayfasında anında listelenir.</p><button onclick="yeniUrunEkle()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-6 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">Ürünü Kataloğa Kaydet</button></div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-5 border-b border-slate-50 bg-slate-50/70 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <span class="font-bold text-slate-700 text-sm tracking-wide uppercase">Kayıtlı Menü & Hizmetler</span>
+                    <span id="toplamUrunSayisi" class="bg-blue-50 text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full">0 Ürün</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-100 text-slate-400 text-[11px] font-bold uppercase bg-slate-50/30">
+                                <th class="p-4">Ürün Adı</th>
+                                <th class="p-4">Kategori</th>
+                                <th class="p-4">Detay</th>
+                                <th class="p-4">Fiyat</th>
+                                <th class="p-4 text-right">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="urunlerTabloGövdesi"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="personelSekmesi" class="hidden">
+            <div class="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"><div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Personel Yönetimi</h2>
+                    <p class="text-sm text-slate-500 mt-1">Sistemde sipariş açmaya yetkili garson veya çalışanlarınızın listesi.</p>
+                </div>
+                <button onclick="formuKapatAc('yeniPersonelFormu', 'butonMetniPersonel', '+ Yeni Personel')" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">
+                    <span id="butonMetniPersonel">+ Yeni Personel</span>
+                </button>
+            </div>
+
+            <div id="yeniPersonelFormu" class="hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 mb-8 max-w-2xl">
+                <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center space-x-2">
+                    <span>👥</span> <span>Sisteme Yetkili Personel Ekle</span>
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Kullanıcı Adı</label>
+                        <input type="text" id="personelKullaniciInput" placeholder="Örn: ahmet_garson" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Giriş Şifresi</label>
+                        <input type="password" id="personelSifreInput" placeholder="••••••" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
+                        <p class="mt-1 text-[11px] text-slate-400">En az 8 karakter, büyük/küçük harf ve rakam.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Sistem Rolü</label>
+                        <select id="personelRolSelect" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700 bg-white">
+                            <option value="garson">🏃 Garson / Saha Elemanı</option>
+                            <option value="admin">⚙️ Ortak Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-end">
+                    <button onclick="yeniPersonelEkle()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-6 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">Personeli Kaydet</button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-5 border-b border-slate-50 bg-slate-50/70 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <span class="font-bold text-slate-700 text-sm tracking-wide uppercase">Yetkili Personelleriniz</span>
+                    <span id="toplamPersonelSayisi" class="bg-blue-50 text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full">0 Personel</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-100 text-slate-400 text-[11px] font-bold uppercase bg-slate-50/30">
+                                <th class="p-4">Kullanıcı Adı</th>
+                                <th class="p-4">Rol</th>
+                                <th class="p-4 text-right">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="personelTabloGövdesi"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="personelSatisRaporuBolumu" class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-5 border-b border-slate-50 bg-slate-50/50 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div>
+                        <span class="font-bold text-slate-700 text-sm tracking-wide uppercase">Garson Satış Raporu</span>
+                        <p class="text-xs text-slate-500 mt-1">Hangi garson hangi üründen kaç adet satmış, burada görünür.</p>
+                    </div>
+                    <div class="flex flex-col gap-3 w-full lg:w-auto">
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" onclick="satisKategoriDegistir('tum')" data-kategori-buton="tum" class="px-3 py-2 rounded-full text-xs font-black border border-slate-200 bg-slate-900 text-white">Tümü</button>
+                            <button type="button" onclick="satisKategoriDegistir('tatli')" data-kategori-buton="tatli" class="px-3 py-2 rounded-full text-xs font-black border border-slate-200 bg-white text-slate-600">Tatlı</button>
+                            <button type="button" onclick="satisKategoriDegistir('icecek')" data-kategori-buton="icecek" class="px-3 py-2 rounded-full text-xs font-black border border-slate-200 bg-white text-slate-600">İçecek</button>
+                            <button type="button" onclick="satisKategoriDegistir('ana-yemek')" data-kategori-buton="ana-yemek" class="px-3 py-2 rounded-full text-xs font-black border border-slate-200 bg-white text-slate-600">Ana Yemek</button>
+                            <button type="button" onclick="satisKategoriDegistir('genel')" data-kategori-buton="genel" class="px-3 py-2 rounded-full text-xs font-black border border-slate-200 bg-white text-slate-600">Genel</button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input id="satisFiltreInput" type="text" placeholder="Garson veya ürün ara" oninput="personelSatisRaporuListele()" class="w-full lg:w-64 px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
+                            <button onclick="personelSatisRaporuYukle()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">Yenile</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-100 text-slate-400 text-[11px] font-bold uppercase bg-slate-50/30">
+                                <th class="p-4">Garson</th>
+                                <th class="p-4">Ürün</th>
+                                <th class="p-4">Tür</th>
+                                <th class="p-4 text-right">Satış Adedi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="personelSatisRaporuGovdesi"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="gelirGiderSekmesi" class="hidden">
+            <div class="border-b border-slate-200 pb-5 mb-6">
+                <h2 class="text-2xl font-black text-slate-800 tracking-tight">Gelir - Gider Takibi</h2>
+                <p class="text-sm text-slate-500 mt-1">İşletmenizin kasa hareketleri, günlük cirolar ve dükkan masrafları.</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+                <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+                    <div>
+                        <h3 class="text-xl font-black text-slate-900">Manuel Gelir / Gider Ekle</h3>
+                        <p class="text-sm text-slate-500 mt-1">Mazot, bakım, peşin ödeme, ekstra tahsilat gibi kayıtları buradan işleyin.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-[180px_1fr_180px] gap-4 mt-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Kayit Turu</label>
+                        <select id="finansKategoriInput" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-700 bg-white">
+                            <option value="Gelir">Gelir</option>
+                            <option value="Gider">Gider</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Baslik / Aciklama</label>
+                        <input type="text" id="finansBaslikInput" placeholder="Orn: Mazot alimi, Vinç kiralama tahsilati" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-700">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Tutar</label>
+                        <input type="number" id="finansTutarInput" placeholder="0" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-700">
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-end">
+                    <button onclick="finansKaydiEkle()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">Kaydi Isle</button>
+                </div>
+            </div>
+            <div id="gelirGiderPaneli" class="hidden mt-6">
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-2xl border border-emerald-100 shadow-sm overflow-hidden">
+                        <div class="p-5 border-b border-emerald-50 bg-emerald-50/60 flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-black uppercase text-emerald-600">Gelirler</span>
+                                <h3 id="toplamGelirDeger" class="text-2xl font-black text-emerald-700 mt-1">0.00 TL</h3>
+                            </div>
+                            <span class="h-10 w-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black">+</span>
+                        </div>
+                        <div id="gelirlerListesi" class="divide-y divide-slate-100"></div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-red-100 shadow-sm overflow-hidden">
+                        <div class="p-5 border-b border-red-50 bg-red-50/60 flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-black uppercase text-red-600">Giderler</span>
+                                <h3 id="toplamGiderDeger" class="text-2xl font-black text-red-700 mt-1">0.00 TL</h3>
+                            </div>
+                            <span class="h-10 w-10 rounded-xl bg-red-100 text-red-700 flex items-center justify-center font-black">-</span>
+                        </div>
+                        <div id="giderlerListesi" class="divide-y divide-slate-100"></div>
+                    </div>
+                </div>
+
+                <div id="netSonucKutusu" class="mt-6 rounded-2xl border p-6 shadow-sm bg-white">
+                    <span class="text-xs font-black uppercase text-slate-400">Net Sonuc</span>
+                    <h3 id="netSonucDeger" class="text-3xl font-black mt-1">0.00 TL</h3>
+                    <p id="netSonucAciklama" class="text-sm text-slate-500 mt-2">Gelir ve gider kayitlari yukleniyor.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="ambarSekmesi" class="hidden">
+            <div class="border-b border-slate-200 pb-5 mb-6">
+                <h2 class="text-2xl font-black text-slate-800 tracking-tight">Ambar</h2>
+                <p class="text-sm text-slate-500 mt-1">Stok takibi yapilan urunleri, alis miktarlarini ve gider kayitlarini yonetin.</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 mb-8">
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <select id="ambarUrunSelect" class="px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-700 bg-white"></select>
+                    <input type="number" id="ambarMiktarInput" placeholder="Alinan adet" class="px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-700">
+                    <input type="number" id="ambarAlisFiyatiInput" placeholder="Birim alis fiyati" class="px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-700">
+                    <button onclick="stokGirisiYap()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">Stoga Ekle</button>
+                </div>
+            </div>
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-100 text-slate-400 text-[11px] font-bold uppercase bg-slate-50/30">
+                            <th class="p-4">Urun</th>
+                            <th class="p-4">Kategori</th>
+                            <th class="p-4">Mevcut Stok</th>
+                            <th class="p-4">Satis Fiyati</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ambarTabloGovdesi"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="mesajlarSekmesi" class="hidden">
+            <div class="border-b border-slate-200 pb-5 mb-6">
+                <h2 class="text-2xl font-black text-slate-800 tracking-tight">Duyurular & İletişim</h2>
+                <p class="text-sm text-slate-500 mt-1">Süper admin duyurularını burada görün, gerektiğinde cevap yazıp destek isteyin.</p>
+            </div>
+            <div class="grid grid-cols-1 xl:grid-cols-[380px_1fr] gap-6">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                    <div class="flex items-center justify-between gap-3 mb-4">
+                        <div>
+                            <h3 class="text-lg font-black text-slate-800">Süper admine yaz</h3>
+                            <p class="text-sm text-slate-500 mt-1">Sorun, talep veya cevap iletmek için bu alanı kullan.</p>
+                        </div>
+                    </div>
+                    <input type="hidden" id="adminMesajUstId">
+                    <div id="adminMesajCevapKutusu" class="hidden mb-4 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700"></div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Baslik</label>
+                            <input type="text" id="adminMesajBaslikInput" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700" placeholder="Orn: Yazici baglantisi hakkinda">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Mesaj</label>
+                            <textarea id="adminMesajIcerikInput" rows="7" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700" placeholder="Detayli olarak yaz."></textarea>
+                        </div>
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="adminMesajGonder()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-6 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">Mesaji Gonder</button>
+                            <button onclick="adminMesajFormTemizle()" class="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-600 transition hover:bg-slate-50">Formu Temizle</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="p-5 border-b border-slate-50 bg-slate-50/70 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <span class="font-bold text-slate-700 text-sm tracking-wide uppercase">Dukkan Mesaj Akisi</span>
+                        <div class="flex items-center gap-2">
+                            <span id="toplamMesajSayisi" class="bg-blue-50 text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full">0 Mesaj</span>
+                            <button onclick="mesajlarVerisiniCek()" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-black text-slate-600 transition hover:bg-slate-50">Yenile</button>
+                        </div>
+                    </div>
+                    <div id="adminMesajListesi" class="divide-y divide-slate-100"></div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="/auth.js"></script>
+    <script>
+        // URL'den dükkan adını (slug) çekiyoruz
+        const urlSlices = window.location.pathname.split('/');
+        const dukkanSlug = urlSlices[1]; 
+        document.getElementById('panelDukkanAdi').innerText = dukkanSlug.replace('-', ' ') + " - Paneli";
+
+        (async function oturumKontrol() {
+            const personel = await oturumHazirla();
+            if (!personel) {
+                window.location.href = '/';
+                return;
+            }
+            const rol = String(personel.rol || '').toLocaleLowerCase('tr-TR').trim();
+            if (rol !== 'admin' && rol !== 'superadmin' && rol !== 'süperadmin') {
+                bildirimGoster('Bu panele erisim yetkiniz yok. Garson paneline yonlendiriliyorsunuz.', 'uyari');
+                setTimeout(() => {
+                    window.location.href = personel.dukkanSlug ? `/${personel.dukkanSlug}/garson` : '/';
+                }, 900);
+                return;
+            }
+            const rolEl = document.getElementById('sidebarPersonelAdi');
+            if (rolEl) rolEl.textContent = `${personelAdi(personel)} (${rolEtiketi(personel)})`;
+        })();
+
+        // Hafıza Listeleri
+        let ogeler = [];
+        let urunler = [];
+        let personeller = [];
+        let rezervasyonOgeleri = [];
+        let rezervasyonlar = [];
+        let rezervasyonAy = new Date();
+        let dukkanBilgisi = null;
+        let personelSatisRaporu = [];
+        let personelSatisKategori = 'tum';
+        let restoranIsletmesi = true;
+        let duzenlenenUrunId = null;
+        let duzenlenenOgeId = null;
+        let adminMesajlar = [];
+
+        function paraYaz(deger) {
+            return `${Number(deger || 0).toFixed(2)} TL`;
+        }
+
+        function restoranTuruMu(tur) {
+            const temizTur = String(tur || '').toLocaleLowerCase('tr-TR');
+            return temizTur.includes('restoran') || temizTur.includes('cafe') || temizTur.includes('kafe');
+        }
+
+        function satisKategoriEslesir(urunTuru, filtre) {
+            const tur = String(urunTuru || '').toLocaleLowerCase('tr-TR');
+            const f = String(filtre || 'tum').toLocaleLowerCase('tr-TR');
+            if (f === 'tum') return true;
+            if (f === 'tatli') return tur.includes('tatlı') || tur.includes('tatli');
+            if (f === 'icecek') return tur.includes('içecek') || tur.includes('icecek') || tur.includes('i̇çecek');
+            if (f === 'ana-yemek') return tur.includes('ana yemek') || tur.includes('anayemek') || tur.includes('yemek');
+            if (f === 'genel') return tur.includes('genel') || tur.includes('diğer') || tur.includes('diger');
+            return tur.includes(f);
+        }
+
+        function satisKategoriDegistir(kategori) {
+            personelSatisKategori = kategori;
+            document.querySelectorAll('[data-kategori-buton]').forEach(btn => {
+                const aktif = btn.dataset.kategoriButon === kategori;
+                btn.className = aktif
+                    ? 'px-3 py-2 rounded-full text-xs font-black border border-slate-900 bg-slate-900 text-white'
+                    : 'px-3 py-2 rounded-full text-xs font-black border border-slate-200 bg-white text-slate-600';
+            });
+            personelSatisRaporuListele();
+        }
+
+        function ogeTuruSecenekleriniAyarla() {
+            const select = document.getElementById('ogeTuruSelect');
+            if (!select) return;
+            select.innerHTML = restoranIsletmesi
+                ? '<option value="Masa">Masa (Restoran/Kafe)</option>'
+                : `
+                    <option value="Araç">Araç / Otomobil</option>
+                    <option value="Oda">Oda</option>
+                    <option value="Ev">Ev / Daire</option>
+                    <option value="Vinç">Vinç</option>
+                    <option value="Ekipman">Ekipman</option>
+                `;
+        }
+
+        function modulleriSektoruneGoreAyarla() {
+            const navGoster = (id, goster) => {
+                const el = document.getElementById(id);
+                if (el) el.classList.toggle('hidden', !goster);
+            };
+
+            navGoster('nav-rezervasyon', !restoranIsletmesi);
+            navGoster('nav-urunler', restoranIsletmesi);
+            navGoster('nav-ambar', restoranIsletmesi);
+
+            ['rezervasyonSekmesi', 'urunlerSekmesi', 'ambarSekmesi'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+
+            const kiralamaAlanlari = document.getElementById('kiralamaOgeAlanlari');
+            if (kiralamaAlanlari) kiralamaAlanlari.classList.toggle('hidden', restoranIsletmesi);
+
+            const satisBolumu = document.getElementById('personelSatisRaporuBolumu');
+            if (satisBolumu) satisBolumu.classList.toggle('hidden', !restoranIsletmesi);
+
+            ogeTuruSecenekleriniAyarla();
+        }
+
+        function sekmeKullanilabilirMi(sekmeId) {
+            if (restoranIsletmesi && sekmeId === 'rezervasyon') return false;
+            if (!restoranIsletmesi && (sekmeId === 'urunler' || sekmeId === 'ambar')) return false;
+            return true;
+        }
+
+        async function adminBilgisiniYukle() {
+            try {
+                const response = await fetch(`/api/${dukkanSlug}/admin-bilgi`);
+                if (!response.ok) throw new Error('Dukkan bilgisi alinamadi.');
+                const data = await response.json();
+                dukkanBilgisi = data.dukkan || null;
+                restoranIsletmesi = Boolean(data.restoranMi);
+                modulleriSektoruneGoreAyarla();
+            } catch (err) {
+                console.error('Admin bilgisi yukleme hatasi:', err);
+                restoranIsletmesi = true;
+                modulleriSektoruneGoreAyarla();
+            }
+        }
+
+        async function dukkanBilgileriniYukle() {
+            try {
+                const response = await fetch(`/api/${dukkanSlug}/dukkan-bilgileri`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Dükkan bilgileri alınamadı.');
+
+                dukkanBilgisi = data.dukkan || null;
+                document.getElementById('dukkanAdInput').value = dukkanBilgisi?.ad || '';
+                document.getElementById('dukkanTelefonInput').value = dukkanBilgisi?.telefon || '';
+                document.getElementById('dukkanAdresInput').value = dukkanBilgisi?.adres || '';
+                document.getElementById('dukkanAciklamaInput').value = dukkanBilgisi?.aciklama || '';
+                document.getElementById('dukkanLogoUrlInput').value = dukkanBilgisi?.logo_url || '';
+                document.getElementById('dukkanArkaPlanUrlInput').value = dukkanBilgisi?.arka_plan_url || '';
+
+                document.getElementById('dukkanOnizlemeAd').textContent = dukkanBilgisi?.ad || '-';
+                document.getElementById('dukkanOnizlemeTelefon').textContent = dukkanBilgisi?.telefon || '-';
+                document.getElementById('dukkanOnizlemeAdres').textContent = dukkanBilgisi?.adres || '-';
+                document.getElementById('dukkanOnizlemeAciklama').textContent = dukkanBilgisi?.aciklama || '-';
+                const onizlemeLogo = document.getElementById('dukkanOnizlemeLogo');
+                const onizlemeLogoFallback = document.getElementById('dukkanOnizlemeLogoFallback');
+                const onizlemeKarti = document.getElementById('dukkanOnizlemeKarti');
+                if (onizlemeLogo && onizlemeLogoFallback) {
+                    if (dukkanBilgisi?.logo_url) {
+                        onizlemeLogo.src = dukkanBilgisi.logo_url;
+                        onizlemeLogo.classList.remove('hidden');
+                        onizlemeLogoFallback.classList.add('hidden');
+                    } else {
+                        onizlemeLogo.classList.add('hidden');
+                        onizlemeLogoFallback.classList.remove('hidden');
+                    }
+                }
+                if (onizlemeKarti) {
+                    onizlemeKarti.style.backgroundImage = dukkanBilgisi?.arka_plan_url
+                        ? `linear-gradient(rgba(2, 6, 23, 0.78), rgba(2, 6, 23, 0.78)), url('${String(dukkanBilgisi.arka_plan_url).replace(/'/g, "%27")}')`
+                        : '';
+                }
+            } catch (err) {
+                console.error('Dükkan bilgileri yükleme hatası:', err);
+                bildirimGoster(err.message || 'Dükkan bilgileri yüklenemedi.', 'hata');
+            }
+        }
+
+        async function dukkanBilgileriniKaydet() {
+            const payload = {
+                ad: document.getElementById('dukkanAdInput').value.trim(),
+                telefon: document.getElementById('dukkanTelefonInput').value.trim(),
+                adres: document.getElementById('dukkanAdresInput').value.trim(),
+                aciklama: document.getElementById('dukkanAciklamaInput').value.trim(),
+                logo_url: document.getElementById('dukkanLogoUrlInput').value.trim(),
+                arka_plan_url: document.getElementById('dukkanArkaPlanUrlInput').value.trim()
+            };
+
+            if (!payload.ad) return bildirimGoster('Dükkan adı boş kalamaz.', 'uyari');
+
+            try {
+                const response = await fetch(`/api/${dukkanSlug}/dukkan-bilgileri`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Dükkan bilgileri kaydedilemedi.');
+
+                dukkanBilgisi = data.dukkan || dukkanBilgisi;
+                bildirimGoster('Dükkan bilgileri kaydedildi.', 'basari');
+                dukkanBilgileriniYukle();
+            } catch (err) {
+                bildirimGoster(err.message || 'Dükkan bilgileri kaydedilemedi.', 'hata');
+            }
+        }
+
+        async function genelOzetiYukle() {
+            try {
+                const response = await fetch(`/api/${dukkanSlug}/ozet`);
+                if (!response.ok) throw new Error('Ozet verisi alinamadi.');
+                const ozet = await response.json();
+
+                const kartlar = document.querySelectorAll('#ozetSekmesi h3');
+                if (kartlar[0]) kartlar[0].textContent = paraYaz(ozet.gunlukCiro);
+                if (kartlar[1]) kartlar[1].textContent = `${ozet.acikSiparisSayisi || 0} Adet`;
+
+                let aylikKart = document.getElementById('aylikCiroKart');
+                if (!aylikKart) {
+                    const grid = document.querySelector('#ozetSekmesi .grid');
+                    if (grid) {
+                        aylikKart = document.createElement('div');
+                        aylikKart.id = 'aylikCiroKart';
+                        aylikKart.className = 'bg-white p-6 rounded-2xl border border-slate-100 shadow-sm';
+                        aylikKart.innerHTML = `
+                            <span class="text-xs font-bold text-slate-400 uppercase">Aylik Ciro</span>
+                            <h3 class="text-2xl font-black text-slate-800 mt-2">0.00 TL</h3>
+                        `;
+                        grid.appendChild(aylikKart);
+                    }
+                }
+
+                const aylikDeger = aylikKart?.querySelector('h3');
+                if (aylikDeger) aylikDeger.textContent = paraYaz(ozet.aylikCiro);
+            } catch (err) {
+                console.error('Genel ozet yukleme hatasi:', err);
+            }
+        }
+
+        // 🔄 SEKMELER ARASI AKICI GEÇİŞ MOTORU
+        function kayitSatiri(kayit, tip) {
+            const renk = tip === 'gelir' ? 'text-emerald-700' : 'text-red-700';
+            const isaret = tip === 'gelir' ? '+' : '-';
+            const tarih = kayit.created_at ? new Date(kayit.created_at).toLocaleDateString('tr-TR') : '';
+            return `
+                <div class="p-4 flex items-center justify-between gap-4">
+                    <div class="min-w-0">
+                        <div class="font-bold text-slate-800 truncate">${kayit.baslik || 'Kayit'}</div>
+                        <div class="text-xs text-slate-400 mt-0.5">${kayit.kategori || 'Genel'} ${tarih ? '• ' + tarih : ''}</div>
+                    </div>
+                    <div class="font-black ${renk} whitespace-nowrap">${isaret}${paraYaz(kayit.tutar)}</div>
+                </div>
+            `;
+        }
+
+        function finansFormunuTemizle() {
+            document.getElementById('finansKategoriInput').value = 'Gelir';
+            document.getElementById('finansBaslikInput').value = '';
+            document.getElementById('finansTutarInput').value = '';
+        }
+
+        async function finansKaydiEkle() {
+            const payload = {
+                kategori: document.getElementById('finansKategoriInput').value,
+                baslik: document.getElementById('finansBaslikInput').value.trim(),
+                tutar: Number(document.getElementById('finansTutarInput').value || 0)
+            };
+
+            if (!payload.baslik || payload.tutar <= 0) {
+                return bildirimGoster('Kayit icin baslik ve pozitif tutar zorunlu.', 'uyari');
+            }
+
+            try {
+                const response = await fetch(`/api/${dukkanSlug}/gelir-gider/kayit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Finans kaydi eklenemedi.');
+
+                finansFormunuTemizle();
+                bildirimGoster('Finans kaydi eklendi.', 'basari');
+                gelirGiderYukle();
+            } catch (err) {
+                console.error('Finans kaydi ekleme hatasi:', err);
+                bildirimGoster(err.message || 'Finans kaydi eklenemedi.', 'hata');
+            }
+        }
+
+        async function gelirGiderYukle() {
+            try {
+                const panel = document.getElementById('gelirGiderPaneli');
+                if (panel) panel.classList.remove('hidden');
+
+                const eskiBilgiKutusu = document.querySelector('#gelirGiderSekmesi > .bg-white.p-8');
+                if (eskiBilgiKutusu) eskiBilgiKutusu.classList.add('hidden');
+
+                const response = await fetch(`/api/${dukkanSlug}/gelir-gider`);
+                if (!response.ok) throw new Error('Gelir gider verisi alinamadi.');
+                const data = await response.json();
+
+                document.getElementById('toplamGelirDeger').textContent = paraYaz(data.toplamGelir);
+                document.getElementById('toplamGiderDeger').textContent = paraYaz(data.toplamGider);
+
+                const gelirler = data.gelirler || [];
+                const giderler = data.giderler || [];
+                document.getElementById('gelirlerListesi').innerHTML = gelirler.length
+                    ? gelirler.map(k => kayitSatiri(k, 'gelir')).join('')
+                    : '<div class="p-5 text-sm text-slate-400">Henüz gelir kaydı yok.</div>';
+                document.getElementById('giderlerListesi').innerHTML = giderler.length
+                    ? giderler.map(k => kayitSatiri(k, 'gider')).join('')
+                    : '<div class="p-5 text-sm text-slate-400">Henüz gider kaydı yok.</div>';
+
+                const net = Number(data.netSonuc || 0);
+                const netDeger = document.getElementById('netSonucDeger');
+                const netKutu = document.getElementById('netSonucKutusu');
+                const netAciklama = document.getElementById('netSonucAciklama');
+                netDeger.textContent = `${net >= 0 ? '+' : ''}${paraYaz(net)}`;
+                netDeger.className = `text-3xl font-black mt-1 ${net >= 0 ? 'text-emerald-700' : 'text-red-700'}`;
+                netKutu.className = `mt-6 rounded-2xl border p-6 shadow-sm ${net >= 0 ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`;
+                netAciklama.textContent = net >= 0 ? 'İşletme bu dönem karda görünüyor.' : 'İşletme bu dönem zararda görünüyor.';
+            } catch (err) {
+                console.error('Gelir gider yukleme hatasi:', err);
+                bildirimGoster('Gelir gider verisi yuklenemedi.', 'hata');
+            }
+        }
+
+
+        function adminMesajTarihYaz(tarih) {
+            if (!tarih) return '-';
+            return new Date(tarih).toLocaleString('tr-TR');
+        }
+
+        function adminMesajRozetSinifi(mesaj) {
+            const tip = String(mesaj?.mesaj_turu || 'mesaj').toLocaleLowerCase('tr-TR');
+            if (tip === 'duyuru') return 'bg-amber-50 text-amber-700 border-amber-100';
+            if (tip === 'yanit') return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+            return 'bg-blue-50 text-blue-700 border-blue-100';
+        }
+
+        function adminMesajFormTemizle() {
+            document.getElementById('adminMesajBaslikInput').value = '';
+            document.getElementById('adminMesajIcerikInput').value = '';
+            document.getElementById('adminMesajUstId').value = '';
+            const kutu = document.getElementById('adminMesajCevapKutusu');
+            kutu.classList.add('hidden');
+            kutu.textContent = '';
+        }
+
+        function adminMesajaCevapHazirla(id, baslik, gonderen) {
+            document.getElementById('adminMesajUstId').value = String(id);
+            document.getElementById('adminMesajBaslikInput').value = baslik ? 'Re: ' + baslik : 'Yanıt';
+            document.getElementById('adminMesajIcerikInput').focus();
+            const kutu = document.getElementById('adminMesajCevapKutusu');
+            kutu.classList.remove('hidden');
+            kutu.textContent = (gonderen || 'Super admin') + ' mesajina cevap yaziyorsunuz.';
+        }
+
+        function adminMesajlariListele() {
+            const alan = document.getElementById('adminMesajListesi');
+            const sayi = document.getElementById('toplamMesajSayisi');
+            if (!alan) return;
+
+            sayi.textContent = adminMesajlar.length + ' Mesaj';
+
+            if (!adminMesajlar.length) {
+                alan.innerHTML = '<div class="p-6 text-sm text-slate-400">Henuz duyuru veya mesaj kaydi yok.</div>';
+                return;
+            }
+
+            alan.innerHTML = adminMesajlar.map((mesaj) => {
+                const onemli = mesaj.onemli ? '<span class="px-2 py-0.5 rounded-full border text-[11px] font-black bg-red-50 text-red-700 border-red-100">Onemli</span>' : '';
+                const cevapla = '<button onclick="adminMesajaCevapHazirla(' + mesaj.id + ', ' + JSON.stringify(mesaj.baslik || '') + ', ' + JSON.stringify(mesaj.gonderen_adi || '') + ')" class="text-xs font-black text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg transition">Cevapla</button>';
+                return '<div class="p-5 flex flex-col lg:flex-row lg:items-start justify-between gap-4">' +
+                    '<div class="min-w-0">' +
+                        '<div class="flex flex-wrap items-center gap-2">' +
+                            '<span class="font-black text-slate-800">' + (mesaj.baslik ? mesaj.baslik : 'Basliksiz mesaj') + '</span>' +
+                            '<span class="px-2 py-0.5 rounded-full border text-[11px] font-black ' + adminMesajRozetSinifi(mesaj) + '">' + (mesaj.mesaj_turu || 'mesaj') + '</span>' +
+                            onemli +
+                        '</div>' +
+                        '<div class="text-sm text-slate-500 mt-1">' + (mesaj.gonderen_adi || 'Bilinmiyor') + ' / ' + (mesaj.gonderen_rol || '-') + ' | ' + adminMesajTarihYaz(mesaj.created_at) + '</div>' +
+                        '<div class="text-sm text-slate-700 mt-3 whitespace-pre-wrap">' + (mesaj.icerik || '') + '</div>' +
+                    '</div>' +
+                    '<div class="flex items-center gap-3 lg:justify-end">' + cevapla + '</div>' +
+                '</div>';
+            }).join('');
+        }
+
+        async function mesajlarVerisiniCek() {
+            try {
+                const response = await fetch('/api/' + dukkanSlug + '/mesajlar');
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Mesajlar alinamadi.');
+
+                adminMesajlar = data.mesajlar || [];
+                adminMesajlariListele();
+            } catch (err) {
+                console.error('Mesaj yukleme hatasi:', err);
+                document.getElementById('adminMesajListesi').innerHTML = '<div class="p-6 text-sm text-red-500">' + (err.message || 'Mesajlar yuklenemedi.') + '</div>';
+            }
+        }
+
+        async function adminMesajGonder() {
+            const payload = {
+                baslik: document.getElementById('adminMesajBaslikInput').value.trim(),
+                icerik: document.getElementById('adminMesajIcerikInput').value.trim(),
+                ust_mesaj_id: document.getElementById('adminMesajUstId').value ? Number(document.getElementById('adminMesajUstId').value) : null
+            };
+
+            if (!payload.icerik) {
+                bildirimGoster('Mesaj icerigi zorunlu.', 'uyari');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/' + dukkanSlug + '/mesaj-gonder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Mesaj gonderilemedi.');
+
+                adminMesajFormTemizle();
+                bildirimGoster('Mesaj super admine gonderildi.', 'basari');
+                mesajlarVerisiniCek();
+            } catch (err) {
+                console.error('Mesaj gonderme hatasi:', err);
+                bildirimGoster(err.message || 'Mesaj gonderilemedi.', 'hata');
+            }
+        }
+
+        function sekmeDegistir(sekmeId) {
+            if (!sekmeKullanilabilirMi(sekmeId)) {
+                sekmeId = 'ozet';
+            }
+
+            // 1. Tüm seksiyonları gizle
+            const sekmeler = ['ozetSekmesi', 'dukkanBilgileriSekmesi', 'ogeYonetimiSekmesi', 'rezervasyonSekmesi', 'urunlerSekmesi', 'personelSekmesi', 'gelirGiderSekmesi', 'ambarSekmesi', 'mesajlarSekmesi'];
+            sekmeler.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+
+            // 2. Tıklanan seksiyonu görünür yap
+            let hedefSekme = 'ogeYonetimiSekmesi';
+            if (sekmeId === 'ozet') hedefSekme = 'ozetSekmesi';
+            if (sekmeId === 'dukkan-bilgileri') hedefSekme = 'dukkanBilgileriSekmesi';
+            if (sekmeId === 'oge-yonetimi') hedefSekme = 'ogeYonetimiSekmesi';
+            if (sekmeId === 'rezervasyon') hedefSekme = 'rezervasyonSekmesi';
+            if (sekmeId === 'urunler') hedefSekme = 'urunlerSekmesi';
+            if (sekmeId === 'personel') hedefSekme = 'personelSekmesi';
+            if (sekmeId === 'gelir-gider') hedefSekme = 'gelirGiderSekmesi';
+            if (sekmeId === 'ambar') hedefSekme = 'ambarSekmesi';
+            if (sekmeId === 'mesajlar') hedefSekme = 'mesajlarSekmesi';
+            
+            document.getElementById(hedefSekme).classList.remove('hidden');
+
+            // 3. Menü buton renklerini temizle ve aktifi parlat
+            const navIds = ['nav-ozet', 'nav-dukkan-bilgileri', 'nav-oge-yonetimi', 'nav-rezervasyon', 'nav-urunler', 'nav-personel', 'nav-gelir-gider', 'nav-ambar', 'nav-mesajlar'];
+            navIds.forEach(id => {
+                const navEl = document.getElementById(id);
+                if (navEl) {
+                    navEl.className = "flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition font-medium text-sm text-slate-400 hover:text-white";
+                    if ((restoranIsletmesi && id === 'nav-rezervasyon') || (!restoranIsletmesi && (id === 'nav-urunler' || id === 'nav-ambar'))) {
+                        navEl.classList.add('hidden');
+                    }
+                }
+            });
+
+            const aktifNav = document.getElementById('nav-' + sekmeId);
+            if (aktifNav) {
+                aktifNav.className = "flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600 text-white transition font-medium text-sm";
+            }
+
+            // 4. İlgili veriyi veritabanından tetikle
+            if (sekmeId === 'ozet') genelOzetiYukle();
+            if (sekmeId === 'dukkan-bilgileri') dukkanBilgileriniYukle();
+            if (sekmeId === 'oge-yonetimi') verileriSunucudanCek();
+            if (sekmeId === 'rezervasyon') rezervasyonVerileriniCek();
+            if (sekmeId === 'urunler') urunleriSunucudanCek();
+            if (sekmeId === 'personel') personelleriSunucudanCek();
+            if (sekmeId === 'gelir-gider') gelirGiderYukle();
+            if (sekmeId === 'ambar') ambarVerileriniCek();
+            if (sekmeId === 'mesajlar') mesajlarVerisiniCek();
+        }
+
+        // 🛠️ PANEL FORM AÇMA / KAPATMA YARDIMCISI
+        function canliOzetleriBaslat() {
+            genelOzetiYukle();
+            gelirGiderYukle();
+            setInterval(() => {
+                genelOzetiYukle();
+                gelirGiderYukle();
+            }, 15000);
+        }
+
+        function formuKapatAc(formId, butonId, varsayilanMetin) {
+            const form = document.getElementById(formId);
+            const btn = document.getElementById(butonId);
+            if (form.classList.contains('hidden')) {
+                form.classList.remove('hidden');
+                btn.innerText = "Formu Kapat";
+            } else {
+                form.classList.add('hidden');
+                btn.innerText = varsayilanMetin;
+            }
+        }
+
+        // ==========================================
+        // TAKVIM MODULU: REZERVASYON YONETIMI
+        // ==========================================
+        function rezSeciliOgeId() {
+            return document.getElementById('rezOgeSelect')?.value || '';
+        }
+
+        function rezTarihKey(date) {
+            const yil = date.getFullYear();
+            const ay = String(date.getMonth() + 1).padStart(2, '0');
+            const gun = String(date.getDate()).padStart(2, '0');
+            return `${yil}-${ay}-${gun}`;
+        }
+
+        function rezTarihYaz(tarih) {
+            if (!tarih) return '';
+            return new Date(`${tarih}T00:00:00`).toLocaleDateString('tr-TR');
+        }
+
+        function rezDurumRengi(durum) {
+            const temiz = String(durum || '').toLocaleLowerCase('tr-TR');
+            if (temiz === 'iptal') return 'bg-slate-100 text-slate-500 border-slate-200';
+            if (temiz === 'beklemede') return 'bg-amber-50 text-amber-700 border-amber-100';
+            return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+        }
+
+        function rezDoluMu(date) {
+            const key = rezTarihKey(date);
+            const seciliId = Number(rezSeciliOgeId());
+            return rezervasyonlar.some(r => {
+                const aktif = String(r.durum || '').toLocaleLowerCase('tr-TR') !== 'iptal';
+                return aktif && Number(r.oge_id) === seciliId && key >= r.baslangic_tarihi && key <= r.bitis_tarihi;
+            });
+        }
+
+        function rezAyDegistir(adim) {
+            rezervasyonAy = new Date(rezervasyonAy.getFullYear(), rezervasyonAy.getMonth() + adim, 1);
+            rezervasyonTakvimiCiz();
+        }
+
+        function rezervasyonTakvimiCiz() {
+            const grid = document.getElementById('rezTakvimGrid');
+            const baslik = document.getElementById('rezAyBaslik');
+            if (!grid || !baslik) return;
+
+            const yil = rezervasyonAy.getFullYear();
+            const ay = rezervasyonAy.getMonth();
+            const ilkGun = new Date(yil, ay, 1);
+            const sonGun = new Date(yil, ay + 1, 0);
+            const basBosluk = (ilkGun.getDay() + 6) % 7;
+
+            baslik.textContent = rezervasyonAy.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+            grid.innerHTML = '';
+
+            for (let i = 0; i < basBosluk; i++) grid.innerHTML += '<div></div>';
+            for (let gun = 1; gun <= sonGun.getDate(); gun++) {
+                const tarih = new Date(yil, ay, gun);
+                const dolu = rezDoluMu(tarih);
+                grid.innerHTML += `
+                    <div class="aspect-square rounded-lg flex items-center justify-center text-xs font-black border ${dolu ? 'bg-red-50 border-red-200 text-red-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}">
+                        ${gun}
+                    </div>
+                `;
+            }
+        }
+
+        function rezervasyonlariListele() {
+            const alan = document.getElementById('rezervasyonListesi');
+            const sayac = document.getElementById('toplamRezervasyonSayisi');
+            if (!alan) return;
+
+            const seciliId = Number(rezSeciliOgeId());
+            const liste = rezervasyonlar
+                .filter(r => !seciliId || Number(r.oge_id) === seciliId)
+                .sort((a, b) => String(a.baslangic_tarihi).localeCompare(String(b.baslangic_tarihi)));
+
+            if (sayac) sayac.textContent = `${liste.length} Kayit`;
+
+            if (!liste.length) {
+                alan.innerHTML = '<div class="p-6 text-sm text-slate-400">Bu varlik icin henuz rezervasyon yok.</div>';
+                return;
+            }
+
+            alan.innerHTML = liste.map(r => {
+                const oge = rezervasyonOgeleri.find(o => Number(o.id) === Number(r.oge_id));
+                const iptal = String(r.durum || '').toLocaleLowerCase('tr-TR') === 'iptal';
+                return `
+                    <div class="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div class="min-w-0">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="font-black text-slate-800">${r.musteri_ad || 'Musteri'}</span>
+                                <span class="px-2 py-0.5 rounded-full border text-[11px] font-black ${rezDurumRengi(r.durum)}">${r.durum || 'aktif'}</span>
+                            </div>
+                            <div class="text-sm text-slate-500 mt-1">${oge?.ad || 'Varlik'} | ${rezTarihYaz(r.baslangic_tarihi)} - ${rezTarihYaz(r.bitis_tarihi)}</div>
+                            <div class="text-xs text-slate-400 mt-1">${r.musteri_telefon || 'Telefon yok'} ${r.notlar ? '| ' + r.notlar : ''}</div>
+                        </div>
+                        <div class="flex items-center gap-3 lg:justify-end">
+                            <div class="font-black text-slate-800 whitespace-nowrap">${paraYaz(r.toplam_tutar)}</div>
+                            <button onclick="rezervasyonIptalEt(${r.id})" class="${iptal ? 'hidden' : ''} text-xs font-black text-red-600 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition">Iptal</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function rezervasyonVerileriniCek() {
+            if (restoranIsletmesi) return;
+
+            try {
+                const response = await fetch(`/api/${dukkanSlug}/rezervasyon-yonetim`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Rezervasyon verisi alinamadi.');
+
+                rezervasyonOgeleri = data.ogeler || [];
+                rezervasyonlar = data.rezervasyonlar || [];
+
+                const select = document.getElementById('rezOgeSelect');
+                if (select) {
+                    select.innerHTML = rezervasyonOgeleri.length
+                        ? rezervasyonOgeleri.map(o => `<option value="${o.id}">${o.ad} (${o.tur || 'Varlik'})</option>`).join('')
+                        : '<option value="">Once varlik ekleyin</option>';
+                }
+
+                rezervasyonlariListele();
+                rezervasyonTakvimiCiz();
+            } catch (err) {
+                console.error('Rezervasyon yukleme hatasi:', err);
+                bildirimGoster(err.message || 'Rezervasyonlar yuklenemedi.', 'hata');
+            }
+        }
+
+        function rezervasyonFormunuTemizle() {
+            document.getElementById('rezBaslangicInput').value = '';
+            document.getElementById('rezBitisInput').value = '';
+            document.getElementById('rezMusteriInput').value = '';
+            document.getElementById('rezTelefonInput').value = '';
+            document.getElementById('rezTutarInput').value = '';
+            document.getElementById('rezDurumSelect').value = 'aktif';
+            document.getElementById('rezNotInput').value = '';
+        }
+
+        async function rezervasyonKaydet() {
+            if (restoranIsletmesi) return bildirimGoster('Rezervasyon modulu restoranlar icin kapali.', 'uyari');
+
+            const payload = {
+                oge_id: rezSeciliOgeId(),
+                baslangic_tarihi: document.getElementById('rezBaslangicInput').value,
+                bitis_tarihi: document.getElementById('rezBitisInput').value,
+                musteri_ad: document.getElementById('rezMusteriInput').value.trim(),
+                musteri_telefon: document.getElementById('rezTelefonInput').value.trim(),
+                toplam_tutar: Number(document.getElementById('rezTutarInput').value || 0),
+                durum: document.getElementById('rezDurumSelect').value,
+                notlar: document.getElementById('rezNotInput').value.trim()
+            };
+
+            if (!payload.oge_id || !payload.baslangic_tarihi || !payload.bitis_tarihi || !payload.musteri_ad) {
+                return bildirimGoster('Varlik, tarih ve musteri adi zorunlu.', 'uyari');
+            }
+
+            try {
+                const response = await fetch(`/api/${dukkanSlug}/rezervasyon-ekle`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Rezervasyon kaydedilemedi.');
+
+                bildirimGoster('Rezervasyon takvime islendi.', 'basari');
+                rezervasyonFormunuTemizle();
+                rezervasyonVerileriniCek();
+            } catch (err) {
+                bildirimGoster(err.message || 'Rezervasyon kaydedilemedi.', 'hata');
+            }
+        }
+
+        async function rezervasyonIptalEt(id) {
+            const onay = await onayIste('Bu rezervasyonu iptal etmek istiyor musun?', 'Rezervasyon iptali');
+            if (!onay) return;
+
+            try {
+                const response = await fetch(`/api/${dukkanSlug}/rezervasyon/${id}/iptal`, { method: 'PATCH' });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Rezervasyon iptal edilemedi.');
+
+                bildirimGoster('Rezervasyon iptal edildi.', 'basari');
+                rezervasyonVerileriniCek();
+            } catch (err) {
+                bildirimGoster(err.message || 'Rezervasyon iptal edilemedi.', 'hata');
+            }
+        }
+
+        // ==========================================
+        // 📦 MODÜL 1: BİRİM (ÖĞE) YÖNETİMİ
+        // ==========================================
+        function verileriSunucudanCek() {
+            fetch(`/api/${dukkanSlug}/ogeler`)
+                .then(res => res.json())
+                .then(gelenVeriler => {
+                    ogeler = gelenVeriler || [];
+                    ogeleriListele();
+                }).catch(err => console.error("Öğe çekme hatası:", err));
+        }
+
+        function ogeleriListele() {
+            const govde = document.getElementById('ogelerTabloGövdesi');
+            govde.innerHTML = "";
+            ogeler.forEach((oge) => {
+                let rozetRengi = "bg-slate-100 text-slate-700";
+                if (oge.tur === "Masa") rozetRengi = "bg-amber-50 text-amber-700 border-amber-100";
+                if (oge.tur === "Araç") rozetRengi = "bg-indigo-50 text-indigo-700 border-indigo-100";
+                if (oge.tur === "Oda")  rozetRengi = "bg-emerald-50 text-emerald-700 border-emerald-100";
+                const detaySatiri = !restoranIsletmesi && (oge.detay || Number(oge.fiyat || 0) > 0)
+                    ? `<div class="text-xs text-slate-400 mt-1">${oge.detay || 'Detay yok'} ${Number(oge.fiyat || 0) > 0 ? ' | ' + paraYaz(oge.fiyat) : ''}</div>`
+                    : '';
+
+                govde.innerHTML += `
+                    <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition text-sm">
+                        <td class="p-4">
+                            <div class="font-bold text-slate-800">${oge.ad}</div>
+                            ${detaySatiri}
+                        </td>
+                        <td class="p-4"><span class="px-2.5 py-1 text-xs font-semibold rounded-full border ${rozetRengi}">${oge.tur}</span></td>
+                        <td class="p-4 font-mono text-xs text-blue-600 select-all tracking-tight">esnoloji.com/${dukkanSlug}?oge=${oge.ad.toLowerCase().replace(/\s+/g, '-')}</td>
+                        <td class="p-4 text-right">
+                            <button onclick='ogeDuzenleAc(${JSON.stringify(oge).replace(/"/g, "&quot;")})'
+                                class="text-xs font-bold text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition">
+                                Düzenle
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('toplamOgeSayisi').innerText = ogeler.length + " Öğe";
+        }
+
+        function yeniOgeEkle() {
+            const adInput = document.getElementById('ogeAdiInput');
+            const turSelect = document.getElementById('ogeTuruSelect');
+            const detayInput = document.getElementById('ogeDetayInput');
+            const fiyatInput = document.getElementById('ogeFiyatInput');
+            if (adInput.value.trim() === "") return bildirimGoster("Lütfen bir isim yazın.", "uyari");
+
+            fetch(`/api/${dukkanSlug}/yeniOgeEkle`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ad: adInput.value.trim(),
+                    tur: turSelect.value,
+                    detay: restoranIsletmesi ? null : detayInput.value.trim(),
+                    fiyat: restoranIsletmesi ? null : Number(fiyatInput.value || 0)
+                })
+            }).then(res => res.json()).then(data => {
+                adInput.value = "";
+                if (detayInput) detayInput.value = "";
+                if (fiyatInput) fiyatInput.value = "";
+                formuKapatAc('yeniOgeFormu', 'butonMetniOge', '+ Yeni Birim');
+                verileriSunucudanCek();
+            });
+        }
+
+        function ogeDuzenleTuruAyarla(seciliTur = '') {
+            const select = document.getElementById('modalOgeTur');
+            if (!select) return;
+
+            select.innerHTML = restoranIsletmesi
+                ? '<option value="Masa">Masa</option>'
+                : `
+                    <option value="Araç">Araç</option>
+                    <option value="Oda">Oda</option>
+                    <option value="Ev">Ev</option>
+                    <option value="Vinç">Vinç</option>
+                    <option value="Ekipman">Ekipman</option>
+                    <option value="Masa">Masa</option>
+                `;
+
+            if (seciliTur) select.value = seciliTur;
+        }
+
+        function ogeDuzenleAc(oge) {
+            duzenlenenOgeId = oge.id;
+            ogeDuzenleTuruAyarla(oge.tur || '');
+            document.getElementById('modalOgeAdi').value = oge.ad || '';
+            document.getElementById('modalOgeDetay').value = oge.detay || '';
+            document.getElementById('modalOgeFiyat').value = Number(oge.fiyat || 0);
+            document.getElementById('duzenleOgeModal').classList.remove('hidden');
+        }
+
+        function ogeDuzenleKapat() {
+            duzenlenenOgeId = null;
+            document.getElementById('duzenleOgeModal').classList.add('hidden');
+        }
+
+        function ogeGuncelleKaydet() {
+            const id = duzenlenenOgeId;
+            if (!id) return;
+
+            const payload = {
+                ad: document.getElementById('modalOgeAdi').value.trim(),
+                tur: document.getElementById('modalOgeTur').value,
+                detay: document.getElementById('modalOgeDetay').value.trim(),
+                fiyat: restoranIsletmesi ? null : Number(document.getElementById('modalOgeFiyat').value || 0)
+            };
+
+            if (!payload.ad) return bildirimGoster('Birim adı boş olamaz.', 'uyari');
+
+            fetch(`/api/${dukkanSlug}/oge-guncelle/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json().then(data => ({ ok: res.ok, data })))
+            .then(({ ok, data }) => {
+                if (!ok) return bildirimGoster(data.error || 'Birim güncellenemedi.', 'hata');
+                ogeDuzenleKapat();
+                verileriSunucudanCek();
+            })
+            .catch(err => {
+                console.error('Birim güncelleme hatası:', err);
+                bildirimGoster('Birim güncellenirken bağlantı hatası oluştu.', 'hata');
+            });
+        }
+
+        // ==========================================
+        // ☕ MODÜL 2: ÜRÜN YÖNETİMİ
+        // ==========================================
+        function urunleriSunucudanCek() {
+            fetch(`/api/${dukkanSlug}/urunler`)
+                .then(res => res.json())
+                .then(data => {
+                    urunler = Array.isArray(data) ? data : [];
+                    urunleriListele();
+                }).catch(err => console.error("Ürün çekme hatası:", err));
+        }
+
+        function urunleriListele() {
+            const govde = document.getElementById('urunlerTabloGövdesi');
+            if (!govde) return;
+            govde.innerHTML = "";
+
+            urunler.forEach((urun) => {
+                const urunDetayi = urun.detay
+                    ? urun.detay
+                    : '<span class="italic text-slate-300">Açıklama girilmemiş</span>';
+
+                govde.innerHTML += `
+                    <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition text-sm">
+                        <td class="p-4">
+                            <div class="font-bold text-slate-800">${urun.ad}</div>
+                        </td>
+                        <td class="p-4">
+                            <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                                ${urun.tur || urun.kategori || 'Genel'}
+                            </span>
+                        </td>
+                        <td class="p-4 text-slate-600">${urunDetayi}</td>
+                        <td class="p-4 font-bold text-slate-700">${urun.fiyat} ₺
+                            <div class="text-[10px] text-slate-400">KDV: ${urun.kdv_orani || 0}%</div>
+                            <div class="text-[10px] ${urun.stok_takibi ? 'text-emerald-600' : 'text-slate-400'}">${urun.stok_takibi ? `Stok: ${urun.stok_miktar || 0}` : 'Stok takibi yok'}</div>
+                        </td>
+                        <td class="p-4 text-right flex justify-end gap-2">
+                            <button onclick='modalAc(${JSON.stringify(urun).replace(/"/g, "&quot;")})'
+                                class="text-xs font-bold text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition">
+                                Düzenle
+                            </button>
+                            <button onclick="urunSil(${urun.id})" class="text-xs font-bold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition">
+                                Sil
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            const sayac = document.getElementById('toplamUrunSayisi');
+            if (sayac) sayac.innerText = urunler.length + " Ürün";
+        }
+
+        function urunFormunuTemizle() {
+            document.getElementById('urunAdiInput').value = "";
+            document.getElementById('urunKategoriInput').value = "";
+            document.getElementById('urunDetayInput').value = "";
+            document.getElementById('urunFiyatInput').value = "";
+            document.getElementById('urunKdvInput').value = "0";
+            document.getElementById('urunStokTakibiInput').checked = false;
+            document.getElementById('urunStokMiktarInput').value = "0";
+            duzenlenenUrunId = null;
+        }
+
+        function yeniUrunEkle() {
+            const ad = document.getElementById('urunAdiInput').value.trim();
+            const tur = document.getElementById('urunKategoriInput').value.trim();
+            const detay = document.getElementById('urunDetayInput').value.trim();
+            const fiyat = document.getElementById('urunFiyatInput').value.trim();
+            const kdv_orani = Number(document.getElementById('urunKdvInput').value || 0);
+            const stok_takibi = document.getElementById('urunStokTakibiInput').checked;
+            const stok_miktar = Number(document.getElementById('urunStokMiktarInput').value || 0);
+
+            if (!ad || !tur || !fiyat) {
+                bildirimGoster("Lütfen ürün adı, kategori ve fiyat alanlarını doldurun.", "uyari");
+                return;
+            }
+
+            const method = duzenlenenUrunId ? 'PUT' : 'POST';
+            const url = duzenlenenUrunId
+                ? `/api/${dukkanSlug}/urun-guncelle/${duzenlenenUrunId}`
+                : `/api/${dukkanSlug}/urun-ekle`;
+
+            fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ad, tur, detay, fiyat: Number(fiyat), kdv_orani, stok_takibi, stok_miktar })
+            })
+            .then(res => res.json().then(data => ({ ok: res.ok, data })))
+            .then(({ ok, data }) => {
+                if (!ok) {
+                    bildirimGoster(data.error || "Ürün kaydedilemedi.", "hata");
+                    return;
+                }
+                urunFormunuTemizle();
+                formuKapatAc('yeniUrunFormu', 'butonMetniUrun', '+ Yeni Ürün');
+                urunleriSunucudanCek();
+            })
+            .catch(err => {
+                console.error("Ürün ekleme hatası:", err);
+                bildirimGoster("Ürün eklenirken bir bağlantı hatası oluştu.", "hata");
+            });
+        }
+
+        async function urunSil(id) {
+            const onay = await onayIste("Bu ürünü silmek istediğine emin misin?", "Ürünü sil");
+            if (!onay) return;
+
+            fetch(`/api/${dukkanSlug}/urun-sil/${id}`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        urunleriSunucudanCek();
+                    } else {
+                        bildirimGoster(data.error || "Ürün silinirken bir hata oluştu.", "hata");
+                    }
+                })
+                .catch(err => console.error("Silme hatası:", err));
+        }
+
+        // ==========================================
+        // 👥 MODÜL 3: PERSONEL YÖNETİMİ
+        // ==========================================
+        function personelleriSunucudanCek() {
+            fetch(`/api/${dukkanSlug}/personeller`)
+                .then(res => res.json())
+                .then(data => {
+                    personeller = data || [];
+                    personelleriListele();
+                }).catch(err => console.error("Personel çekme hatası:", err));
+        }
+
+        function personelSatisRaporuYukle() {
+            const govde = document.getElementById('personelSatisRaporuGovdesi');
+            if (!restoranIsletmesi) {
+                personelSatisRaporu = [];
+                if (govde) govde.innerHTML = '';
+                return;
+            }
+
+            fetch(`/api/${dukkanSlug}/personel-satis-raporu`)
+                .then(res => res.json().then(data => ({ ok: res.ok, data })))
+                .then(({ ok, data }) => {
+                    if (!ok) throw new Error(data.error || 'Satis raporu alinamadi.');
+                    personelSatisRaporu = Array.isArray(data) ? data : [];
+                    personelSatisRaporuListele();
+                })
+                .catch(err => {
+                    console.error('Personel satis raporu hatasi:', err);
+                    if (govde) govde.innerHTML = '<tr><td colspan="4" class="p-5 text-sm text-slate-400">Satis raporu yuklenemedi.</td></tr>';
+                });
+        }
+
+        function personelSatisRaporuListele() {
+            const govde = document.getElementById('personelSatisRaporuGovdesi');
+            if (!govde) return;
+
+            const filtre = String(document.getElementById('satisFiltreInput')?.value || '').toLocaleLowerCase('tr-TR').trim();
+            const liste = personelSatisRaporu.filter(item => {
+                if (!satisKategoriEslesir(item.urun_tur, personelSatisKategori)) return false;
+                if (!filtre) return true;
+                const metin = `${item.personel_adi || ''} ${item.urun_adi || ''} ${item.urun_tur || ''}`.toLocaleLowerCase('tr-TR');
+                return metin.includes(filtre);
+            });
+
+            if (!liste.length) {
+                govde.innerHTML = '<tr><td colspan="4" class="p-5 text-sm text-slate-400">Eşleşen satış kaydı yok.</td></tr>';
+                return;
+            }
+
+            govde.innerHTML = liste.map(item => `
+                <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition text-sm">
+                    <td class="p-4 font-bold text-slate-800">${item.personel_adi || 'Bilinmiyor'}</td>
+                    <td class="p-4 text-slate-700">${item.urun_adi || 'Ürün'}</td>
+                    <td class="p-4"><span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700 border border-slate-200">${item.urun_tur || 'Genel'}</span></td>
+                    <td class="p-4 text-right font-black text-slate-800">${Number(item.toplam_adet || 0)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function personelleriListele() {
+            const govde = document.getElementById('personelTabloGövdesi');
+            govde.innerHTML = "";
+            personeller.forEach((p) => {
+                govde.innerHTML += `
+                    <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition text-sm">
+                        <td class="p-4 font-bold text-slate-800">${p.kullanici_id}</td>
+                        <td class="p-4"><span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-purple-50 text-purple-700 border border-purple-100 uppercase">${p.rol}</span></td>
+                        <td class="p-4 text-right"><button class="text-xs font-semibold text-red-400 opacity-50 cursor-not-allowed">Sil</button></td>
+                    </tr>
+                `;
+            });
+            document.getElementById('toplamPersonelSayisi').innerText = personeller.length + " Personel";
+            if (restoranIsletmesi) {
+                personelSatisRaporuYukle();
+            } else {
+                personelSatisRaporu = [];
+                const satisGovde = document.getElementById('personelSatisRaporuGovdesi');
+                if (satisGovde) satisGovde.innerHTML = '';
+            }
+        }
+
+        function yeniPersonelEkle() {
+            const kullanici_id = document.getElementById('personelKullaniciInput').value.trim();
+            const sifre = document.getElementById('personelSifreInput').value.trim();
+            const rol = document.getElementById('personelRolSelect').value;
+
+            if (!kullanici_id || !sifre) return bildirimGoster("Kullanıcı adı ve şifre zorunlu.", "uyari");
+
+            fetch(`/api/${dukkanSlug}/personel-ekle`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ kullanici_id, sifre, rol })
+            })
+            .then(res => res.json().then(data => ({ ok: res.ok, data })))
+            .then(({ ok, data }) => {
+                if (!ok) return bildirimGoster(data.error || "Personel kaydedilemedi.", "hata");
+                document.getElementById('personelKullaniciInput').value = "";
+                document.getElementById('personelSifreInput').value = "";
+                formuKapatAc('yeniPersonelFormu', 'butonMetniPersonel', '+ Yeni Personel');
+                personelleriSunucudanCek();
+            })
+            .catch(err => {
+                console.error("Personel ekleme hatası:", err);
+                bildirimGoster("Personel eklenirken bağlantı hatası oluştu.", "hata");
+            });
+        }
+        // Modal'ı aç ve verileri doldur
+        function ambarVerileriniCek() {
+            fetch(`/api/${dukkanSlug}/ambar`)
+                .then(res => res.json())
+                .then(data => {
+                    const liste = Array.isArray(data) ? data : [];
+                    const select = document.getElementById('ambarUrunSelect');
+                    const govde = document.getElementById('ambarTabloGovdesi');
+                    if (!select || !govde) return;
+
+                    select.innerHTML = liste.map(u => `<option value="${u.id}">${u.ad}</option>`).join('');
+                    govde.innerHTML = liste.map(u => `
+                        <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition text-sm">
+                            <td class="p-4 font-bold text-slate-800">${u.ad}</td>
+                            <td class="p-4 text-slate-500">${u.tur || 'Genel'}</td>
+                            <td class="p-4 font-black text-slate-800">${u.stok_miktar || 0}</td>
+                            <td class="p-4 font-bold text-slate-700">${u.fiyat || 0} TL</td>
+                        </tr>
+                    `).join('');
+                })
+                .catch(err => console.error('Ambar yukleme hatasi:', err));
+        }
+
+        function stokGirisiYap() {
+            const urun_id = document.getElementById('ambarUrunSelect').value;
+            const miktar = Number(document.getElementById('ambarMiktarInput').value || 0);
+            const alis_fiyati = Number(document.getElementById('ambarAlisFiyatiInput').value || 0);
+            if (!urun_id || miktar <= 0) return bildirimGoster('Urun ve miktar zorunlu.', 'uyari');
+
+            fetch(`/api/${dukkanSlug}/ambar/stok-giris`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ urun_id, miktar, alis_fiyati })
+            })
+            .then(res => res.json().then(data => ({ ok: res.ok, data })))
+            .then(({ ok, data }) => {
+                if (!ok) return bildirimGoster(data.error || 'Stok girisi yapilamadi.', 'hata');
+                document.getElementById('ambarMiktarInput').value = '';
+                document.getElementById('ambarAlisFiyatiInput').value = '';
+                ambarVerileriniCek();
+                urunleriSunucudanCek();
+            });
+        }
+
+function modalAc(urun) {
+    document.getElementById('modalUrunId').value = urun.id;
+    document.getElementById('modalUrunAdi').value = urun.ad;
+    document.getElementById('modalUrunTur').value = urun.tur;
+    document.getElementById('modalUrunDetay').value = urun.detay || "";
+    document.getElementById('modalUrunFiyat').value = urun.fiyat;
+    document.getElementById('modalUrunKdv').value = urun.kdv_orani || 0;
+    document.getElementById('modalUrunStokTakibi').checked = !!urun.stok_takibi;
+    document.getElementById('modalUrunStokMiktar').value = urun.stok_miktar || 0;
+    
+    document.getElementById('duzenleModal').classList.remove('hidden');
+}
+
+function modalKapat() {
+    document.getElementById('duzenleModal').classList.add('hidden');
+}
+
+// Kaydetme işlemi
+function urunuGuncelleKaydet() {
+    const id = document.getElementById('modalUrunId').value;
+    const guncelVeri = {
+        ad: document.getElementById('modalUrunAdi').value,
+        tur: document.getElementById('modalUrunTur').value,
+        detay: document.getElementById('modalUrunDetay').value,
+        fiyat: Number(document.getElementById('modalUrunFiyat').value),
+        kdv_orani: Number(document.getElementById('modalUrunKdv').value || 0),
+        stok_takibi: document.getElementById('modalUrunStokTakibi').checked,
+        stok_miktar: Number(document.getElementById('modalUrunStokMiktar').value || 0)
+    };
+
+    fetch(`/api/${dukkanSlug}/urun-guncelle/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(guncelVeri)
+    }).then(() => {
+        modalKapat();
+        urunleriSunucudanCek(); // Listeyi yenile
+    });
+}
+
+        async function paneliBaslat() {
+            await adminBilgisiniYukle();
+            sekmeDegistir('ozet');
+            canliOzetleriBaslat();
+        }
+
+        paneliBaslat();
+    </script>
+    <div id="duzenleModal" class="hidden fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+        <h2 class="text-lg font-bold text-slate-800 mb-4">Ürün Düzenle</h2>
+        
+        <input type="hidden" id="modalUrunId">
+        
+        <div class="space-y-4">
+            <input type="text" id="modalUrunAdi" class="w-full p-3 border border-slate-200 rounded-xl" placeholder="Ürün Adı">
+            <input type="text" id="modalUrunTur" class="w-full p-3 border border-slate-200 rounded-xl" placeholder="Kategori">
+            <textarea id="modalUrunDetay" class="w-full p-3 border border-slate-200 rounded-xl" placeholder="Detay"></textarea>
+            <input type="number" id="modalUrunFiyat" class="w-full p-3 border border-slate-200 rounded-xl" placeholder="Fiyat">
+            <input type="number" id="modalUrunKdv" class="w-full p-3 border border-slate-200 rounded-xl" placeholder="KDV Orani">
+            <label class="flex items-center gap-2 text-sm font-bold text-slate-600">
+                <input type="checkbox" id="modalUrunStokTakibi" class="w-4 h-4">
+                Ambar takibi
+            </label>
+            <input type="number" id="modalUrunStokMiktar" class="w-full p-3 border border-slate-200 rounded-xl" placeholder="Stok miktari">
+        </div>
+
+        <div class="flex gap-2 mt-6">
+            <button onclick="modalKapat()" class="flex-1 py-3 text-slate-600 font-bold bg-slate-100 rounded-xl">İptal</button>
+            <button onclick="urunuGuncelleKaydet()" class="flex-1 py-3 text-white font-bold bg-blue-600 rounded-xl">Kaydet</button>
+        </div>
+    </div>
+</div>
+    <div id="duzenleOgeModal" class="hidden fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <h2 class="text-lg font-bold text-slate-800 mb-4">Birim Düzenle</h2>
+
+            <div class="space-y-4">
+                <input type="text" id="modalOgeAdi" class="w-full p-3 border border-slate-200 rounded-xl" placeholder="Birim Adı">
+                <select id="modalOgeTur" class="w-full p-3 border border-slate-200 rounded-xl bg-white"></select>
+                <textarea id="modalOgeDetay" class="w-full p-3 border border-slate-200 rounded-xl" placeholder="Detay"></textarea>
+                <input type="number" id="modalOgeFiyat" class="w-full p-3 border border-slate-200 rounded-xl" placeholder="Fiyat">
+            </div>
+
+            <div class="flex gap-2 mt-6">
+                <button onclick="ogeDuzenleKapat()" class="flex-1 py-3 text-slate-600 font-bold bg-slate-100 rounded-xl">İptal</button>
+                <button onclick="ogeGuncelleKaydet()" class="flex-1 py-3 text-white font-bold bg-blue-600 rounded-xl">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

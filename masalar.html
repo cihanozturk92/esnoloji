@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masa ve Sipariş Yönetimi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 font-sans min-h-screen">
+
+    <div class="bg-slate-900 text-white p-6 shadow-md flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-black text-orange-400">esnoloji<span class="text-white">.şef</span></h1>
+            <p id="baslikDukkan" class="text-xs text-slate-400 uppercase font-bold mt-0.5">Yükleniyor...</p>
+        </div>
+        <span class="bg-orange-500/10 text-orange-400 text-xs font-bold px-3 py-1 rounded-full border border-orange-500/20">
+            Garson Ekranı
+        </span>
+    </div>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        <h2 class="text-xl font-extrabold text-slate-800 mb-6">🍽️ Sipariş Alınacak Masayı Seçin</h2>
+        
+        <div id="masalarGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            </div>
+    </main>
+
+    <script>
+        const urlSlices = window.location.pathname.split('/');
+        const dukkanSlug = urlSlices[1];
+
+        fetch(`/api/${dukkanSlug}/data`)
+            .then(res => res.json())
+            .then(dukkan => {
+                document.getElementById('baslikDukkan').innerText = dukkan.ad + " - Canlı Masa Durumu";
+
+                const grid = document.getElementById('masalarGrid');
+                grid.innerHTML = "";
+
+                // Veritabanındaki masaları tıkır tıkır listeliyoruz
+                dukkan.masalar.forEach(masa => {
+                    grid.innerHTML += `
+                        <button onclick="alert('${masa} için sipariş ekranı yakında açılacak kanka!')" class="bg-white p-6 rounded-2xl border border-slate-200 hover:border-orange-500 shadow-sm hover:shadow-md transition text-center flex flex-col justify-center items-center gap-2 group active:scale-95">
+                            <span class="text-2xl group-hover:scale-110 transition duration-200">🪑</span>
+                            <span class="font-bold text-slate-800 text-base">${masa}</span>
+                            <span class="text-[10px] bg-emerald-50 text-emerald-600 font-bold px-2 py-0.5 rounded uppercase tracking-wider">Boş</span>
+                        </button>
+                    `;
+                });
+            });
+    </script>
+</body>
+</html>

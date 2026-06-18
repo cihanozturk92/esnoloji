@@ -1,0 +1,337 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dijital Menü</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        html, body { max-width: 100%; overflow-x: hidden; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @media (max-width: 480px) {
+            #dukkan-adi {
+                font-size: 2rem !important;
+                line-height: 2.35rem !important;
+            }
+
+            #dukkan-iletisim {
+                gap: 8px !important;
+            }
+
+            #panelKisayollari {
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+            }
+
+            #panelKisayollari button {
+                padding-left: 10px;
+                padding-right: 10px;
+                white-space: nowrap;
+            }
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-slate-950 font-sans antialiased">
+    <header class="relative overflow-hidden bg-slate-950 text-white">
+        <div id="dukkan-hero-arkaplan" class="absolute inset-0 opacity-30 bg-[url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1400&q=80')] bg-cover bg-center"></div>
+        <div class="absolute inset-0 bg-slate-950/70"></div>
+
+        <div class="relative max-w-5xl mx-auto px-5 pt-5 pb-10">
+            <div class="flex items-center justify-between gap-3">
+                <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold backdrop-blur">
+                    <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+                    Açık
+                </span>
+
+                <div id="personelKartvizit" class="hidden rounded-xl bg-white/10 px-3 py-2 text-right text-xs backdrop-blur border border-white/10">
+                    <div id="personelAd" class="font-black text-white"></div>
+                    <div id="personelGorev" class="text-[10px] font-bold text-amber-200"></div>
+                </div>
+            </div>
+
+            <div class="mt-14 grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)] lg:items-start">
+                <div class="max-w-4xl">
+                    <div class="mb-4 inline-flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-amber-400 text-slate-950 shadow-xl">
+                        <img id="dukkan-logo" class="hidden h-full w-full object-cover" alt="Dukkan logosu">
+                        <i class="fa-solid fa-utensils text-2xl" id="dukkan-icon"></i>
+                    </div>
+                    <h1 id="dukkan-adi" class="text-4xl sm:text-5xl font-black tracking-tight">Yükleniyor...</h1>
+                    <p id="dukkan-sektor" class="mt-3 text-sm sm:text-base text-stone-200">Restoran & Kafe</p>
+                </div>
+
+                <aside class="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-2xl backdrop-blur sm:p-5 lg:justify-self-end lg:max-w-md">
+                    <div class="text-[11px] font-black uppercase tracking-[0.24em] text-amber-200">Künye</div>
+                    <p id="dukkan-aciklama" class="mt-3 text-sm sm:text-base leading-7 text-stone-100/95">Lezzetli bir menü sizi bekliyor.</p>
+                    <div id="dukkan-iletisim" class="mt-5 flex flex-wrap gap-3 lg:justify-end"></div>
+                </aside>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-5 pb-16">
+        <section class="-mt-6 relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="rounded-2xl bg-white p-4 shadow-sm border border-stone-200">
+                <div class="text-xs font-black uppercase text-slate-400">Servis</div>
+                <div class="mt-1 font-black text-slate-900">Masada menü</div>
+            </div>
+            <div class="rounded-2xl bg-white p-4 shadow-sm border border-stone-200">
+                <div class="text-xs font-black uppercase text-slate-400">Fiyatlar</div>
+                <div class="mt-1 font-black text-slate-900">Güncel liste</div>
+            </div>
+            <div class="rounded-2xl bg-white p-4 shadow-sm border border-stone-200">
+                <div class="text-xs font-black uppercase text-slate-400">Lezzetler</div>
+                <div class="mt-1 font-black text-slate-900">Taze seçimler</div>
+            </div>
+        </section>
+
+        <section class="sticky top-0 z-20 -mx-5 mt-6 border-y border-stone-200 bg-stone-50/95 px-5 py-3 backdrop-blur">
+            <div id="kategori-listesi" class="flex gap-2 overflow-x-auto no-scrollbar">
+                <span class="text-sm font-bold text-slate-400">Kategoriler yükleniyor...</span>
+            </div>
+        </section>
+
+        <section id="urunler-alani" class="mt-6 space-y-8"></section>
+    </main>
+
+    <div id="panelKisayollari" class="fixed bottom-4 left-4 right-4 mx-auto hidden flex max-w-md gap-2 z-50">
+    <button id="garsonPaneliButon" class="hidden flex-1 rounded-xl bg-slate-950 px-4 py-3 text-xs font-black text-white shadow-lg border border-slate-800">
+        <i class="fa-solid fa-user-tie mr-1"></i> Garson Paneli
+    </button>
+    <button id="adminPaneliButon" class="hidden flex-1 rounded-xl bg-white px-4 py-3 text-xs font-black text-slate-950 shadow-lg border border-stone-200">
+        <i class="fa-solid fa-gear mr-1"></i> Yönetim Paneli
+    </button>
+</div>
+
+    <script>
+        let tumUrunler = [];
+        let aktifKategori = 'Tümü';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            personelKartiniYukle();
+            vitriniYukle();
+        });
+
+        function personelKartiniYukle() {
+            const personelStr = localStorage.getItem('girisYapanPersonel');
+            if (!personelStr) return;
+
+            try {
+                const personel = JSON.parse(personelStr);
+                const kart = document.getElementById('personelKartvizit');
+                const ad = personel.kullanici_id || personel.ad || personel.isim;
+                if (!ad || !kart) return;
+
+                document.getElementById('personelAd').textContent = ad;
+                document.getElementById('personelGorev').textContent = personel.rol || 'personel';
+                kart.classList.remove('hidden');
+            } catch (err) {
+                console.error('Personel bilgisi okunamadı:', err);
+            }
+        }
+
+        function kategoriAdi(urun) {
+            return urun.tur || urun.kategori || 'Genel';
+        }
+
+        function fiyatYaz(fiyat) {
+            return `${Number(fiyat || 0).toFixed(2)} TL`;
+        }
+
+        function guvenliMetin(deger) {
+            return String(deger || '').replace(/[&<>"']/g, karakter => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[karakter]));
+        }
+
+        function gorselUrlNormalle(deger) {
+            const temiz = String(deger || '').trim();
+            if (!temiz) return '';
+            if (!temiz.includes('drive.google.com')) return temiz;
+
+            const eslesme = temiz.match(/\/d\/([a-zA-Z0-9_-]+)|[?&]id=([a-zA-Z0-9_-]+)/);
+            const dosyaId = eslesme?.[1] || eslesme?.[2];
+            return dosyaId ? 'https://drive.google.com/uc?export=view&id=' + dosyaId : temiz;
+        }
+        async function vitriniYukle() {
+            const slug = window.location.pathname.split('/').filter(Boolean)[0];
+            if (!slug) {
+                bosDurum('Dükkan adresi bulunamadı.', 'URL sonunda dükkan kısa adını kullanın.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/dukkan-veri/${slug}`);
+                if (!response.ok) throw new Error('Dükkan bulunamadı.');
+
+                const data = await response.json();
+                const dukkan = data.dukkan || {};
+                tumUrunler = (data.ogeler || []).filter(urun => Number(urun.fiyat || 0) >= 0);
+
+                const dukkanIsmi = dukkan.ad || dukkan.adi || dukkan.slug || 'İşletme';
+                const dukkanSektoru = dukkan.tur || dukkan.kategori || 'Restoran & Kafe';
+                const heroArkaplan = document.getElementById('dukkan-hero-arkaplan');
+                const arkaPlanUrl = gorselUrlNormalle(dukkan.arka_plan_url);
+                if (heroArkaplan && arkaPlanUrl) {
+                    heroArkaplan.style.backgroundImage = `url('${String(arkaPlanUrl).replace(/'/g, "%27")}')`;
+                }
+
+                const logo = document.getElementById('dukkan-logo');
+                const icon = document.getElementById('dukkan-icon');
+                if (logo) {
+                    const logoUrl = gorselUrlNormalle(dukkan.logo_url);
+                    if (logoUrl) {
+                        logo.src = logoUrl;
+                        logo.classList.remove('hidden');
+                        icon.classList.add('hidden');
+                    } else {
+                        logo.classList.add('hidden');
+                        icon.classList.remove('hidden');
+                    }
+                }
+
+                document.getElementById('dukkan-adi').textContent = dukkanIsmi;
+                document.getElementById('dukkan-sektor').textContent = dukkanSektoru;
+                document.getElementById('dukkan-aciklama').textContent = dukkan.aciklama || 'Güncel menü ve servis bilgileri burada. Afiyet olsun.';
+                document.getElementById('dukkan-iletisim').innerHTML = `
+                    ${dukkan.telefon ? `<a href="tel:${String(dukkan.telefon).replace(/[^0-9+]/g, '')}" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/15 transition"><i class="fa-solid fa-phone"></i> ${guvenliMetin(dukkan.telefon)}</a>` : ''}
+                    ${dukkan.adres ? `<span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white/90"><i class="fa-solid fa-location-dot"></i> ${guvenliMetin(dukkan.adres)}</span>` : ''}
+                `;
+                document.title = `${dukkanIsmi} | Dijital Menü`;
+
+                if (dukkanSektoru.toLocaleLowerCase('tr-TR').includes('kafe') || dukkanSektoru.toLocaleLowerCase('tr-TR').includes('kahve')) {
+                    icon.className = 'fa-solid fa-mug-hot text-2xl';
+                }
+
+                const adminBtn = document.getElementById('adminPaneliButon');
+                const garsonBtn = document.getElementById('garsonPaneliButon');
+                const kisayollar = document.getElementById('panelKisayollari');
+                const personelRaw = localStorage.getItem('girisYapanPersonel');
+                if (personelRaw) {
+                    const personel = JSON.parse(personelRaw);
+                    const rol = String(personel.rol || '').toLocaleLowerCase('tr-TR').trim();
+                    kisayollar.classList.remove('hidden');
+                    kisayollar.classList.add('flex');
+
+                    if (rol === 'admin' || rol === 'superadmin') {
+                        adminBtn.onclick = () => window.open(`/${slug}/admin`, '_blank');
+                        adminBtn.classList.remove('hidden');
+                    } else {
+                        adminBtn.classList.add('hidden');
+                    }
+
+                    if (rol === 'garson' || rol === 'admin') {
+                        garsonBtn.onclick = () => window.open(`/${slug}/garson`, '_blank');
+                        garsonBtn.classList.remove('hidden');
+                    } else {
+                        garsonBtn.classList.add('hidden');
+                    }
+                }
+
+                kategorileriBas();
+                urunleriBas();
+            } catch (err) {
+                console.error('Menü yükleme hatası:', err);
+                bosDurum('Menü yüklenemedi.', 'Lütfen daha sonra tekrar deneyin.');
+            }
+        }
+
+        function kategorileriBas() {
+            const alan = document.getElementById('kategori-listesi');
+            const kategoriler = ['Tümü', ...new Set(tumUrunler.map(kategoriAdi).filter(Boolean))];
+            alan.innerHTML = '';
+
+            kategoriler.forEach(kategori => {
+                const aktif = kategori === aktifKategori;
+                alan.innerHTML += `
+                    <button onclick="kategoriSec('${kategori.replace(/'/g, "\\'")}')" class="whitespace-nowrap rounded-full px-4 py-2 text-sm font-black transition ${aktif ? 'bg-slate-950 text-white' : 'bg-white text-slate-600 border border-stone-200'}">
+                        ${kategori}
+                    </button>
+                `;
+            });
+        }
+
+        function kategoriSec(kategori) {
+            aktifKategori = kategori;
+            kategorileriBas();
+            urunleriBas();
+        }
+
+        function urunleriBas() {
+            const alan = document.getElementById('urunler-alani');
+            const urunler = aktifKategori === 'Tümü'
+                ? tumUrunler
+                : tumUrunler.filter(urun => kategoriAdi(urun) === aktifKategori);
+
+            if (urunler.length === 0) {
+                bosDurum('Henüz ürün yok.', 'Bu kategoriye ürün eklendiğinde burada görünecek.');
+                return;
+            }
+
+            const gruplar = urunler.reduce((acc, urun) => {
+                const kategori = kategoriAdi(urun);
+                acc[kategori] = acc[kategori] || [];
+                acc[kategori].push(urun);
+                return acc;
+            }, {});
+
+            alan.innerHTML = Object.entries(gruplar).map(([kategori, liste]) => `
+                <div>
+                    <div class="mb-3 flex items-end justify-between gap-4">
+                        <h2 class="text-xl font-black text-slate-950">${kategori}</h2>
+                        <span class="text-xs font-bold text-slate-400">${liste.length} ürün</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${liste.map(urunKarti).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function urunKarti(urun) {
+            const ad = urun.ad || urun.isim || urun.baslik || 'İsimsiz ürün';
+            const detay = urun.detay || urun.aciklama || 'Özenle hazırlanan lezzetli bir seçim.';
+            const resim = urun.resim_url
+                ? `<img src="${urun.resim_url}" alt="${ad}" class="h-28 w-28 rounded-xl object-cover">`
+                : `<div class="h-28 w-28 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-3xl"><i class="fa-solid fa-utensils"></i></div>`;
+
+            return `
+                <article class="rounded-2xl bg-white p-4 shadow-sm border border-stone-200 flex gap-4">
+                    ${resim}
+                    <div class="min-w-0 flex-1">
+                        <div class="text-[11px] font-black uppercase text-amber-700">${kategoriAdi(urun)}</div>
+                        <h3 class="mt-1 text-base font-black text-slate-950">${ad}</h3>
+                        <p class="mt-1 text-sm leading-5 text-slate-500">${detay}</p>
+                        <div class="mt-4 flex items-center justify-between gap-3">
+                            <span class="text-lg font-black text-slate-950">${fiyatYaz(urun.fiyat)}</span>
+                            <span class="rounded-full bg-stone-100 px-3 py-1 text-xs font-black text-slate-500">Menü</span>
+                        </div>
+                    </div>
+                </article>
+            `;
+        }
+
+        function bosDurum(baslik, aciklama) {
+            document.getElementById('urunler-alani').innerHTML = `
+                <div class="rounded-2xl bg-white p-10 text-center border border-stone-200 shadow-sm">
+                    <i class="fa-solid fa-circle-info text-3xl text-slate-300"></i>
+                    <h2 class="mt-4 text-lg font-black text-slate-900">${baslik}</h2>
+                    <p class="mt-1 text-sm text-slate-500">${aciklama}</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dijital Vitrin - Esnoloji</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 font-sans min-h-screen pb-24">
+
+    <div id="bannerAlani" class="bg-blue-600 text-white py-12 px-4 text-center shadow-md">
+        <div id="personelKartvizit" class="hidden mb-6 bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/20 inline-block w-full max-w-sm">
+            <h2 id="personelAd" class="font-bold text-lg">---</h2>
+            <p id="personelGorev" class="text-xs text-blue-100 uppercase tracking-widest font-semibold"></p>
+            <div class="mt-2 pt-2 border-t border-white/10 text-xs font-medium opacity-80" id="dukkanAdiBadge">---</div>
+        </div>
+
+        <h1 id="büyükDukkanAdi" class="text-3xl font-black uppercase tracking-tight">Yükleniyor...</h1>
+        <p id="dukkanTuruRozet" class="text-xs bg-black/20 text-white inline-block px-3 py-1 rounded-full mt-2 font-bold uppercase tracking-wider"></p>
+    </div>
+
+    <main class="max-w-2xl mx-auto px-4 mt-8">
+        <div id="vitrinIcerik" class="space-y-4"></div>
+
+        <div id="restoranOzelAlani" class="hidden text-center mt-12 pt-6 border-t border-slate-200">
+            <a href="#" id="masalarLink" class="bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold px-6 py-3 rounded-xl shadow-md transition inline-block">
+                📋 Garson Paneli: Masalar & Sipariş Yönetimi
+            </a>
+        </div>
+    </main>
+
+    <footer id="akilliFooter" class="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 p-4 shadow-2xl flex justify-center gap-4 z-50">
+        </footer>
+
+    <script>
+        const pathSlices = window.location.pathname.split('/');
+        const dukkanSlug = pathSlices[pathSlices.length - 1] || pathSlices[pathSlices.length - 2];
+
+        // 1. Kartvizit verilerini doldur
+        function kartvizitDoldur(dukkanAd) {
+            const personelStr = localStorage.getItem('girisYapanPersonel');
+            if (personelStr) {
+                const personel = JSON.parse(personelStr);
+                document.getElementById('personelKartvizit').classList.remove('hidden');
+                document.getElementById('personelAd').innerText = personel.ad;
+                document.getElementById('personelGorev').innerText = personel.rol;
+                document.getElementById('dukkanAdiBadge').innerText = dukkanAd;
+            }
+        }
+
+        // 2. Footer'ı dükkan türüne göre oluştur
+        function footerOlustur(dukkan) {
+            const footer = document.getElementById('akilliFooter');
+            footer.innerHTML = ""; 
+
+            if (dukkan.tur === "restoran") {
+                footer.innerHTML = `
+                    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="flex-1 text-xs font-bold text-slate-600 bg-slate-100 py-3 rounded-xl">🍽️ Menü</button>
+                    <button onclick="window.open('/${dukkanSlug}/garson', '_blank')" class="flex-1 text-xs font-bold text-white bg-orange-600 py-3 rounded-xl shadow-lg">👤 Garson</button>
+                    <button onclick="window.open('/${dukkanSlug}/admin', '_blank')" class="flex-1 text-xs font-bold text-white bg-slate-900 py-3 rounded-xl">⚙️ Yönetim</button>
+                `;
+            } else if (dukkan.tur === "galeri") {
+                footer.innerHTML = `
+                    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="flex-1 text-xs font-bold text-slate-600 bg-slate-100 py-3 rounded-xl">🚗 Araçlar</button>
+                    <button onclick="window.open('/${dukkanSlug}/admin', '_blank')" class="flex-1 text-xs font-bold text-white bg-indigo-600 py-3 rounded-xl shadow-lg">⚙️ Yönetim</button>
+                `;
+            }
+        }
+
+        // 3. Verileri çek
+        fetch(`/api/${dukkanSlug}/data`)
+            .then(res => res.json())
+            .then(dukkan => {
+                document.getElementById('büyükDukkanAdi').innerText = dukkan.ad;
+                document.getElementById('dukkanTuruRozet').innerText = dukkan.tur === "restoran" ? "🍽️ Restoran / Kafe" : "🚗 Oto Kiralama / Galeri";
+                
+                if(dukkan.tur === "galeri") document.getElementById('bannerAlani').classList.replace('bg-blue-600', 'bg-indigo-600');
+
+                // Fonksiyonları çalıştır
+                kartvizitDoldur(dukkan.ad);
+                footerOlustur(dukkan);
+
+                const vitrin = document.getElementById('vitrinIcerik');
+                dukkan.ogeler.forEach(oge => {
+                    const aciklamaMetni = oge.detay || '<span class="italic text-slate-300 text-xs">Açıklama girilmemiş</span>';
+                    vitrin.innerHTML += `
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
+                            <div><h3 class="font-bold text-slate-800">${oge.ad}</h3><p class="text-slate-500 text-sm">${aciklamaMetni}</p></div>
+                            <div class="text-blue-600 font-black">${oge.fiyat || 0} TL</div>
+                        </div>
+                    `;
+                });
+
+                if (dukkan.tur === "restoran") {
+                    document.getElementById('restoranOzelAlani').classList.remove('hidden');
+                    document.getElementById('masalarLink').href = `/${dukkanSlug}/garson`;
+                }
+            })
+            .catch(err => console.error("Veri çekme hatası:", err));
+    </script>
+</body>
+</html>

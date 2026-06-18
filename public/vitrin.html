@@ -1,0 +1,386 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vitrin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        html, body { max-width: 100%; overflow-x: hidden; }
+
+        @media (max-width: 480px) {
+            header > div { padding-top: 28px !important; padding-bottom: 32px !important; }
+            #dukkanAdi {
+                font-size: 2rem !important;
+                line-height: 2.35rem !important;
+            }
+
+            #dukkanIletisim {
+                gap: 8px !important;
+            }
+
+            #panelKisayollari {
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+            }
+
+            #panelKisayollari button {
+                padding-left: 10px;
+                padding-right: 10px;
+                white-space: nowrap;
+            }
+
+            #takvimModal { padding: 8px !important; }
+            #takvimModal > div {
+                max-height: calc(100dvh - 16px);
+                overflow-y: auto;
+                border-radius: 16px;
+            }
+
+            #takvimModal .p-5 { padding: 14px !important; }
+            #takvimGrid { gap: 4px; }
+            #takvimGrid > div {
+                min-height: 36px;
+                font-size: 12px;
+                border-radius: 10px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-950 antialiased">
+    <header class="relative overflow-hidden bg-slate-950 text-white">
+        <div id="vitrin-arkaplan" class="absolute inset-0 opacity-30 bg-[url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1400&q=80')] bg-cover bg-center"></div>
+        <div class="absolute inset-0 bg-slate-950/70"></div>
+        <div class="relative max-w-6xl mx-auto px-5 pt-5 pb-10">
+            <div class="flex items-center justify-between gap-3">
+                <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold backdrop-blur">
+                    <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+                    Açık
+                </span>
+
+                <div id="personelKartvizit" class="hidden rounded-xl bg-white/10 px-3 py-2 text-right text-xs backdrop-blur border border-white/10">
+                    <div id="personelAd" class="font-black text-white"></div>
+                    <div id="personelGorev" class="text-[10px] font-bold text-amber-200"></div>
+                </div>
+            </div>
+
+            <div class="mt-14 grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)] lg:items-start">
+                <div class="max-w-4xl">
+                    <span id="dukkanTur" class="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-black uppercase text-slate-200">Vitrin</span>
+                    <div class="mt-5 flex items-start gap-4">
+                        <div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/10">
+                            <img id="dukkanLogo" class="hidden h-full w-full object-cover" alt="Dükkan logosu">
+                            <i id="dukkanLogoIkon" class="fa-solid fa-shop text-2xl text-white"></i>
+                        </div>
+                        <div>
+                            <h1 id="dukkanAdi" class="text-4xl md:text-5xl font-black tracking-tight">Yükleniyor...</h1>
+                            <p id="dukkanSektor" class="mt-3 text-sm sm:text-base text-slate-200">Vitrin</p>
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-2xl backdrop-blur sm:p-5 lg:justify-self-end lg:max-w-md">
+                    <div class="text-[11px] font-black uppercase tracking-[0.24em] text-amber-200">Künye</div>
+                    <p id="dukkanAciklama" class="mt-3 text-sm sm:text-base leading-7 text-slate-100/95">Müsaitlik takvimini inceleyin, araç/oda/ekipman durumunu hızlıca görün.</p>
+                    <div id="dukkanIletisim" class="mt-5 flex flex-wrap gap-3 lg:justify-end"></div>
+                </aside>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-5 py-8">
+        <section id="dukkanBilgiKarti" class="hidden mb-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+                <div>
+                    <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Tanıtım</div>
+                    <h2 id="bilgiKartiBaslik" class="mt-2 text-2xl font-black text-slate-900">-</h2>
+                    <p id="bilgiKartiAciklama" class="mt-3 text-sm leading-6 text-slate-600">-</p>
+                </div>
+                <div class="grid gap-3">
+                    <div class="rounded-2xl bg-slate-50 p-4">
+                        <div class="text-[11px] font-black uppercase text-slate-400">Telefon</div>
+                        <div id="bilgiKartiTelefon" class="mt-1 font-semibold text-slate-900">-</div>
+                    </div>
+                    <div class="rounded-2xl bg-slate-50 p-4">
+                        <div class="text-[11px] font-black uppercase text-slate-400">Adres</div>
+                        <div id="bilgiKartiAdres" class="mt-1 font-semibold text-slate-900">-</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div id="ogeListesi" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5"></div>
+    </main>
+
+    <div id="panelKisayollari" class="fixed bottom-4 left-4 right-4 mx-auto hidden max-w-md gap-2 z-50">
+        <button id="garsonPaneliButon" class="hidden flex-1 rounded-xl bg-slate-950 px-4 py-3 text-xs font-black text-white shadow-lg border border-slate-800">
+            <i class="fa-solid fa-user-tie mr-1"></i> Garson Paneli
+        </button>
+        <button id="adminPaneliButon" class="hidden flex-1 rounded-xl bg-white px-4 py-3 text-xs font-black text-slate-950 shadow-lg border border-slate-200">
+            <i class="fa-solid fa-gear mr-1"></i> Yönetim Paneli
+        </button>
+    </div>
+
+    <div id="takvimModal" class="hidden fixed inset-0 z-50 bg-slate-950/70 p-4 backdrop-blur-sm items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                    <h2 id="modalBaslik" class="text-xl font-black text-slate-900">Takvim</h2>
+                    <p class="text-sm text-slate-500">Kırmızı günler dolu, yeşil günler müsait.</p>
+                </div>
+                <button onclick="modalKapat()" class="h-10 w-10 rounded-xl bg-slate-100 hover:bg-slate-200 font-black">&times;</button>
+            </div>
+            <div class="p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <button onclick="ayDegistir(-1)" class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold">Önceki</button>
+                    <div id="ayBaslik" class="font-black text-slate-800"></div>
+                    <button onclick="ayDegistir(1)" class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold">Sonraki</button>
+                </div>
+                <div class="grid grid-cols-7 gap-2 text-center text-xs font-black text-slate-400 mb-2">
+                    <div>Pzt</div><div>Sal</div><div>Car</div><div>Per</div><div>Cum</div><div>Cmt</div><div>Paz</div>
+                </div>
+                <div id="takvimGrid" class="grid grid-cols-7 gap-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const slug = window.location.pathname.split('/').filter(Boolean)[0];
+        let seciliOge = null;
+        let rezervasyonlar = [];
+        let gorunenAy = new Date();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            personelKartiniYukle();
+            vitrinYukle();
+        });
+
+        function fiyatYaz(deger) {
+            const fiyat = Number(deger || 0);
+            return fiyat > 0 ? `${fiyat.toFixed(2)} TL` : 'Fiyat sorunuz';
+        }
+
+        function ikon(tur) {
+            const t = String(tur || '').toLocaleLowerCase('tr-TR');
+            if (t.includes('araç') || t.includes('araç') || t.includes('oto')) return 'fa-car';
+            if (t.includes('oda') || t.includes('ev') || t.includes('emlak')) return 'fa-house';
+            if (t.includes('vinc') || t.includes('vinç')) return 'fa-truck-pickup';
+            return 'fa-calendar-check';
+        }
+
+        function guvenliMetin(deger) {
+            return String(deger || '').replace(/[&<>"']/g, (karakter) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[karakter]));
+        }
+
+        function gorselUrlNormalle(deger) {
+            const temiz = String(deger || '').trim();
+            if (!temiz) return '';
+            if (!temiz.includes('drive.google.com')) return temiz;
+
+            const eslesme = temiz.match(/\/d\/([a-zA-Z0-9_-]+)|[?&]id=([a-zA-Z0-9_-]+)/);
+            const dosyaId = eslesme?.[1] || eslesme?.[2];
+            return dosyaId ? 'https://drive.google.com/uc?export=view&id=' + dosyaId : temiz;
+        }
+
+        function personelKartiniYukle() {
+            const personelStr = localStorage.getItem('girisYapanPersonel');
+            if (!personelStr) return;
+
+            try {
+                const personel = JSON.parse(personelStr);
+                const kart = document.getElementById('personelKartvizit');
+                const ad = personel.kullanici_id || personel.ad || personel.isim;
+                if (!ad || !kart) return;
+
+                document.getElementById('personelAd').textContent = ad;
+                document.getElementById('personelGorev').textContent = personel.rol || 'personel';
+                kart.classList.remove('hidden');
+            } catch (err) {
+                console.error('Personel bilgisi okunamadi:', err);
+            }
+        }
+
+        function restoranTuruMu(tur) {
+            const temizTur = String(tur || '').toLocaleLowerCase('tr-TR');
+            return temizTur.includes('restoran') || temizTur.includes('cafe') || temizTur.includes('kafe');
+        }
+
+        function panelKisayollariniYukle(dukkanSlug, dukkanTur) {
+            const adminBtn = document.getElementById('adminPaneliButon');
+            const garsonBtn = document.getElementById('garsonPaneliButon');
+            const kisayollar = document.getElementById('panelKisayollari');
+            const personelRaw = localStorage.getItem('girisYapanPersonel');
+            if (!personelRaw || !kisayollar || !adminBtn || !garsonBtn) return;
+
+            try {
+                const personel = JSON.parse(personelRaw);
+                const rol = String(personel.rol || '').toLocaleLowerCase('tr-TR').trim();
+                let gorunenButon = 0;
+
+                if (rol === 'admin' || rol === 'superadmin') {
+                    adminBtn.onclick = () => window.open('/' + dukkanSlug + '/admin', '_blank');
+                    adminBtn.classList.remove('hidden');
+                    adminBtn.classList.add('block');
+                    gorunenButon++;
+                } else {
+                    adminBtn.classList.add('hidden');
+                    adminBtn.classList.remove('block');
+                }
+
+                const restoranAkisi = restoranTuruMu(dukkanTur);
+                if (restoranAkisi && (rol === 'garson' || rol === 'admin')) {
+                    garsonBtn.onclick = () => window.open('/' + dukkanSlug + '/garson', '_blank');
+                    garsonBtn.classList.remove('hidden');
+                    garsonBtn.classList.add('block');
+                    gorunenButon++;
+                } else {
+                    garsonBtn.classList.add('hidden');
+                    garsonBtn.classList.remove('block');
+                }
+
+                if (gorunenButon > 0) {
+                    kisayollar.classList.remove('hidden');
+                    kisayollar.classList.add('flex');
+                } else {
+                    kisayollar.classList.add('hidden');
+                    kisayollar.classList.remove('flex');
+                }
+            } catch (err) {
+                console.error('Panel kisayollari hazirlanamadi:', err);
+            }
+        }
+
+        async function vitrinYukle() {
+            const res = await fetch(`/api/${slug}/vitrin`);
+            const data = await res.json();
+            const dukkan = data.dukkan || {};
+            const ogeler = data.ogeler || [];
+            const vitrinArkaplan = document.getElementById('vitrin-arkaplan');
+            const arkaPlanUrl = gorselUrlNormalle(dukkan.arka_plan_url);
+            if (vitrinArkaplan && arkaPlanUrl) {
+                vitrinArkaplan.style.backgroundImage = `url('${String(arkaPlanUrl).replace(/'/g, "%27")}')`;
+            }
+
+            const dukkanLogo = document.getElementById('dukkanLogo');
+            const dukkanLogoIkon = document.getElementById('dukkanLogoIkon');
+            if (dukkanLogo) {
+                const logoUrl = gorselUrlNormalle(dukkan.logo_url);
+                if (logoUrl) {
+                    dukkanLogo.src = logoUrl;
+                    dukkanLogo.classList.remove('hidden');
+                    dukkanLogoIkon.classList.add('hidden');
+                } else {
+                    dukkanLogo.classList.add('hidden');
+                    dukkanLogoIkon.classList.remove('hidden');
+                }
+            }
+            document.getElementById('dukkanAdi').textContent = dukkan.ad || 'Vitrin';
+            document.getElementById('dukkanTur').textContent = dukkan.tur || 'Vitrin';
+            document.getElementById('dukkanSektor').textContent = dukkan.tur || 'Vitrin';
+            document.getElementById('dukkanAciklama').textContent = dukkan.aciklama || 'Müsaitlik takvimini inceleyin, araç/oda/ekipman durumunu hızlıca görün.';
+            document.getElementById('dukkanIletisim').innerHTML = `
+                ${dukkan.telefon ? `<a href="tel:${String(dukkan.telefon).replace(/[^0-9+]/g, '')}" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/15 transition"><i class="fa-solid fa-phone"></i> ${guvenliMetin(dukkan.telefon)}</a>` : ''}
+                ${dukkan.adres ? `<span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white/90"><i class="fa-solid fa-location-dot"></i> ${guvenliMetin(dukkan.adres)}</span>` : ''}
+            `;
+            const bilgiKarti = document.getElementById('dukkanBilgiKarti');
+            const bilgiKartiDolu = Boolean(dukkan.aciklama || dukkan.telefon || dukkan.adres);
+            if (bilgiKarti) {
+                bilgiKarti.classList.toggle('hidden', !bilgiKartiDolu);
+                document.getElementById('bilgiKartiBaslik').textContent = dukkan.ad || 'Vitrin';
+                document.getElementById('bilgiKartiAciklama').textContent = dukkan.aciklama || 'Bu alan işletmenizin kısa tanıtımı için kullanılır.';
+                document.getElementById('bilgiKartiTelefon').textContent = dukkan.telefon || '-';
+                document.getElementById('bilgiKartiAdres').textContent = dukkan.adres || '-';
+            }
+            panelKisayollariniYukle(dukkan.slug || slug, dukkan.tur || '');
+            document.title = `${dukkan.ad || 'Vitrin'} | Müsaitlik`;
+
+            const alan = document.getElementById('ogeListesi');
+            if (!ogeler.length) {
+                alan.innerHTML = '<div class="col-span-full rounded-2xl bg-white border border-slate-200 p-10 text-center text-slate-500">Henüz vitrine eklenmiş varlık yok.</div>';
+                return;
+            }
+
+            alan.innerHTML = ogeler.map(oge => `
+                <article class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-lg transition">
+                    <div class="h-14 w-14 rounded-2xl bg-slate-950 text-white flex items-center justify-center text-2xl">
+                        <i class="fa-solid ${ikon(oge.tur)}"></i>
+                    </div>
+                    <div class="mt-5">
+                        <div class="text-xs font-black uppercase text-slate-400">${oge.tur || 'Varlık'}</div>
+                        <h2 class="text-xl font-black text-slate-900 mt-1">${oge.ad || 'İsimsiz'}</h2>
+                        <p class="text-sm text-slate-500 mt-2">Doluluk takvimini görmek için inceleyin.</p>
+                    </div>
+                    <div class="mt-5 flex items-center justify-between gap-3">
+                        <span class="font-black text-slate-950">${fiyatYaz(oge.fiyat)}</span>
+                        <button onclick='takvimAc(${JSON.stringify(oge).replace(/'/g, "&apos;")})' class="rounded-xl bg-slate-950 px-4 py-2 text-sm font-black text-white">Takvimi Gör</button>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        async function takvimAc(oge) {
+            seciliOge = oge;
+            gorunenAy = new Date();
+            document.getElementById('modalBaslik').textContent = oge.ad || 'Takvim';
+            document.getElementById('takvimModal').classList.remove('hidden');
+            document.getElementById('takvimModal').classList.add('flex');
+            const res = await fetch(`/api/${slug}/rezervasyonlar/${oge.id}`);
+            rezervasyonlar = await res.json();
+            takvimCiz();
+        }
+
+        function modalKapat() {
+            document.getElementById('takvimModal').classList.add('hidden');
+            document.getElementById('takvimModal').classList.remove('flex');
+        }
+
+        function ayDegistir(adim) {
+            gorunenAy = new Date(gorunenAy.getFullYear(), gorunenAy.getMonth() + adim, 1);
+            takvimCiz();
+        }
+
+        function tarihKey(date) {
+            return date.toISOString().slice(0, 10);
+        }
+
+        function doluMu(date) {
+            const key = tarihKey(date);
+            return rezervasyonlar.some(r => key >= r.baslangic_tarihi && key <= r.bitis_tarihi);
+        }
+
+        function takvimCiz() {
+            const yil = gorunenAy.getFullYear();
+            const ay = gorunenAy.getMonth();
+            const ilkGun = new Date(yil, ay, 1);
+            const sonGun = new Date(yil, ay + 1, 0);
+            const basBosluk = (ilkGun.getDay() + 6) % 7;
+            const grid = document.getElementById('takvimGrid');
+            document.getElementById('ayBaslik').textContent = gorunenAy.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+            grid.innerHTML = '';
+
+            for (let i = 0; i < basBosluk; i++) grid.innerHTML += '<div></div>';
+            for (let gun = 1; gun <= sonGun.getDate(); gun++) {
+                const tarih = new Date(yil, ay, gun);
+                const dolu = doluMu(tarih);
+                grid.innerHTML += `
+                    <div class="aspect-square rounded-xl flex items-center justify-center text-sm font-black border ${dolu ? 'bg-red-50 border-red-200 text-red-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}">
+                        ${gun}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+

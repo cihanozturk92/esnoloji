@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esnoloji - Super Admin</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #07111f;
+            --panel: rgba(15, 23, 42, 0.92);
+            --border: rgba(148, 163, 184, 0.18);
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --primary: #2563eb;
+            --primary-strong: #1d4ed8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --shadow: 0 24px 70px rgba(2, 6, 23, 0.38);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 26%),
+                radial-gradient(circle at top right, rgba(16, 185, 129, 0.10), transparent 20%),
+                linear-gradient(180deg, #081120 0%, #040914 100%);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            width: min(1460px, calc(100% - 32px));
+            margin: 24px auto 48px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+        }
+
+        .hero {
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+
+        .hero-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(37, 99, 235, 0.14);
+            color: #bfdbfe;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 14px 0 8px;
+            font-size: clamp(30px, 4vw, 44px);
+            line-height: 1.04;
+        }
+
+        .lead {
+            margin: 0;
+            color: var(--muted);
+            font-size: 15px;
+            max-width: 720px;
+            line-height: 1.7;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .stat-card {
+            background: rgba(15, 23, 42, 0.74);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 22px;
+            padding: 18px 20px;
+            min-height: 120px;
+        }
+
+        .stat-label {
+            color: #93c5fd;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .stat-value {
+            margin-top: 12px;
+            font-size: 34px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .stat-meta {
+            margin-top: 10px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .super-grid,
+        .management-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .super-grid {
+            grid-template-columns: minmax(360px, 440px) minmax(0, 1fr);
+            margin-bottom: 20px;
+        }
+
+        .management-grid {
+            grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.9fr);
+        }
+
+        .panel-body {
+            padding: 24px;
+        }
+
+        .panel-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .panel-title {
+            margin: 0;
+            font-size: 24px;
+            line-height: 1.2;
+        }
+
+        .panel-note {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .form-grid,
+        .inline-grid,
+        .three-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .form-grid { grid-template-columns: 1fr; }
+        .inline-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .three-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .field label {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 16px;
+            background: rgba(2, 6, 23, 0.6);
+            color: var(--text);
+            padding: 14px 16px;
+            font-size: 15px;
+            transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+        }
+
+        textarea {
+            min-height: 96px;
+            resize: vertical;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #64748b;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: rgba(96, 165, 250, 0.9);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.18);
+            transform: translateY(-1px);
+        }
+
+        .helper {
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .btn,
+        button,
+        a.btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 0;
+            border-radius: 16px;
+            text-decoration: none;
+            cursor: pointer;
+            padding: 13px 18px;
+            font-size: 14px;
+            font-weight: 800;
+            transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, opacity 160ms ease;
+        }
+
+        button:hover,
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        button:active,
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        .btn-dark {
+            background: #0f172a;
+            color: #fff;
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.34);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-strong) 100%);
+            color: #fff;
+            box-shadow: 0 14px 34px rgba(37, 99, 235, 0.34);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff;
+            box-shadow: 0 14px 34px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: #fff;
+            box-shadow: 0 14px 34px rgba(239, 68, 68, 0.28);
+        }
+
+        .btn-muted {
+            background: rgba(51, 65, 85, 0.86);
+            color: #e2e8f0;
+        }
+
+        .btn-soft {
+            background: rgba(37, 99, 235, 0.12);
+            color: #bfdbfe;
+            border: 1px solid rgba(59, 130, 246, 0.18);
+        }
+
+        .btn:disabled,
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .qr-grid,
+        .manage-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .qr-grid {
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            max-height: 720px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .qr-card,
+        .manage-card,
+        .mini-card {
+            background: rgba(2, 6, 23, 0.58);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 22px;
+            padding: 18px;
+        }
+
+        .qr-card h3,
+        .manage-card h3,
+        .mini-card h3 {
+            margin: 0;
+            font-size: 18px;
+            line-height: 1.3;
+        }
+
+        .stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .badge-blue { background: rgba(37, 99, 235, 0.14); color: #bfdbfe; }
+        .badge-green { background: rgba(16, 185, 129, 0.14); color: #bbf7d0; }
+        .badge-amber { background: rgba(245, 158, 11, 0.14); color: #fde68a; }
+
+        .qr-image {
+            display: block;
+            width: min(100%, 180px);
+            aspect-ratio: 1 / 1;
+            object-fit: contain;
+            background: #fff;
+            border-radius: 18px;
+            padding: 10px;
+            margin: 16px auto 14px;
+        }
+
+        .public-link {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            background: rgba(15, 23, 42, 0.82);
+            color: var(--muted);
+            font-size: 12px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .actions,
+        .qr-actions,
+        .toolbar-actions,
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .qr-actions {
+            margin-top: 12px;
+        }
+
+        .manage-card {
+            padding: 20px;
+        }
+
+        .card-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .identity {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            min-width: 0;
+        }
+
+        .logo-box {
+            width: 58px;
+            height: 58px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.26), rgba(16, 185, 129, 0.18));
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            font-size: 22px;
+            font-weight: 800;
+            color: #fff;
+            flex: 0 0 58px;
+        }
+
+        .logo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .identity-copy {
+            min-width: 0;
+        }
+
+        .identity-copy p {
+            margin: 7px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .manage-list {
+            max-height: 940px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .danger-note {
+            margin-top: 12px;
+            color: #fca5a5;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .empty-state {
+            border: 1px dashed rgba(148, 163, 184, 0.2);
+            border-radius: 22px;
+            padding: 34px 24px;
+            color: var(--muted);
+            text-align: center;
+            font-size: 14px;
+            line-height: 1.7;
+            background: rgba(2, 6, 23, 0.38);
+        }
+
+        .split-line {
+            height: 1px;
+            background: rgba(148, 163, 184, 0.14);
+            margin: 18px 0;
+        }
+
+        @media (max-width: 1200px) {
+            .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .management-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 960px) {
+            .super-grid { grid-template-columns: 1fr; }
+            .hero-top { flex-direction: column; }
+        }
+
+        @media (max-width: 720px) {
+            .container { width: min(100%, calc(100% - 18px)); margin: 12px auto 26px; }
+            .hero, .panel-body { padding: 18px; }
+            .stats-grid, .inline-grid, .three-grid { grid-template-columns: 1fr; }
+            .card-head { flex-direction: column; }
+            .qr-grid { grid-template-columns: 1fr; max-height: none; }
+            .manage-list { max-height: none; }
+            .hero-actions, .toolbar-actions, .filter-row, .actions, .qr-actions { flex-direction: column; }
+            .btn, button, a.btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <section class="panel hero">
+            <div class="hero-top">
+                <div>
+                    <div class="eyebrow">Esnoloji Super Admin</div>
+                    <h1>Operasyon merkezi artik tek ekranda.</h1>
+                    <p class="lead">Dukkan olustur, mevcut dukkanlari duzenle, personelleri yonet, QR dagitimini kontrol et. Bu sayfa artik gercekten super admin gibi davransin diye toparlandi.</p>
+                </div>
+                <div class="hero-actions">
+                    <button type="button" class="btn btn-soft" onclick="refreshAll()">Tum verileri yenile</button>
+                    <a class="btn btn-dark" href="/" target="_blank" rel="noreferrer">Ana sayfayi ac</a>
+                </div>
+            </div>
+                        <div id="ozetKartlari" class="stats-grid">
+                <article class="stat-card">
+                    <div class="stat-label">Veri bekliyor</div>
+                    <div class="stat-value">Hazir</div>
+                    <div class="stat-meta">Yukaridaki yenile dugmeleriyle verileri manuel olarak cekebilirsin.</div>
+                </article>
+            </div>
+        </section>
+
+        <div class="super-grid">
+            <section class="panel">
+                <div class="panel-body">
+                    <div class="panel-head">
+                        <div>
+                            <h2 class="panel-title">Yeni dukkan olustur</h2>
+                            <p class="panel-note">Sektor, gorsel, tanitim ve ilk admin hesabi ayni anda kurulsun.</p>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="ad">Dukkan adi</label>
+                            <input type="text" id="ad" placeholder="Orn: Kemal Usta">
+                        </div>
+                        <div class="field">
+                            <label for="slug">Slug</label>
+                            <input type="text" id="slug" placeholder="Orn: kemal-usta">
+                        </div>
+                        <div class="inline-grid">
+                            <div class="field">
+                                <label for="telefon">Telefon</label>
+                                <input type="text" id="telefon" placeholder="05xx xxx xx xx">
+                            </div>
+                            <div class="field">
+                                <label for="tur">Sektor / tur</label>
+                                <select id="tur"></select>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label for="adres">Adres</label>
+                            <textarea id="adres" placeholder="Acik adres"></textarea>
+                        </div>
+                        <div class="field">
+                            <label for="aciklama">Tanitim yazisi</label>
+                            <textarea id="aciklama" placeholder="Kisa tanitim metni"></textarea>
+                        </div>
+                        <div class="inline-grid">
+                            <div class="field">
+                                <label for="logoUrl">Logo gorseli</label>
+                                <input type="url" id="logoUrl" placeholder="https://drive.google.com/file/d/.../preview">
+                            </div>
+                            <div class="field">
+                                <label for="arkaPlanUrl">Arkaplan gorseli</label>
+                                <input type="url" id="arkaPlanUrl" placeholder="https://drive.google.com/file/d/.../preview">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="split-line"></div>
+
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="adminUser">Ilk admin kullanici adi</label>
+                            <input type="text" id="adminUser" placeholder="Orn: kemal_admin">
+                        </div>
+                        <div class="field">
+                            <label for="adminPass">Ilk admin sifresi</label>
+                            <input type="password" id="adminPass" placeholder="********">
+                            <p class="helper">En az 8 karakter, buyuk/kucuk harf ve rakam icermeli.</p>
+                        </div>
+                        <button type="button" class="btn btn-success btn-block" onclick="dukkanEkle()">Dukkani ve admini olustur</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-body">
+                    <div class="panel-head">
+                        <div>
+                            <h2 class="panel-title">QR merkezi</h2>
+                            <p class="panel-note">Menu veya vitrin sayfalarina giden QR kodlarini toplu yonet.</p>
+                        </div>
+                        <div class="toolbar-actions">
+                            <button type="button" class="btn btn-muted" onclick="qrListesiniYukle()">QR yenile</button>
+                            <button type="button" class="btn btn-primary" onclick="tumQrYazdir()">Toplu yazdir</button>
+                        </div>
+                    </div>
+                                        <div id="qrListesi" class="qr-grid">
+                        <div class="empty-state">QR verisini cekmek icin "QR yenile" dugmesine bas.</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="management-grid">
+            <section class="panel">
+                <div class="panel-body">
+                    <div class="panel-head">
+                        <div>
+                            <h2 class="panel-title">Dukkan yonetimi</h2>
+                            <p class="panel-note">Var olan dukkanlari duzenle, slug degistir, gorsel guncelle, panel veya menu sayfasini ac, istersen kalici olarak sil.</p>
+                        </div>
+                        <div class="toolbar-actions">
+                            <button type="button" class="btn btn-muted" onclick="dukkanlariYukle()">Listeyi yenile</button>
+                        </div>
+                    </div>
+                                        <div id="dukkanYonetimListesi" class="manage-list">
+                        <div class="empty-state">Dukkan listesini cekmek icin "Listeyi yenile" dugmesine bas.</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-body">
+                    <div class="panel-head">
+                        <div>
+                            <h2 class="panel-title">Personel yonetimi</h2>
+                            <p class="panel-note">Yeni personel ekle, dukkan baglantisini degistir, rolu guncelle veya sifreyi resetle.</p>
+                        </div>
+                        <div class="toolbar-actions">
+                            <button type="button" class="btn btn-muted" onclick="personelleriYukle()">Personelleri yenile</button>
+                        </div>
+                    </div>
+
+                    <div class="mini-card" style="margin-bottom:14px;">
+                        <h3>Yeni personel ekle</h3>
+                        <div class="three-grid" style="margin-top:14px;">
+                            <div class="field">
+                                <label for="yeniPersonelDukkan">Dukkan</label>
+                                <select id="yeniPersonelDukkan"></select>
+                            </div>
+                            <div class="field">
+                                <label for="yeniPersonelRol">Rol</label>
+                                <select id="yeniPersonelRol">
+                                    <option value="garson">Garson</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label for="yeniPersonelAd">Kullanici adi</label>
+                                <input type="text" id="yeniPersonelAd" placeholder="Orn: servis_1">
+                            </div>
+                        </div>
+                        <div class="inline-grid" style="margin-top:12px;">
+                            <div class="field">
+                                <label for="yeniPersonelSifre">Gecici sifre</label>
+                                <input type="password" id="yeniPersonelSifre" placeholder="Yeni sifre">
+                            </div>
+                            <div class="field" style="justify-content:flex-end;">
+                                <label>&nbsp;</label>
+                                <button type="button" class="btn btn-success btn-block" onclick="personelEkle()">Personeli olustur</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-row" style="margin-bottom:14px;">
+                        <select id="personelFiltreDukkan" onchange="uygulaPersonelFiltresi()"></select>
+                        <button type="button" class="btn btn-soft" onclick="temizFiltre()">Filtreyi temizle</button>
+                    </div>
+
+                                        <div id="personelYonetimListesi" class="manage-list">
+                        <div class="empty-state">Personel listesini cekmek icin "Personelleri yenile" dugmesine bas.</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="panel" style="margin-top:20px;">
+            <div class="panel-body">
+                <div class="panel-head">
+                    <div>
+                        <h2 class="panel-title">Duyurular ve iletisim</h2>
+                        <p class="panel-note">Bakim duyurusu yolla, tek bir dukkanla yazis veya tum adminlere ayni anda mesaj birak.</p>
+                    </div>
+                    <div class="toolbar-actions">
+                        <button type="button" class="btn btn-muted" onclick="mesajlariYukle()">Mesajlari yenile</button>
+                    </div>
+                </div>
+                <div class="management-grid" style="grid-template-columns:minmax(340px,420px) 1fr;">
+                    <section class="mini-card">
+                        <h3>Yeni duyuru</h3>
+                        <div class="form-grid" style="margin-top:14px;">
+                            <div class="field">
+                                <label for="superMesajDukkanSelect">Hedef dukkan</label>
+                                <select id="superMesajDukkanSelect"></select>
+                            </div>
+                            <div class="inline-grid">
+                                <div class="field">
+                                    <label for="superMesajTurSelect">Mesaj turu</label>
+                                    <select id="superMesajTurSelect">
+                                        <option value="duyuru">Duyuru</option>
+                                        <option value="mesaj">Mesaj</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label style="display:flex;align-items:center;gap:8px;margin-top:25px;color:#e2e8f0;text-transform:none;letter-spacing:0;font-size:14px;">
+                                        <input type="checkbox" id="superMesajOnemliInput" style="width:18px;height:18px;margin:0;">
+                                        Onemli olarak isaretle
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label for="superMesajBaslikInput">Baslik</label>
+                                <input type="text" id="superMesajBaslikInput" placeholder="Orn: Bugun 23:30 bakim calismasi var">
+                            </div>
+                            <div class="field">
+                                <label for="superMesajIcerikInput">Mesaj</label>
+                                <textarea id="superMesajIcerikInput" placeholder="Adminlere iletmek istedigin duyuruyu yaz."></textarea>
+                            </div>
+                            <input type="hidden" id="superMesajUstId">
+                            <div id="superMesajCevapKutusu" class="empty-state" style="display:none;padding:16px;text-align:left;">Bir mesaja cevap modundasin.</div>
+                            <div class="actions">
+                                <button type="button" class="btn btn-success" onclick="superAdminMesajGonder()">Mesaji gonder</button>
+                                <button type="button" class="btn btn-soft" onclick="superAdminMesajFormTemizle()">Formu temizle</button>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="mini-card">
+                        <div class="panel-head" style="margin-bottom:12px;">
+                            <div>
+                                <h3>Mesaj akisi</h3>
+                                <p class="panel-note">Adminlerden gelen sorular ve gonderdigin duyurular burada gorunur.</p>
+                            </div>
+                            <div class="badge badge-blue" id="superMesajSayisi">0 mesaj</div>
+                        </div>
+                                                <div id="superMesajListesi" class="manage-list" style="max-height:560px;">
+                            <div class="empty-state">Mesaj akisini cekmek icin "Mesajlari yenile" dugmesine bas.</div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="/auth.js"></script>
+    <script>
+        const SEKTOR_SECENEKLERI = [
+            { value: 'restoran', label: 'Restoran' },
+            { value: 'kafe', label: 'Kafe' },
+            { value: 'araba-kiralama', label: 'Araba Kiralama' },
+            { value: 'vinc-kiralama', label: 'Vinc Kiralama' },
+            { value: 'oda-kiralama', label: 'Oda Kiralama' },
+            { value: 'gunluk-ev', label: 'Gunluk Ev Kiralama' },
+            { value: 'emlak', label: 'Emlak' },
+            { value: 'otel', label: 'Otel / Pansiyon' },
+            { value: 'ekipman-kiralama', label: 'Ekipman Kiralama' },
+            { value: 'oto-galeri', label: 'Oto Galeri' },
+            { value: 'motosiklet-kiralama', label: 'Motosiklet Kiralama' },
+            { value: 'tekne-kiralama', label: 'Tekne Kiralama' },
+            { value: 'kamp-alani', label: 'Kamp Alani' },
+            { value: 'kuafor', label: 'Kuafor / Guzellik' },
+            { value: 'galeri', label: 'Galeri' },
+            { value: 'butik', label: 'Butik' }
+        ];
+
+        const state = {
+            dukkanlar: [],
+            personeller: [],
+            mesajlar: []
+        };
+
+        function guvenliMetin(deger) {
+            return String(deger || '').replace(/[&<>"']/g, (karakter) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[karakter]));
+        }
+
+        function slugOlustur(metin) {
+            return String(metin || '')
+                .toLocaleLowerCase('tr-TR')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
+
+        function isRestoranTuru(tur) {
+            const temiz = String(tur || '').toLocaleLowerCase('tr-TR');
+            return temiz.includes('restoran') || temiz.includes('kafe') || temiz.includes('cafe');
+        }
+
+        function turSecenekleriHtml(secilen = 'restoran') {
+            return SEKTOR_SECENEKLERI.map((secenek) => `
+                <option value="${guvenliMetin(secenek.value)}" ${secenek.value === secilen ? 'selected' : ''}>${guvenliMetin(secenek.label)}</option>
+            `).join('');
+        }
+
+        function dukkanSecenekleriHtml(secilenId = '', tumuSecenegi = false) {
+            const secenekler = [];
+            if (tumuSecenegi) {
+                secenekler.push('<option value="">Tum dukkanlar</option>');
+            }
+
+            secenekler.push(...state.dukkanlar.map((dukkan) => `
+                <option value="${dukkan.id}" ${String(dukkan.id) === String(secilenId) ? 'selected' : ''}>${guvenliMetin(dukkan.ad)} / ${guvenliMetin(dukkan.slug)}</option>
+            `));
+
+            return secenekler.join('');
+        }
+
+        function kartBadge(text, sinif) {
+            return `<span class="badge ${sinif}">${guvenliMetin(text)}</span>`;
+        }
+
+        function avatarMetni(ad) {
+            const temiz = String(ad || '').trim();
+            return temiz ? temiz.slice(0, 2).toUpperCase() : 'ES';
+        }
+
+        function setSektorSecenekleri() {
+            document.getElementById('tur').innerHTML = turSecenekleriHtml('restoran');
+        }
+
+        function formTemizle() {
+            ['ad', 'slug', 'telefon', 'adres', 'aciklama', 'logoUrl', 'arkaPlanUrl', 'adminUser', 'adminPass'].forEach((id) => {
+                const alan = document.getElementById(id);
+                if (alan) alan.value = '';
+            });
+            document.getElementById('tur').value = 'restoran';
+        }
+
+        function yeniPersonelFormTemizle() {
+            document.getElementById('yeniPersonelAd').value = '';
+            document.getElementById('yeniPersonelSifre').value = '';
+            document.getElementById('yeniPersonelRol').value = 'garson';
+            if (state.dukkanlar.length) {
+                document.getElementById('yeniPersonelDukkan').value = String(state.dukkanlar[0].id);
+            }
+        }
+
+        async function jsonIstek(url, options = {}) {
+            const res = await fetch(url, options);
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                throw new Error(data.error || 'Islem basarisiz oldu.');
+            }
+            return data;
+        }
+
+        function setOzetKartlari() {
+            const toplamDukkan = state.dukkanlar.length;
+            const restoranSayisi = state.dukkanlar.filter((dukkan) => isRestoranTuru(dukkan.tur)).length;
+            const vitrinSayisi = toplamDukkan - restoranSayisi;
+            const adminSayisi = state.personeller.filter((personel) => String(personel.rol || '').toLowerCase() === 'admin').length;
+            const garsonSayisi = state.personeller.filter((personel) => String(personel.rol || '').toLowerCase() === 'garson').length;
+
+            document.getElementById('ozetKartlari').innerHTML = `
+                <article class="stat-card">
+                    <div class="stat-label">Kayitli dukkan</div>
+                    <div class="stat-value">${toplamDukkan}</div>
+                    <div class="stat-meta">${restoranSayisi} restoran akisi, ${vitrinSayisi} vitrin akisi aktif.</div>
+                </article>
+                <article class="stat-card">
+                    <div class="stat-label">Toplam personel</div>
+                    <div class="stat-value">${state.personeller.length}</div>
+                    <div class="stat-meta">${adminSayisi} admin, ${garsonSayisi} garson gorunuyor.</div>
+                </article>
+                <article class="stat-card">
+                    <div class="stat-label">QR dagitimi</div>
+                    <div class="stat-value">${toplamDukkan}</div>
+                    <div class="stat-meta">Her dukkan icin menu veya vitrin QR'i hazirlanabilir.</div>
+                </article>
+                <article class="stat-card">
+                    <div class="stat-label">Hazir durum</div>
+                    <div class="stat-value">Guncel</div>
+                    <div class="stat-meta">Veriler manuel yenile ile cagirildi. Tasarruf modu acik.</div>
+                </article>
+            `;
+        }
+
+        function superAdminBeklemeDurumuHazirla() {
+            document.getElementById('yeniPersonelDukkan').innerHTML = '<option value="">Once dukkan listesini yenile</option>';
+            document.getElementById('personelFiltreDukkan').innerHTML = '<option value="">Once personelleri veya dukkanlari yenile</option>';
+            document.getElementById('superMesajDukkanSelect').innerHTML = '<option value="tum">Once dukkan listesini yenile</option>';
+            document.getElementById('superMesajSayisi').textContent = 'Hazir';
+            superAdminMesajFormTemizle();
+        }
+
+        function filtreleriDoldur() {
+            const personelDukkan = document.getElementById('yeniPersonelDukkan');
+            const filtre = document.getElementById('personelFiltreDukkan');
+            const mesajDukkan = document.getElementById('superMesajDukkanSelect');
+            personelDukkan.innerHTML = dukkanSecenekleriHtml(state.dukkanlar[0]?.id || '');
+            filtre.innerHTML = dukkanSecenekleriHtml('', true);
+            if (mesajDukkan) {
+                mesajDukkan.innerHTML = '<option value="tum">Tum dukkanlara gonder</option>' + dukkanSecenekleriHtml('');
+                if (!mesajDukkan.value) mesajDukkan.value = 'tum';
+            }
+        }
+
+        function dukkanKartHtml(dukkan) {
+            const acikEtiket = isRestoranTuru(dukkan.tur) ? 'Menu ac' : 'Vitrin ac';
+            const adminler = Array.isArray(dukkan.adminler) && dukkan.adminler.length ? dukkan.adminler.join(', ') : 'Henuz admin yok';
+            const logoIcerik = dukkan.logo_url
+                ? `<img src="${guvenliMetin(dukkan.logo_url)}" alt="${guvenliMetin(dukkan.ad)} logo">`
+                : `<span>${guvenliMetin(avatarMetni(dukkan.ad))}</span>`;
+
+            return `
+                <article class="manage-card" data-dukkan-id="${dukkan.id}">
+                    <div class="card-head">
+                        <div class="identity">
+                            <div class="logo-box">${logoIcerik}</div>
+                            <div class="identity-copy">
+                                <h3>${guvenliMetin(dukkan.ad)}</h3>
+                                <div class="stack">
+                                    ${kartBadge(dukkan.tur || 'Sektor yok', isRestoranTuru(dukkan.tur) ? 'badge-green' : 'badge-blue')}
+                                    ${kartBadge(`${dukkan.personel_sayisi || 0} personel`, 'badge-amber')}
+                                    ${kartBadge(`${dukkan.admin_sayisi || 0} admin`, 'badge-blue')}
+                                </div>
+                                <p>Slug: /${guvenliMetin(dukkan.slug)}<br>Adminler: ${guvenliMetin(adminler)}</p>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <a class="btn btn-muted" href="${guvenliMetin(dukkan.public_url)}" target="_blank" rel="noreferrer">${acikEtiket}</a>
+                            <a class="btn btn-soft" href="/${encodeURIComponent(dukkan.slug)}/admin" target="_blank" rel="noreferrer">Admin paneli</a>
+                            <button type="button" class="btn btn-primary" onclick="qrYazdir('${encodeURIComponent(dukkan.slug)}')">QR yazdir</button>
+                        </div>
+                    </div>
+
+                    <div class="inline-grid">
+                        <div class="field">
+                            <label>Dukkan adi</label>
+                            <input type="text" data-key="ad" value="${guvenliMetin(dukkan.ad)}">
+                        </div>
+                        <div class="field">
+                            <label>Slug</label>
+                            <input type="text" data-key="slug" value="${guvenliMetin(dukkan.slug)}">
+                        </div>
+                    </div>
+
+                    <div class="three-grid" style="margin-top:12px;">
+                        <div class="field">
+                            <label>Sektor / tur</label>
+                            <select data-key="tur">${turSecenekleriHtml(dukkan.tur || 'restoran')}</select>
+                        </div>
+                        <div class="field">
+                            <label>Telefon</label>
+                            <input type="text" data-key="telefon" value="${guvenliMetin(dukkan.telefon || '')}">
+                        </div>
+                        <div class="field">
+                            <label>Logo gorseli</label>
+                            <input type="url" data-key="logo_url" value="${guvenliMetin(dukkan.logo_url || '')}">
+                        </div>
+                    </div>
+
+                    <div class="inline-grid" style="margin-top:12px;">
+                        <div class="field">
+                            <label>Adres</label>
+                            <textarea data-key="adres">${guvenliMetin(dukkan.adres || '')}</textarea>
+                        </div>
+                        <div class="field">
+                            <label>Tanitim yazisi</label>
+                            <textarea data-key="aciklama">${guvenliMetin(dukkan.aciklama || '')}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="field" style="margin-top:12px;">
+                        <label>Arkaplan gorseli</label>
+                        <input type="url" data-key="arka_plan_url" value="${guvenliMetin(dukkan.arka_plan_url || '')}">
+                    </div>
+
+                    <div class="actions" style="margin-top:14px;">
+                        <button type="button" class="btn btn-success" onclick="dukkanKaydet(${dukkan.id})">Degisiklikleri kaydet</button>
+                        <button type="button" class="btn btn-danger" onclick="dukkanSil(${dukkan.id})">Dukkani sil</button>
+                    </div>
+                    <div class="danger-note">Silme islemi siparisler, urunler, personeller, stok ve rezervasyon kayitlari dahil bagli verileri kalici olarak temizler.</div>
+                </article>
+            `;
+        }
+
+        function personelKartHtml(personel) {
+            return `
+                <article class="manage-card" data-personel-id="${personel.id}">
+                    <div class="card-head">
+                        <div class="identity-copy">
+                            <h3>${guvenliMetin(personel.kullanici_id)}</h3>
+                            <div class="stack">
+                                ${kartBadge(personel.rol || 'Personel', personel.rol === 'admin' ? 'badge-blue' : 'badge-green')}
+                                ${kartBadge(personel.dukkan_ad || 'Dukkan yok', 'badge-amber')}
+                            </div>
+                            <p>Bagli slug: ${guvenliMetin(personel.dukkan_slug || '-')}</p>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Kullanici adi</label>
+                        <input type="text" data-key="kullanici_id" value="${guvenliMetin(personel.kullanici_id)}">
+                    </div>
+                    <div class="inline-grid" style="margin-top:12px;">
+                        <div class="field">
+                            <label>Rol</label>
+                            <select data-key="rol">
+                                <option value="garson" ${personel.rol === 'garson' ? 'selected' : ''}>Garson</option>
+                                <option value="admin" ${personel.rol === 'admin' ? 'selected' : ''}>Admin</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Bagli dukkan</label>
+                            <input type="hidden" data-key="dukkan_id" value="${guvenliMetin(personel.dukkan_id)}">
+                            <div style="padding:14px 16px;border-radius:16px;border:1px solid rgba(148, 163, 184, 0.18);background:rgba(2, 6, 23, 0.35);color:var(--text);font-size:15px;font-weight:700;">
+                                ${guvenliMetin(personel.dukkan_ad || 'Bagli dukkan yok')}
+                                <div style="margin-top:4px;color:var(--muted);font-size:12px;font-weight:600;">Slug: ${guvenliMetin(personel.dukkan_slug || '-')}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field" style="margin-top:12px;">
+                        <label>Yeni sifre</label>
+                        <input type="password" data-key="sifre" placeholder="Bos birakirsan degismez">
+                    </div>
+                    <div class="actions" style="margin-top:14px;">
+                        <button type="button" class="btn btn-success" onclick="personelKaydet(${personel.id})">Personeli kaydet</button>
+                        <button type="button" class="btn btn-danger" onclick="personelSil(${personel.id})">Personeli sil</button>
+                    </div>
+                </article>
+            `;
+        }
+
+        function okuCardAlanlari(selector, keyler) {
+            const kart = document.querySelector(selector);
+            const sonuc = {};
+            keyler.forEach((key) => {
+                sonuc[key] = kart?.querySelector(`[data-key="${key}"]`)?.value?.trim?.() ?? '';
+            });
+            return sonuc;
+        }
+
+        async function dukkanlariYukle() {
+            const alan = document.getElementById('dukkanYonetimListesi');
+            alan.innerHTML = '<div class="empty-state">Dukkanlar yukleniyor...</div>';
+
+            try {
+                const dukkanlar = await jsonIstek('/api/superadmin/dukkanlar');
+                state.dukkanlar = Array.isArray(dukkanlar) ? dukkanlar : [];
+                filtreleriDoldur();
+                setOzetKartlari();
+
+                if (!state.dukkanlar.length) {
+                    alan.innerHTML = '<div class="empty-state">Henuz kayitli dukkan yok.</div>';
+                    return;
+                }
+
+                alan.innerHTML = state.dukkanlar.map(dukkanKartHtml).join('');
+            } catch (err) {
+                console.error('Dukkan listesi hatasi:', err);
+                alan.innerHTML = `<div class="empty-state">${guvenliMetin(err.message || 'Dukkan listesi alinamadi.')}</div>`;
+                bildirimGoster(err.message || 'Dukkan listesi alinamadi.', 'hata');
+            }
+        }
+
+        async function personelleriYukle() {
+            const alan = document.getElementById('personelYonetimListesi');
+            alan.innerHTML = '<div class="empty-state">Personeller yukleniyor...</div>';
+
+            try {
+                const personeller = await jsonIstek('/api/superadmin/personeller');
+                state.personeller = Array.isArray(personeller) ? personeller : [];
+                filtreleriDoldur();
+                setOzetKartlari();
+                uygulaPersonelFiltresi();
+            } catch (err) {
+                console.error('Personel listesi hatasi:', err);
+                alan.innerHTML = `<div class="empty-state">${guvenliMetin(err.message || 'Personel listesi alinamadi.')}</div>`;
+                bildirimGoster(err.message || 'Personel listesi alinamadi.', 'hata');
+            }
+        }
+
+        function uygulaPersonelFiltresi() {
+            const alan = document.getElementById('personelYonetimListesi');
+            const secilen = document.getElementById('personelFiltreDukkan')?.value || '';
+            const filtreli = secilen
+                ? state.personeller.filter((personel) => String(personel.dukkan_id) === String(secilen))
+                : state.personeller;
+
+            if (!filtreli.length) {
+                alan.innerHTML = '<div class="empty-state">Bu filtreye uyan personel yok.</div>';
+                return;
+            }
+
+            alan.innerHTML = filtreli.map(personelKartHtml).join('');
+        }
+
+        function temizFiltre() {
+            document.getElementById('personelFiltreDukkan').value = '';
+            uygulaPersonelFiltresi();
+        }
+
+        async function qrListesiniYukle() {
+            const alan = document.getElementById('qrListesi');
+            alan.innerHTML = '<div class="empty-state">QR kodlari yukleniyor...</div>';
+
+            try {
+                const dukkanlar = await jsonIstek('/api/superadmin/dukkan-qr-listesi');
+                if (!Array.isArray(dukkanlar) || !dukkanlar.length) {
+                    alan.innerHTML = '<div class="empty-state">Henuz kayitli dukkan yok.</div>';
+                    return;
+                }
+
+                alan.innerHTML = dukkanlar.map((dukkan) => `
+                    <article class="qr-card">
+                        <h3>${guvenliMetin(dukkan.ad || dukkan.slug)}</h3>
+                        <div class="stack">
+                            ${kartBadge(dukkan.tur || 'Dukkan', isRestoranTuru(dukkan.tur) ? 'badge-green' : 'badge-blue')}
+                            ${kartBadge(dukkan.slug || '-', 'badge-amber')}
+                        </div>
+                        <img class="qr-image" src="${guvenliMetin(dukkan.qr_url)}" alt="${guvenliMetin(dukkan.ad || dukkan.slug)} QR kodu">
+                        <div class="public-link" title="${guvenliMetin(dukkan.public_url)}">${guvenliMetin(dukkan.public_url)}</div>
+                        <div class="qr-actions">
+                            <a class="btn btn-success" href="${guvenliMetin(dukkan.qr_download_url)}" download>Indir</a>
+                            <button type="button" class="btn btn-primary" onclick="qrYazdir('${encodeURIComponent(dukkan.slug)}')">Yazdir</button>
+                            <button type="button" class="btn btn-muted" onclick="linkKopyala('${encodeURIComponent(dukkan.public_url)}')">Linki kopyala</button>
+                        </div>
+                    </article>
+                `).join('');
+            } catch (err) {
+                console.error('QR listesi hatasi:', err);
+                alan.innerHTML = `<div class="empty-state">${guvenliMetin(err.message || 'QR listesi alinamadi.')}</div>`;
+            }
+        }
+
+        async function refreshAll() {
+            await dukkanlariYukle();
+            await personelleriYukle();
+            await qrListesiniYukle();
+            await mesajlariYukle();
+            yeniPersonelFormTemizle();
+        }
+
+        async function dukkanEkle() {
+            const payload = {
+                ad: document.getElementById('ad').value.trim(),
+                slug: document.getElementById('slug').value.trim() || slugOlustur(document.getElementById('ad').value),
+                telefon: document.getElementById('telefon').value.trim(),
+                adres: document.getElementById('adres').value.trim(),
+                aciklama: document.getElementById('aciklama').value.trim(),
+                tur: document.getElementById('tur').value,
+                logo_url: document.getElementById('logoUrl').value.trim(),
+                arka_plan_url: document.getElementById('arkaPlanUrl').value.trim(),
+                adminUser: document.getElementById('adminUser').value.trim(),
+                adminPass: document.getElementById('adminPass').value
+            };
+
+            if (!payload.ad || !payload.slug || !payload.adminUser || !payload.adminPass) {
+                bildirimGoster('Dukkan adi, slug ve ilk admin bilgileri zorunlu.', 'uyari');
+                return;
+            }
+
+            try {
+                await jsonIstek('/api/dukkan-ekle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                formTemizle();
+                await dukkanlariYukle();
+                await personelleriYukle();
+                await qrListesiniYukle();
+                bildirimGoster('Dukkan olusturuldu ve admin hesabi baglandi.', 'basari');
+            } catch (err) {
+                bildirimGoster(err.message || 'Dukkan olusturulamadi.', 'hata');
+            }
+        }
+
+        async function dukkanKaydet(id) {
+            const alanlar = okuCardAlanlari(`[data-dukkan-id="${id}"]`, ['ad', 'slug', 'tur', 'telefon', 'adres', 'aciklama', 'logo_url', 'arka_plan_url']);
+            if (!alanlar.ad || !alanlar.slug || !alanlar.tur) {
+                bildirimGoster('Dukkan adi, slug ve sektor zorunlu.', 'uyari');
+                return;
+            }
+
+            try {
+                await jsonIstek(`/api/superadmin/dukkan/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(alanlar)
+                });
+                await dukkanlariYukle();
+                await personelleriYukle();
+                await qrListesiniYukle();
+                bildirimGoster('Dukkan bilgileri guncellendi.', 'basari');
+            } catch (err) {
+                bildirimGoster(err.message || 'Dukkan guncellenemedi.', 'hata');
+            }
+        }
+
+        async function dukkanSil(id) {
+            const dukkan = state.dukkanlar.find((item) => Number(item.id) === Number(id));
+            const onay = await onayIste(`"${guvenliMetin(dukkan?.ad || 'Bu dukkan')}" kalici olarak silinecek. Bagli urunler, personeller, siparisler ve diger veriler de temizlenecek. Devam edelim mi?`, 'Dukkan silme onayi');
+            if (!onay) return;
+
+            try {
+                await jsonIstek(`/api/superadmin/dukkan/${id}`, { method: 'DELETE' });
+                await dukkanlariYukle();
+                await personelleriYukle();
+                await qrListesiniYukle();
+                bildirimGoster('Dukkan kalici olarak silindi.', 'basari');
+            } catch (err) {
+                bildirimGoster(err.message || 'Dukkan silinemedi.', 'hata');
+            }
+        }
+
+        async function personelEkle() {
+            const payload = {
+                dukkan_id: document.getElementById('yeniPersonelDukkan').value,
+                rol: document.getElementById('yeniPersonelRol').value,
+                kullanici_id: document.getElementById('yeniPersonelAd').value.trim(),
+                sifre: document.getElementById('yeniPersonelSifre').value
+            };
+
+            if (!payload.dukkan_id || !payload.kullanici_id || !payload.sifre) {
+                bildirimGoster('Yeni personel icin dukkan, kullanici adi ve sifre gerekli.', 'uyari');
+                return;
+            }
+
+            try {
+                await jsonIstek('/api/superadmin/personel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                yeniPersonelFormTemizle();
+                await personelleriYukle();
+                bildirimGoster('Yeni personel olusturuldu.', 'basari');
+            } catch (err) {
+                bildirimGoster(err.message || 'Personel olusturulamadi.', 'hata');
+            }
+        }
+
+        async function personelKaydet(id) {
+            const alanlar = okuCardAlanlari(`[data-personel-id="${id}"]`, ['kullanici_id', 'rol', 'dukkan_id', 'sifre']);
+            if (!alanlar.kullanici_id || !alanlar.rol || !alanlar.dukkan_id) {
+                bildirimGoster('Personel icin kullanici adi, rol ve dukkan secimi zorunlu.', 'uyari');
+                return;
+            }
+
+            try {
+                await jsonIstek(`/api/superadmin/personel/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(alanlar)
+                });
+                await personelleriYukle();
+                bildirimGoster('Personel guncellendi.', 'basari');
+            } catch (err) {
+                bildirimGoster(err.message || 'Personel guncellenemedi.', 'hata');
+            }
+        }
+
+        async function personelSil(id) {
+            const personel = state.personeller.find((item) => Number(item.id) === Number(id));
+            const onay = await onayIste(`"${guvenliMetin(personel?.kullanici_id || 'Bu personel')}" kaydi silinecek. Devam edelim mi?`, 'Personel silme onayi');
+            if (!onay) return;
+
+            try {
+                await jsonIstek(`/api/superadmin/personel/${id}`, { method: 'DELETE' });
+                await personelleriYukle();
+                bildirimGoster('Personel silindi.', 'basari');
+            } catch (err) {
+                bildirimGoster(err.message || 'Personel silinemedi.', 'hata');
+            }
+        }
+
+        async function linkKopyala(encodedUrl) {
+            const url = decodeURIComponent(encodedUrl);
+            try {
+                await navigator.clipboard.writeText(url);
+                bildirimGoster('Dukkan linki kopyalandi.', 'basari');
+            } catch {
+                bildirimGoster('Link kopyalanamadi.', 'hata');
+            }
+        }
+
+        function qrYazdir(encodedSlug) {
+            const slug = decodeURIComponent(encodedSlug);
+            const publicUrl = `${window.location.origin}/${slug}`;
+            const qrUrl = new URL(`/api/superadmin/dukkan-qr/${encodeURIComponent(slug)}`, window.location.origin).href;
+            const pencere = window.open('', '_blank', 'width=520,height=720');
+
+            if (!pencere) {
+                bildirimGoster('Yazdirma penceresi acilamadi. Tarayici popup engelini kontrol edin.', 'uyari');
+                return;
+            }
+
+            pencere.document.write(`
+                <!DOCTYPE html>
+                <html lang="tr">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>${guvenliMetin(slug)} QR</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 0; padding: 32px; text-align: center; color: #0f172a; }
+                        h1 { font-size: 24px; margin: 0 0 8px; }
+                        p { margin: 0 0 24px; color: #475569; word-break: break-all; }
+                        img { width: 320px; height: 320px; object-fit: contain; }
+                        .brand { margin-top: 22px; font-weight: 800; letter-spacing: .04em; }
+                    </style>
+                </head>
+                <body>
+                    <h1>${guvenliMetin(slug)}</h1>
+                    <p>${guvenliMetin(publicUrl)}</p>
+                    <img src="${qrUrl}" alt="QR">
+                    <div class="brand">esnoloji.com</div>
+                    <script>
+                        window.onload = () => {
+                            setTimeout(() => window.print(), 250);
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `);
+            pencere.document.close();
+        }
+
+        function tumQrYazdir() {
+            const kartlar = [...document.querySelectorAll('.qr-card')].map((kart) => {
+                const baslik = kart.querySelector('h3')?.textContent || 'Dukkan';
+                const publicUrl = kart.querySelector('.public-link')?.textContent || '';
+                const slug = publicUrl.split('/').filter(Boolean).pop() || '';
+                const qrUrl = new URL(`/api/superadmin/dukkan-qr/${encodeURIComponent(slug)}`, window.location.origin).href;
+                return { baslik, publicUrl, qrUrl };
+            }).filter((item) => item.publicUrl && item.qrUrl);
+
+            if (!kartlar.length) {
+                bildirimGoster('Yazdirilacak QR kod bulunamadi.', 'uyari');
+                return;
+            }
+
+            const pencere = window.open('', '_blank', 'width=920,height=920');
+            if (!pencere) {
+                bildirimGoster('Yazdirma penceresi acilamadi. Tarayici popup engelini kontrol edin.', 'uyari');
+                return;
+            }
+
+            pencere.document.write(`
+                <!DOCTYPE html>
+                <html lang="tr">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Esnoloji QR Kodlari</title>
+                    <style>
+                        * { box-sizing: border-box; }
+                        body { font-family: Arial, sans-serif; margin: 0; padding: 24px; color: #0f172a; }
+                        h1 { margin: 0 0 20px; font-size: 24px; }
+                        .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+                        .card { border: 1px solid #cbd5e1; border-radius: 12px; padding: 18px; text-align: center; break-inside: avoid; }
+                        .card h2 { font-size: 18px; margin: 0 0 6px; }
+                        .card p { min-height: 34px; margin: 0 0 12px; color: #475569; font-size: 12px; word-break: break-all; }
+                        .card img { width: 220px; height: 220px; object-fit: contain; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Esnoloji QR Kodlari</h1>
+                    <div class="grid">
+                        ${kartlar.map((item) => `
+                            <section class="card">
+                                <h2>${guvenliMetin(item.baslik)}</h2>
+                                <p>${guvenliMetin(item.publicUrl)}</p>
+                                <img src="${item.qrUrl}" alt="QR">
+                            </section>
+                        `).join('')}
+                    </div>
+                    <script>
+                        window.onload = () => {
+                            setTimeout(() => window.print(), 400);
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `);
+            pencere.document.close();
+        }
+
+
+        function mesajTarihYaz(tarih) {
+            if (!tarih) return '-';
+            return new Date(tarih).toLocaleString('tr-TR');
+        }
+
+        function mesajRozeti(mesaj) {
+            const tip = String(mesaj?.mesaj_turu || 'mesaj').toLowerCase();
+            if (tip === 'duyuru') return 'badge-amber';
+            if (tip === 'yanit') return 'badge-green';
+            return 'badge-blue';
+        }
+
+        function superAdminMesajFormTemizle() {
+            document.getElementById('superMesajDukkanSelect').value = 'tum';
+            document.getElementById('superMesajTurSelect').value = 'duyuru';
+            document.getElementById('superMesajBaslikInput').value = '';
+            document.getElementById('superMesajIcerikInput').value = '';
+            document.getElementById('superMesajOnemliInput').checked = false;
+            document.getElementById('superMesajUstId').value = '';
+            const kutu = document.getElementById('superMesajCevapKutusu');
+            kutu.style.display = 'none';
+            kutu.textContent = 'Bir mesaja cevap modundasin.';
+        }
+
+        function superAdminMesajaCevapHazirla(id, dukkanId, baslik, gonderen) {
+            document.getElementById('superMesajDukkanSelect').value = String(dukkanId);
+            document.getElementById('superMesajTurSelect').value = 'yanit';
+            document.getElementById('superMesajBaslikInput').value = baslik ? 'Re: ' + baslik : 'Yanit';
+            document.getElementById('superMesajUstId').value = String(id);
+            document.getElementById('superMesajIcerikInput').focus();
+            const kutu = document.getElementById('superMesajCevapKutusu');
+            kutu.style.display = 'block';
+            kutu.innerHTML = '<strong>Yanit modu:</strong> ' + guvenliMetin(gonderen || 'Admin') + ' kullanicisina cevap yaziyorsun.';
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        async function mesajlariYukle() {
+            const alan = document.getElementById('superMesajListesi');
+            const sayi = document.getElementById('superMesajSayisi');
+            alan.innerHTML = '<div class="empty-state">Mesajlar yukleniyor...</div>';
+
+            try {
+                const mesajlar = await jsonIstek('/api/superadmin/mesajlar');
+                state.mesajlar = Array.isArray(mesajlar) ? mesajlar : [];
+                sayi.textContent = state.mesajlar.length + ' mesaj';
+
+                if (!state.mesajlar.length) {
+                    alan.innerHTML = '<div class="empty-state">Henuz mesaj kaydi yok.</div>';
+                    return;
+                }
+
+                alan.innerHTML = state.mesajlar.map((mesaj) => {
+                    const rozetSinif = mesajRozeti(mesaj);
+                    const onemliRozet = mesaj.onemli ? '<span class="badge badge-red">Onemli</span>' : '';
+                    const cevapButonu = '<button type="button" class="btn btn-soft" onclick="superAdminMesajaCevapHazirla(' + mesaj.id + ', ' + mesaj.dukkan_id + ', ' + JSON.stringify(mesaj.baslik || '') + ', ' + JSON.stringify(mesaj.gonderen_adi || '') + ')">Cevapla</button>';
+                    return '<article class="manage-card">' +
+                        '<div class="card-head">' +
+                            '<div class="identity-copy">' +
+                                '<h3>' + guvenliMetin(mesaj.baslik || 'Basliksiz mesaj') + '</h3>' +
+                                '<div class="stack">' +
+                                    kartBadge((mesaj.dukkan_ad || 'Dukkan yok'), 'badge-blue') +
+                                    kartBadge((mesaj.mesaj_turu || 'mesaj'), rozetSinif) +
+                                    kartBadge((mesaj.gonderen_adi || 'Bilinmiyor') + ' / ' + (mesaj.gonderen_rol || '-'), 'badge-green') +
+                                    onemliRozet +
+                                '</div>' +
+                                '<p>' + guvenliMetin(mesaj.icerik || '') + '</p>' +
+                                '<p style="margin-top:8px;">' + guvenliMetin(mesajTarihYaz(mesaj.created_at)) + '</p>' +
+                            '</div>' +
+                            '<div class="actions">' + cevapButonu + '</div>' +
+                        '</div>' +
+                    '</article>';
+                }).join('');
+            } catch (err) {
+                console.error('Mesaj listesi hatasi:', err);
+                alan.innerHTML = '<div class="empty-state">' + guvenliMetin(err.message || 'Mesajlar alinamadi.') + '</div>';
+                sayi.textContent = '0 mesaj';
+            }
+        }
+
+        async function superAdminMesajGonder() {
+            const secim = document.getElementById('superMesajDukkanSelect').value;
+            const payload = {
+                dukkan_ids: secim === 'tum' ? state.dukkanlar.map((dukkan) => Number(dukkan.id)) : [Number(secim)],
+                mesaj_turu: document.getElementById('superMesajTurSelect').value,
+                baslik: document.getElementById('superMesajBaslikInput').value.trim(),
+                icerik: document.getElementById('superMesajIcerikInput').value.trim(),
+                ust_mesaj_id: document.getElementById('superMesajUstId').value ? Number(document.getElementById('superMesajUstId').value) : null,
+                onemli: document.getElementById('superMesajOnemliInput').checked
+            };
+
+            if (!payload.dukkan_ids.length || !payload.icerik) {
+                bildirimGoster('Mesaj gondermek icin hedef dukkan ve icerik zorunlu.', 'uyari');
+                return;
+            }
+
+            try {
+                const sonuc = await jsonIstek('/api/superadmin/mesaj-gonder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                superAdminMesajFormTemizle();
+                await mesajlariYukle();
+                bildirimGoster((sonuc.adet || payload.dukkan_ids.length) + ' dukkan icin mesaj gonderildi.', 'basari');
+            } catch (err) {
+                bildirimGoster(err.message || 'Mesaj gonderilemedi.', 'hata');
+            }
+        }
+
+        document.getElementById('ad').addEventListener('input', (event) => {
+            const slugAlan = document.getElementById('slug');
+            if (!slugAlan.value.trim()) {
+                slugAlan.value = slugOlustur(event.target.value);
+            }
+        });
+
+        (async function superAdminKontrol() {
+            setSektorSecenekleri();
+            superAdminBeklemeDurumuHazirla();
+            const personel = await oturumHazirla();
+            const rol = String(personel?.rol || '').trim().toLowerCase();
+            if (rol !== 'superadmin') {
+                document.body.innerHTML = '';
+                window.location.href = '/';
+                return;
+            }
+        })();
+    </script>
+</body>
+</html>

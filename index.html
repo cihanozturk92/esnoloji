@@ -1,0 +1,1388 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <title>Esnoloji.TR | İşletmeni iz bırakacak seviyeye taşı</title>
+    <style>
+        :root {
+            --bg: #07111f;
+            --bg-soft: #0f1b2d;
+            --surface: rgba(9, 18, 34, 0.86);
+            --surface-strong: rgba(8, 15, 28, 0.96);
+            --line: rgba(148, 163, 184, 0.18);
+            --text: #f8fafc;
+            --muted: #9fb0c9;
+            --primary: #2563eb;
+            --primary-2: #1d4ed8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --shadow: 0 24px 80px rgba(2, 6, 23, 0.42);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: "Segoe UI", system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        img { max-width: 100%; display: block; }
+
+        a { color: inherit; }
+
+        .container {
+            width: min(1200px, calc(100% - 40px));
+            margin: 0 auto;
+        }
+
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(18px);
+            background: rgba(7, 17, 31, 0.72);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        }
+
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            min-height: 82px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+        }
+
+        .brand-badge {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            overflow: hidden;
+            background: rgba(2, 6, 23, 0.96);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            box-shadow: 0 14px 34px rgba(2, 6, 23, 0.34);
+            flex: 0 0 50px;
+        }
+
+        .brand-badge img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .brand-copy strong {
+            display: block;
+            font-size: 1.25rem;
+            font-weight: 900;
+            letter-spacing: 0;
+        }
+
+        .brand-copy span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .auth-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .login-btn,
+        .panel-link,
+        .logout-btn,
+        .ghost-btn,
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            padding: 0 18px;
+            border-radius: 14px;
+            border: 0;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 0.92rem;
+            cursor: pointer;
+            transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease;
+        }
+
+        .login-btn,
+        .cta-btn {
+            color: white;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+            box-shadow: 0 16px 36px rgba(37, 99, 235, 0.34);
+        }
+
+        .ghost-btn,
+        .panel-link {
+            color: #dbeafe;
+            background: rgba(37, 99, 235, 0.12);
+            border: 1px solid rgba(96, 165, 250, 0.24);
+        }
+
+        .logout-btn {
+            color: #fecaca;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.24);
+        }
+
+        .login-btn:hover,
+        .panel-link:hover,
+        .logout-btn:hover,
+        .ghost-btn:hover,
+        .cta-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .user-greeting {
+            color: var(--muted);
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .hero {
+            position: relative;
+            min-height: calc(100vh - 82px);
+            background:
+                linear-gradient(90deg, rgba(5, 10, 20, 0.88) 0%, rgba(5, 10, 20, 0.62) 46%, rgba(5, 10, 20, 0.5) 100%),
+                url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+            overflow: hidden;
+            padding-bottom: 32px;
+        }
+
+        .hero-shell {
+            width: min(1240px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 78px 0 44px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #dbeafe;
+            font-size: 0.76rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+            gap: 34px;
+            align-items: start;
+            margin-top: 26px;
+        }
+
+        .hero-copy h1 {
+            font-size: clamp(3rem, 6vw, 5.5rem);
+            line-height: 0.95;
+            max-width: 760px;
+            font-weight: 950;
+            text-wrap: balance;
+        }
+
+        .hero-copy p {
+            margin-top: 22px;
+            max-width: 670px;
+            font-size: 1.12rem;
+            color: #d7e2f0;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 28px;
+        }
+
+        .hero-points {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 26px;
+        }
+
+        .point-chip {
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(8, 15, 28, 0.62);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .coztech-stamp {
+            display: inline-flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 24px;
+            padding: 12px 16px;
+            border-radius: 18px;
+            background: rgba(8, 15, 28, 0.72);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            box-shadow: 0 18px 40px rgba(2, 6, 23, 0.24);
+        }
+
+        .coztech-stamp img {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(2, 6, 23, 0.96);
+        }
+
+        .coztech-stamp strong {
+            display: block;
+            font-size: 0.96rem;
+            font-weight: 900;
+            color: #f8fafc;
+        }
+
+        .coztech-stamp span {
+            display: block;
+            font-size: 0.82rem;
+            color: #9fb0c9;
+            margin-top: 2px;
+        }
+
+        .hero-side {
+            justify-self: end;
+            width: min(100%, 420px);
+            background: rgba(7, 14, 26, 0.82);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 26px;
+            padding: 22px;
+            box-shadow: var(--shadow);
+        }
+
+        .showcase-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .showcase-head strong {
+            font-size: 1rem;
+        }
+
+        .live-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(16, 185, 129, 0.12);
+            color: #bbf7d0;
+            font-size: 0.76rem;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #10b981;
+            box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.12);
+        }
+
+        .mockup-stack {
+            display: grid;
+            gap: 12px;
+        }
+
+        .mockup-card {
+            border-radius: 22px;
+            background: rgba(15, 23, 42, 0.96);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            padding: 18px;
+        }
+
+        .mockup-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 0.93rem;
+            font-weight: 800;
+        }
+
+        .mockup-badge {
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(37, 99, 235, 0.16);
+            color: #bfdbfe;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .line-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+        }
+
+        .line-item:last-child { border-bottom: 0; }
+
+        .line-item small {
+            display: block;
+            color: var(--muted);
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 3px;
+        }
+
+        .line-item strong {
+            font-size: 0.98rem;
+        }
+
+        .line-price {
+            color: #bfdbfe;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .hero-bottom-band {
+            position: relative;
+            padding: 0 20px;
+            z-index: 1;
+        }
+
+        .band-grid {
+            width: min(1240px, 100%);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .band-card {
+            background: rgba(7, 14, 26, 0.82);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            border-radius: 22px;
+            padding: 18px 20px;
+            backdrop-filter: blur(14px);
+        }
+
+        .band-card span {
+            display: block;
+            color: #93c5fd;
+            font-size: 0.76rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+
+        .band-card strong {
+            display: block;
+            font-size: 1.5rem;
+            line-height: 1.08;
+        }
+
+        .band-card p {
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        section.page-section {
+            padding: 88px 0;
+        }
+
+        .section-head {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 34px;
+        }
+
+        .section-head h2 {
+            font-size: clamp(2rem, 3vw, 3.15rem);
+            line-height: 1.02;
+            max-width: 720px;
+        }
+
+        .section-head p {
+            max-width: 500px;
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        .showcase-section {
+            background: #091321;
+        }
+
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+            gap: 18px;
+        }
+
+        .showcase-panel {
+            min-height: 520px;
+            border-radius: 28px;
+            overflow: hidden;
+            position: relative;
+            background: var(--surface-strong);
+            border: 1px solid var(--line);
+        }
+
+        .showcase-media {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            transform: scale(1.02);
+        }
+
+        .showcase-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(4, 9, 20, 0.12) 0%, rgba(4, 9, 20, 0.82) 100%);
+        }
+
+        .showcase-content {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 28px;
+        }
+
+        .showcase-content h3 {
+            font-size: 1.85rem;
+            line-height: 1.05;
+            max-width: 400px;
+        }
+
+        .showcase-content p {
+            margin-top: 10px;
+            max-width: 480px;
+            color: #dbe5f3;
+        }
+
+        .use-grid {
+            display: grid;
+            gap: 18px;
+        }
+
+        .use-card {
+            padding: 24px;
+            border-radius: 26px;
+            background: rgba(9, 18, 34, 0.92);
+            border: 1px solid var(--line);
+            min-height: 160px;
+        }
+
+        .use-card strong {
+            display: block;
+            font-size: 1.18rem;
+            margin-bottom: 8px;
+        }
+
+        .use-card p {
+            color: var(--muted);
+        }
+
+        .advantage-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .advantage-card {
+            padding: 24px;
+            border-radius: 24px;
+            background: rgba(9, 18, 34, 0.88);
+            border: 1px solid var(--line);
+        }
+
+        .advantage-card span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 42px;
+            height: 42px;
+            padding: 0 12px;
+            border-radius: 14px;
+            background: rgba(37, 99, 235, 0.14);
+            color: #bfdbfe;
+            font-weight: 900;
+            margin-bottom: 18px;
+        }
+
+        .advantage-card h3 {
+            font-size: 1.18rem;
+            margin-bottom: 10px;
+        }
+
+        .advantage-card p {
+            color: var(--muted);
+        }
+
+        .process-section {
+            background:
+                linear-gradient(180deg, rgba(9, 19, 33, 1) 0%, rgba(6, 13, 24, 1) 100%);
+        }
+
+        .process-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .step-card {
+            padding: 24px;
+            border-radius: 24px;
+            border: 1px solid var(--line);
+            background: rgba(7, 14, 26, 0.84);
+        }
+
+        .step-index {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: rgba(16, 185, 129, 0.14);
+            color: #bbf7d0;
+            font-weight: 900;
+            margin-bottom: 16px;
+        }
+
+        .step-card h3 {
+            margin-bottom: 10px;
+            font-size: 1.08rem;
+        }
+
+        .step-card p {
+            color: var(--muted);
+        }
+
+        .shops-section {
+            background: #091321;
+            border-top: 1px solid rgba(148, 163, 184, 0.08);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+        }
+
+        .shops-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 16px;
+        }
+
+        .shop-card {
+            display: block;
+            padding: 22px;
+            border-radius: 24px;
+            background:
+                linear-gradient(180deg, rgba(9, 18, 34, 0.9), rgba(8, 15, 28, 0.98));
+            border: 1px solid var(--line);
+            text-decoration: none;
+            transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+        }
+
+        .shop-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(96, 165, 250, 0.34);
+            box-shadow: 0 24px 50px rgba(2, 6, 23, 0.22);
+        }
+
+        .shop-card strong {
+            display: block;
+            font-size: 1.05rem;
+            margin-bottom: 6px;
+        }
+
+        .shop-card span {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(37, 99, 235, 0.12);
+            color: #bfdbfe;
+            font-size: 0.76rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 32px 20px;
+            border-radius: 24px;
+            border: 1px dashed rgba(148, 163, 184, 0.2);
+            color: var(--muted);
+        }
+
+        .closing-cta {
+            position: relative;
+            background:
+                linear-gradient(90deg, rgba(5, 10, 20, 0.86), rgba(5, 10, 20, 0.6)),
+                url('https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+        }
+
+        .closing-wrap {
+            padding: 110px 0;
+        }
+
+        .closing-wrap h2 {
+            font-size: clamp(2.3rem, 4vw, 4rem);
+            line-height: 0.98;
+            max-width: 760px;
+        }
+
+        .closing-wrap p {
+            margin-top: 18px;
+            max-width: 620px;
+            color: #d8e3ef;
+            font-size: 1.05rem;
+        }
+
+        .closing-wrap .hero-actions {
+            margin-top: 26px;
+        }
+
+        .site-footer {
+            border-top: 1px solid rgba(148, 163, 184, 0.12);
+            background: rgba(4, 9, 20, 0.96);
+        }
+
+        .site-footer-inner {
+            width: min(1200px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 18px 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .footer-brand img {
+            width: 48px;
+            height: 48px;
+            border-radius: 999px;
+            object-fit: cover;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            box-shadow: 0 10px 24px rgba(2, 6, 23, 0.22);
+            flex: 0 0 48px;
+        }
+
+        .footer-brand strong {
+            display: block;
+            font-size: 0.92rem;
+            font-weight: 900;
+        }
+
+        .footer-brand span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.78rem;
+            margin-top: 2px;
+        }
+
+        .footer-copy {
+            color: var(--muted);
+            font-size: 0.78rem;
+            text-align: right;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(6, 11, 20, 0.74);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.28s ease;
+            padding: 18px;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            width: 100%;
+            max-width: 420px;
+            background: rgba(9, 18, 34, 0.98);
+            border-radius: 28px;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            box-shadow: var(--shadow);
+            position: relative;
+            padding: 34px 28px 28px;
+            transform: scale(0.94);
+            transition: transform 0.28s ease;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            border: 0;
+            background: rgba(148, 163, 184, 0.1);
+            color: #cbd5e1;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .modal-box h2 {
+            font-size: 1.6rem;
+            margin-bottom: 6px;
+        }
+
+        .modal-box .subtitle {
+            color: var(--muted);
+            font-size: 0.96rem;
+            margin-bottom: 22px;
+        }
+
+        .modal-box label {
+            display: block;
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 7px;
+        }
+
+        .modal-box input {
+            width: 100%;
+            min-height: 50px;
+            padding: 0 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            background: rgba(2, 6, 23, 0.76);
+            color: white;
+            margin-bottom: 16px;
+            font-size: 0.98rem;
+        }
+
+        .modal-box input:focus {
+            outline: none;
+            border-color: rgba(96, 165, 250, 0.9);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.18);
+        }
+
+        .submit-btn {
+            width: 100%;
+            min-height: 50px;
+            border-radius: 16px;
+            border: 0;
+            cursor: pointer;
+            font-weight: 900;
+            color: white;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+            box-shadow: 0 16px 34px rgba(37, 99, 235, 0.34);
+        }
+
+        @media (max-width: 1180px) {
+            .hero-grid,
+            .showcase-grid,
+            .advantage-grid,
+            .process-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .band-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 860px) {
+            .container,
+            .hero-shell {
+                width: min(100%, calc(100% - 28px));
+            }
+
+            .header-row,
+            .section-head {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .auth-area {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .hero {
+                min-height: auto;
+            }
+
+            .hero-shell {
+                padding: 56px 0 36px;
+            }
+
+            .hero-grid,
+            .showcase-grid,
+            .advantage-grid,
+            .process-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-side {
+                justify-self: stretch;
+                width: 100%;
+            }
+
+            .showcase-panel {
+                min-height: 420px;
+            }
+        }
+
+        @media (max-width: 620px) {
+            .header-row {
+                min-height: 74px;
+                padding: 12px 0;
+            }
+
+            .brand-copy strong {
+                font-size: 1.1rem;
+            }
+
+            .auth-area {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+
+            .hero-shell {
+                padding: 44px 0 28px;
+            }
+
+            .hero-copy h1 {
+                font-size: clamp(2.2rem, 12vw, 3.6rem);
+            }
+
+            .hero-copy p {
+                font-size: 1rem;
+            }
+
+            .hero-actions,
+            .hero-points {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .band-grid {
+                grid-template-columns: 1fr;
+            }
+
+            section.page-section {
+                padding: 64px 0;
+            }
+
+            .closing-wrap {
+                padding: 82px 0;
+            }
+
+            .site-footer-inner {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .footer-copy {
+                text-align: left;
+            }
+
+            .modal-box {
+                padding: 28px 20px 22px;
+                border-radius: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <div class="header-row">
+                <a href="/" class="brand">
+                    <span class="brand-badge">
+                        <img src="/public/coztech-header.png" alt="COZTech logosu">
+                    </span>
+                    <span class="brand-copy">
+                        <strong>Esnoloji.TR</strong>
+                        <span>COZTech altyapısıyla geliştirilen yeni nesil işletme sistemi</span>
+                    </span>
+                </a>
+                <div id="authArea" class="auth-area">
+                    <button class="login-btn" onclick="toggleModal(true)">Üye İşyeri Girişi</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-shell">
+            <div class="eyebrow">Restorandan kiralamaya kadar tek altyapı</div>
+            <div class="hero-grid">
+                <div class="hero-copy">
+                    <h1>Menü değil, Vitrin değil, Panel değil. Hepsini aynı anda yapan bir sistem.</h1>
+                    <p>Esnoloji; restoran, kafe, araba kiralama, oda kiralama, galeri ve hizmet işletmelerine tek merkezden satış, rezervasyon, personel, stok, QR ve görünürlük kazandırır. Müşteriye şık görünür, personele hız verir, patrona kontrol verir.</p>
+                    <div class="hero-actions">
+                        <button class="cta-btn" type="button" onclick="toggleModal(true)">İşletme girişini aç</button>
+                        <a class="ghost-btn" href="#neler-yapiyoruz">Neler yapıyoruz, göster</a>
+                    </div>
+                    <div class="hero-points">
+                        <span class="point-chip">QR ile açılan dijital menü ve vitrin</span>
+                        <span class="point-chip">Garson, admin ve süper admin panelleri</span>
+                        <span class="point-chip">Rezervasyon, stok, gelir-gider, satış raporu</span>
+                    </div>
+                    <div class="coztech-stamp" aria-label="COZTech marka imzasi">
+                        <img src="/WhatsApp%20Image%202026-06-17%20at%2021.04.20.jpeg" alt="COZTech logosu">
+                        <div>
+                            <strong>COZTech Group</strong>
+                            <span>Esnoloji.TR ürününün arkasındaki ekip ve marka yüzü</span>
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="hero-side" aria-label="Canlı ürün akışı önizlemesi">
+                    <div class="showcase-head">
+                        <div>
+                            <strong>Canlı işletme akışı</strong>
+                            <div style="color: var(--muted); font-size: 0.88rem; margin-top: 3px;">Tek altyapıda birden fazla sektör</div>
+                        </div>
+                        <div class="live-pill"><span class="live-dot"></span> aktif</div>
+                    </div>
+                    <div class="mockup-stack">
+                        <div class="mockup-card">
+                            <div class="mockup-title">
+                                <span>Masa içi sipariş</span>
+                                <span class="mockup-badge">Restoran</span>
+                            </div>
+                            <div class="line-item">
+                                <div><small>Masa 4</small><strong>Tavuk kanat + kola</strong></div>
+                                <div class="line-price">265 TL</div>
+                            </div>
+                            <div class="line-item">
+                                <div><small>Garson</small><strong>Hazırlanıyor</strong></div>
+                                <div class="line-price">8 dk</div>
+                            </div>
+                            <div class="line-item">
+                                <div><small>Stok</small><strong>Kola düşüldü</strong></div>
+                                <div class="line-price">145 adet</div>
+                            </div>
+                        </div>
+                        <div class="mockup-card">
+                            <div class="mockup-title">
+                                <span>Vitrin rezervasyonu</span>
+                                <span class="mockup-badge">Kiralama</span>
+                            </div>
+                            <div class="line-item">
+                                <div><small>Varlık</small><strong>34 ABC 404 SUV</strong></div>
+                                <div class="line-price">Boş günler</div>
+                            </div>
+                            <div class="line-item">
+                                <div><small>Takvim</small><strong>Haziran doluluk görünümü</strong></div>
+                                <div class="line-price">Anlık</div>
+                            </div>
+                            <div class="line-item">
+                                <div><small>İşletme</small><strong>Tek panelden yönetim</strong></div>
+                                <div class="line-price">7/24</div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+
+        <div class="hero-bottom-band">
+            <div class="band-grid">
+                <article class="band-card">
+                    <span>Satış gücü</span>
+                    <strong>Masada da satar, vitrinde de satar</strong>
+                    <p>QR ile sipariş alan restoran akışı ve takvimli kiralama vitrini tek yapıda birleşir.</p>
+                </article>
+                <article class="band-card">
+                    <span>Operasyon</span>
+                    <strong>Garson, admin, patron aynı fotoğrafı görür</strong>
+                    <p>Kim ne satmış, hangi masa açık, hangi araç dolu, tek ekranda net görünür.</p>
+                </article>
+                <article class="band-card">
+                    <span>Kontrol</span>
+                    <strong>Stok, gelir, gider, kâr, hareket</strong>
+                    <p>Sadece sipariş değil; işletmenin nabzını tutan asıl katman arka tarafta çalışır.</p>
+                </article>
+                <article class="band-card">
+                    <span>Sunum</span>
+                    <strong>Markan şık görünür, amatör durmaz</strong>
+                    <p>Müşteri tarafı gösterişli, personel tarafı hızlı, yönetim tarafı ciddi görünür.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="page-section showcase-section" id="neler-yapiyoruz">
+        <div class="container">
+            <div class="section-head">
+                <div>
+                    <h2>İnsanlar size “siz bunu tek sistemle mi yapıyorsunuz?” diye sorsun diye kuruldu.</h2>
+                </div>
+                <p>Burada mesele sadece panel açmak değil. İşletmenin görünen yüzünü, satış akışını ve arka plan operasyonunu tek bir omurgada topluyoruz.</p>
+            </div>
+
+            <div class="showcase-grid">
+                <article class="showcase-panel">
+                    <div class="showcase-media" style="background-image:url('https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1400&q=80');"></div>
+                    <div class="showcase-overlay"></div>
+                    <div class="showcase-content">
+                        <div class="eyebrow" style="width:max-content;">Müşteri tarafı</div>
+                        <h3>İşletmeni daha açılmadan ikna eden bir vitrine çevir.</h3>
+                        <p>Menüde iletişim, marka, arka plan, ürün akışı; vitrinde araç, oda, ekipman, uygunluk takvimi ve rezervasyon mantığıyla “bu iş profesyonel” hissi ver.</p>
+                    </div>
+                </article>
+
+                <div class="use-grid">
+                    <article class="use-card">
+                        <strong>Restoran modu</strong>
+                        <p>Masa yönetimi, garson siparişi, açık/kapalı siparişler, günlük ve aylık ciro, stok düşümü ve ürün raporları aynı zincirde çalışır.</p>
+                    </article>
+                    <article class="use-card">
+                        <strong>Kiralama modu</strong>
+                        <p>Araba, vinç, oda, günlük ev veya ekipman fark etmez. Varlıklar vitrine çıkar, boş günler görünür, rezervasyon takvimi arkada işler.</p>
+                    </article>
+                    <article class="use-card">
+                        <strong>Patron modu</strong>
+                        <p>Gelir-gider, QR dağıtımı, dükkan yönetimi, personel yönetimi ve sektör bazlı yapılandırma ile “excel peşinde koşma” devri kapanır.</p>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="page-section">
+        <div class="container">
+            <div class="section-head">
+                <div>
+                    <h2>Neden bizi seçmelisiniz?</h2>
+                </div>
+                <p>Çünkü rakiplerin çoğu ya sadece menü verir, ya sadece rezervasyon verir, ya da sadece panel verir. Esnoloji işin tamamını bir arada taşır.</p>
+            </div>
+
+            <div class="advantage-grid">
+                <article class="advantage-card">
+                    <span>01</span>
+                    <h3>Aynı çekirdekte çok sektör</h3>
+                    <p>Restoran için menü ve garson ekranı, kiralama için vitrin ve doluluk takvimi, her ikisi için de sağlam yönetim paneli.</p>
+                </article>
+                <article class="advantage-card">
+                    <span>02</span>
+                    <h3>Satışı ölçen gerçek yönetim</h3>
+                    <p>Kim hangi ürünü sattı, hangi garson tatlıyı daha iyi pazarladı, ne kadar ciro geldi, ne kadar stok eridi; boş laf değil, ölçülebilir veri.</p>
+                </article>
+                <article class="advantage-card">
+                    <span>03</span>
+                    <h3>Patronu da müşteriyi de utandırmayan görünüm</h3>
+                    <p>Sunum tarafı “ucuz tema” gibi durmaz; yönetim tarafı da düğme yığınına benzemez. Gösterirken yüz güldürür.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="page-section process-section">
+        <div class="container">
+            <div class="section-head">
+                <div>
+                    <h2>Kurulumdan satışa kadar işleyiş net.</h2>
+                </div>
+                <p>Bir işletme sisteme girdiğinde ne yaşayacağını anlaması lazım. Biz bunu da sade ve hızlı kuruyoruz.</p>
+            </div>
+
+            <div class="process-grid">
+                <article class="step-card">
+                    <div class="step-index">1</div>
+                    <h3>İşletmeni aç</h3>
+                    <p>Siz sektörünüzü, görsellerinizi, dükkanınızın ismini ve ilk yöneticinizi seçin gerisini esnoloji.tr yapsın.</p>
+                </article>
+                <article class="step-card">
+                    <div class="step-index">2</div>
+                    <h3>Ürünlerini veya varlıklarını gir</h3>
+                    <p>Restoransan ürünlerini, kiralamacıysan araçlarını veya odalarını ekle. esnoloji.tr sektörüne göre akıllı davranır.</p>
+                </article>
+                <article class="step-card">
+                    <div class="step-index">3</div>
+                    <h3>QR veya vitrinini yayınla</h3>
+                    <p>Müşteri doğrudan senin sayfana gelir. Menü görür, vitrin görür, markanı görür; arada aracı platform hissi olmaz.</p>
+                </article>
+                <article class="step-card">
+                    <div class="step-index">4</div>
+                    <h3>Yönetmeye başla</h3>
+                    <p>Sipariş, doluluk, personel, satış, stok ve finans takibi arka tarafta işlemeye başlar.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="page-section shops-section">
+        <div class="container">
+            <div class="section-head">
+                <div>
+                    <h2>Ağımıza giren işletmelerin vitrin kapısı burada.</h2>
+                </div>
+                <p>Sistemdeki aktif işletmeleri tek tıkla aç. Ziyaretçi burada sadece isim görmez; Esnoloji’nin gerçek kullanım alanını da hisseder.</p>
+            </div>
+            <div class="shops-grid" id="dukkan-listesi">
+                <div class="loading">Sistemdeki işletmeler yükleniyor...</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="closing-cta">
+        <div class="container closing-wrap">
+            <div class="eyebrow">Son söz</div>
+            <h2>İşletmeni internette “var” etmek değil, etkileyici hale getirmek istiyorsan doğru yerdesin.</h2>
+            <p>Esnoloji, gösterilecek kadar şık; günlük operasyonu taşıyacak kadar ciddi; yarın yeni sektör eklenince bozulmayacak kadar esnek bir omurga sunar.</p>
+            <div class="hero-actions">
+                <button class="cta-btn" type="button" onclick="toggleModal(true)">Panele bağlan</button>
+                <a class="ghost-btn" href="#dukkan-listesi">Aktif işletmelere bak</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-brand">
+                <img src="/WhatsApp%20Image%202026-06-17%20at%2021.04.20.jpeg" alt="COZTech logosu">
+                <div>
+                    <strong>Esnoloji.TR by COZTech</strong>
+                    <span>Dijital menü, vitrin, rezervasyon ve yönetim sistemleri</span>
+                </div>
+            </div>
+            <div class="footer-copy">
+                <div>© 2026 COZTech. Esnoloji.TR markası ve tüm hakları saklıdır.</div>
+                <div>COZTech çatısı altında geliştirilen Esnoloji.TR hizmetinizde</div>
+            </div>
+        </div>
+    </footer>
+
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-box">
+            <button class="close-modal" onclick="toggleModal(false)">×</button>
+            <h2>İşletme girişi</h2>
+            <div class="subtitle">Esnoloji yönetim paneline bağlanmak için bilgilerini gir.</div>
+
+            <label for="username">Kullanıcı adı</label>
+            <input type="text" id="username" placeholder="Örn: kemal_admin">
+
+            <label for="password">Şifre</label>
+            <input type="password" id="password" placeholder="••••••••">
+
+            <button class="submit-btn" onclick="girisYap()">Sisteme giriş yap</button>
+        </div>
+    </div>
+
+    <script src="/auth.js"></script>
+    <script>
+        async function oturumDurumunuGuncelle() {
+            const authArea = document.getElementById('authArea');
+            const personel = await oturumHazirla();
+
+            if (!personel) {
+                authArea.innerHTML = '<button class="login-btn" onclick="toggleModal(true)">Üye İşyeri Girişi</button>';
+                return;
+            }
+
+            const ad = personelAdi(personel);
+            const rol = rolEtiketi(personel);
+            const panel = panelAdresi(personel);
+
+            authArea.innerHTML = `
+                <span class="user-greeting">Merhaba ${ad} <span style="opacity:.72">(${rol})</span></span>
+                <a href="${panel}" class="panel-link">Panele git</a>
+                <button class="logout-btn" onclick="cikisYap()">Çıkış yap</button>
+            `;
+        }
+
+        function toggleModal(show) {
+            const modal = document.getElementById('loginModal');
+            modal.classList.toggle('active', Boolean(show));
+        }
+
+        async function girisYap() {
+            const usernameInput = document.getElementById('username').value.trim();
+            const passwordInput = document.getElementById('password').value;
+
+            if (!usernameInput || !passwordInput) {
+                bildirimGoster('Lütfen tüm alanları doldurun.', 'uyari');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: usernameInput, password: passwordInput })
+                });
+
+                const result = await res.json();
+
+                if (res.ok) {
+                    const { dukkan_slug, redirect, dukkan_id = null } = result;
+                    const rol = String(result.rol || 'gorevli').trim().toLowerCase();
+
+                    let tespitEdilenSlug = dukkan_slug;
+                    if (!tespitEdilenSlug && redirect) {
+                        try {
+                            const urlObj = new URL(redirect, window.location.origin);
+                            const pathParts = urlObj.pathname.split('/').filter(Boolean);
+                            if (pathParts.length > 0) tespitEdilenSlug = pathParts[0];
+                        } catch (e) {
+                            console.error('Slug ayiklanamadi:', e);
+                        }
+                    }
+
+                    tespitEdilenSlug = tespitEdilenSlug || 'cihan-restoran';
+
+                    oturumKaydet({
+                        ad: usernameInput,
+                        kullanici_id: usernameInput,
+                        rol,
+                        dukkanSlug: tespitEdilenSlug,
+                        dukkanId: dukkan_id
+                    });
+
+                    let yonlendirilecekAdres = '';
+
+                    switch (rol) {
+                        case 'superadmin':
+                            yonlendirilecekAdres = '/super-admin';
+                            break;
+                        case 'admin':
+                            yonlendirilecekAdres = `/${tespitEdilenSlug}/admin`;
+                            break;
+                        case 'garson':
+                            yonlendirilecekAdres = `/${tespitEdilenSlug}/garson`;
+                            break;
+                        default:
+                            yonlendirilecekAdres = redirect || '/';
+                            break;
+                    }
+
+                    toggleModal(false);
+                    setTimeout(() => {
+                        window.location.href = yonlendirilecekAdres;
+                    }, 220);
+                } else {
+                    bildirimGoster(result.error || 'Giriş bilgileri hatalı.', 'hata');
+                }
+            } catch (err) {
+                console.error('Baglanti hatasi:', err);
+                bildirimGoster('Sistemle bağlantı kurulamadı.', 'hata');
+            }
+        }
+
+        function turEtiketi(tur) {
+            const temiz = String(tur || '').trim();
+            if (!temiz) return 'İşletme';
+            return temiz.replace(/-/g, ' ');
+        }
+
+        async function dukkanlariYukle() {
+            const listeAlani = document.getElementById('dukkan-listesi');
+            try {
+                const res = await fetch('/api/dukkanlar/listele');
+                const dukkanlar = await res.json();
+                listeAlani.innerHTML = '';
+
+                if (!Array.isArray(dukkanlar)) {
+                    listeAlani.innerHTML = `<div class="loading" style="color:#fecaca;">Durum: ${dukkanlar.error || 'İşletmeler şu an yüklenemiyor.'}</div>`;
+                    return;
+                }
+
+                if (!dukkanlar.length) {
+                    listeAlani.innerHTML = '<div class="loading">Sistemde henüz aktif işletme bulunmuyor.</div>';
+                    return;
+                }
+
+                dukkanlar.forEach((dukkan) => {
+                    const kart = document.createElement('a');
+                    kart.href = `/${dukkan.slug}`;
+                    kart.className = 'shop-card';
+                    kart.innerHTML = `
+                        <strong>${dukkan.ad}</strong>
+                        <span>${turEtiketi(dukkan.tur)}</span>
+                    `;
+                    listeAlani.appendChild(kart);
+                });
+            } catch (err) {
+                console.error('Dukkan yukleme hatasi:', err);
+                listeAlani.innerHTML = '<div class="loading" style="color:#fecaca;">İşletmeler yüklenirken bir bağlantı sorunu oluştu.</div>';
+            }
+        }
+
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') toggleModal(false);
+        });
+
+        document.getElementById('loginModal').addEventListener('click', (event) => {
+            if (event.target.id === 'loginModal') toggleModal(false);
+        });
+
+        oturumDurumunuGuncelle();
+        dukkanlariYukle();
+    </script>
+</body>
+</html>

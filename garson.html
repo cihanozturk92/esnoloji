@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garson & Kasa Yönetim Üssü</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .blur-panel { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(16px); }
+        .glass-card { background: rgba(30, 41, 59, 0.45); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.05); }
+
+        @media (max-width: 640px) {
+            body { overflow-x: hidden; }
+            header {
+                align-items: flex-start !important;
+                flex-direction: column;
+                gap: 12px;
+                padding: 12px !important;
+            }
+
+            header > div:last-child {
+                width: 100%;
+                overflow-x: auto;
+                padding-bottom: 2px;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            header > div:last-child button,
+            header > div:last-child > div {
+                flex: 0 0 auto;
+                white-space: nowrap;
+            }
+
+            main {
+                margin-top: 16px !important;
+                gap: 16px !important;
+            }
+
+            #masalarIzgara { gap: 10px !important; }
+            #canliHesapPaneli {
+                position: static !important;
+                min-height: 300px;
+                padding: 16px !important;
+            }
+
+            #siparisModali { padding: 8px !important; }
+            #siparisModali > div {
+                max-height: 92dvh;
+                border-radius: 16px;
+            }
+
+            #siparisModali .p-4 { padding: 12px !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-orange-500 selection:text-white min-h-screen pb-12">
+
+    <header class="sticky top-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-900 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-600 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
+                <i class="fa-solid fa-bell-concierge text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                    <span id="panelDukkanAdi">Yükleniyor...</span>
+                </h1>
+                <p class="text-xs text-orange-400 font-medium tracking-wider uppercase flex items-center gap-1">
+                    <i class="fa-solid fa-circle text-[8px] animate-pulse"></i> Canlı Terminal
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button onclick="menuyeGit()" class="text-xs font-bold text-slate-300 hover:text-orange-400 border border-slate-800 hover:border-orange-400/40 px-3 py-1.5 rounded-xl transition flex items-center gap-1.5">
+                <i class="fa-solid fa-utensils"></i> Menü
+            </button>
+            <div class="bg-slate-900/80 border border-slate-800 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-inner">
+                <div class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></div>
+                <span id="personelIsim" class="text-xs font-bold text-slate-200">Garson Terminali</span>
+            </div>
+            <button onclick="cikisYap()" class="text-xs font-bold text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-400/40 px-3 py-1.5 rounded-xl transition">
+                Çıkış
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="lg:col-span-2 space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <i class="fa-solid fa-table-cells text-orange-500"></i> Salon Planı ve Masalar
+                </h2>
+                <div class="flex gap-2 text-[11px] font-bold">
+                    <span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-slate-700"></span> Boş
+                    </span>
+                    <span class="px-2.5 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span> Dolu / Hesap Açık
+                    </span>
+                </div>
+            </div>
+
+            <div id="masalarIzgara" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                <div class="text-center py-12 text-slate-500 col-span-full">Masalar aranıyor...</div>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <i class="fa-solid fa-receipt text-amber-500"></i> Canlı Hesap / Masa Detayı
+            </h2>
+
+            <div id="canliHesapPaneli" class="bg-slate-900/60 border border-slate-900 rounded-2xl p-5 shadow-xl min-h-[400px] flex flex-col justify-between sticky top-24">
+                <div id="hesapBosDurum" class="flex-grow flex flex-col items-center justify-center text-center text-slate-500 py-12">
+                    <i class="fa-solid fa-hand-pointer text-4xl mb-3 text-slate-700 animate-bounce"></i>
+                    <p class="text-sm">Detayları görmek, yeni sipariş eklemek veya hesabı kapatmak için soldan bir masaya dokun usta!</p>
+                </div>
+
+                <div id="hesapDoluDurum" class="hidden flex-col h-full justify-between flex-grow">
+                    <div>
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                            <div>
+                                <h3 id="detayMasaAdi" class="text-lg font-black text-white">Masa-X</h3>
+                                <p id="detaySiparisTarih" class="text-[10px] text-slate-500 mt-0.5">Sipariş: --:--</p>
+                            </div>
+                            <span id="detayMasaDurumBadge" class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md">BOŞ</span>
+                        </div>
+
+                        <div class="space-y-2 max-h-[250px] overflow-y-auto no-scrollbar pr-1" id="masadaYenenlerListesi">
+                        </div>
+                    </div>
+
+                    <div class="border-t border-slate-800 pt-4 mt-6 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-slate-400 font-medium">Toplam Tutar:</span>
+                            <span id="detayToplamTutar" class="text-xl font-black text-emerald-400">0.00 TL</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 pt-2">
+                            <button id="yeniSiparisEkleBtn" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-xl text-l shadow-lg transition flex items-center justify-center gap-1.5 shadow-orange-950/20">
+                                <i class="fa-solid fa-plus-minus"></i> Ekle
+                            </button>
+                            <button id="hesabiKapatBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs shadow-lg transition flex items-center justify-center gap-1.5 shadow-emerald-950/20">
+                                <i class="fa-solid fa-cash-register"></i> Hesabı Kapat / Öde
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="siparisModali" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all duration-300">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
+                <div>
+                    <h3 id="modalBaslikMasaAdi" class="text-base font-black text-white">Masa Seçimi</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Eklenecek ürünleri ve adetleri seçin usta.</p>
+                </div>
+                <button onclick="modalKapat()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="flex-grow overflow-y-auto p-4 space-y-4 no-scrollbar grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="md:col-span-1 space-y-1.5 overflow-x-auto md:overflow-x-visible flex md:flex-col gap-1 md:gap-0 pb-2 md:pb-0 border-b md:border-b-0 md:border-r border-slate-800 pr-0 md:pr-3" id="modalKategoriListesi">
+                </div>
+
+                <div class="md:col-span-2 space-y-2 overflow-y-auto max-h-[50vh] pr-1 no-scrollbar" id="modalUrunlerListesi">
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-slate-800 bg-slate-950/40 flex items-center justify-between">
+                <div>
+                    <span class="text-xs text-slate-400 block">Sipariş Toplamı:</span>
+                    <span id="modalSepetToplam" class="text-lg font-black text-orange-400">0.00 TL</span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="modalKapat()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-xl text-xs font-bold transition">Vazgeç</button>
+                    <button id="siparisKaydetMutfakBtn" class="bg-gradient-to-r from-orange-500 to-amber-600 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-lg shadow-orange-500/10 hover:from-orange-600 hover:to-amber-700 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Onayla!
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/auth.js"></script>
+    <script>
+        let dukkanSlug = "";
+        let tumUrunler = [];
+        let aktifSeciliMasa = null;
+        let aktifSeciliMasaId = null;
+        let sepet = {}; 
+        let dukkanId = 0;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const personel = await oturumHazirla();
+            if (!personel) {
+                window.location.href = '/';
+                return;
+            }
+
+            document.getElementById('personelIsim').innerText = `${personelAdi(personel)} (${rolEtiketi(personel)})`;
+            if (personel.dukkanSlug) {
+                dukkanSlug = personel.dukkanSlug;
+            }
+
+            if (!dukkanSlug) {
+                const pathParts = window.location.pathname.split('/').filter(Boolean);
+                dukkanSlug = pathParts[0] || "cihan-restoran";
+            }
+
+            terminalVerileriniYukle();
+        });
+
+        function menuyeGit() {
+            const hedefSlug = dukkanSlug || window.location.pathname.split('/').filter(Boolean)[0];
+            window.location.href = hedefSlug ? `/${hedefSlug}` : '/';
+        }
+
+        async function terminalVerileriniYukle() {
+            try {
+                // 1. Dükkan ve Ürün verilerini çek
+                const response = await fetch(`/api/dukkan-veri/${dukkanSlug}`);
+                if (!response.ok) throw new Error('Dükkan verisi alınamadı.');
+                const data = await response.json();
+                
+                dukkanId = data.dukkan.id;
+                document.getElementById('panelDukkanAdi').innerText = data.dukkan.ad || 'Yönetim Üssü';
+                tumUrunler = data.ogeler || [];
+
+                // 2. Masaları Oluştur (🚨 KATEGORİ YERİNE %100 "TUR" SÜTUNU KONTROLÜ)
+                const ogelerRes = await fetch(`/api/${dukkanSlug}/ogeler`);
+                if (!ogelerRes.ok) throw new Error('Masa verisi alinamadi.');
+                const ogeler = await ogelerRes.json();
+                const masalar = (ogeler || [])
+                    .filter(x => (x.tur || '').toLocaleLowerCase('tr-TR').trim() === 'masa')
+                    .map(x => ({ id: x.id, ad: x.ad || x.isim }))
+                    .filter(x => x.id && x.ad);
+
+                // 3. Veritabanından Aktif Siparişleri Çek
+                const siparisRes = await fetch(`/api/aktif-siparisler/${dukkanId}`);
+                let aktifSiparisler = [];
+                if (siparisRes.ok) {
+                    aktifSiparisler = await siparisRes.json(); 
+                }
+
+                window.globalAktifSiparislerListesi = aktifSiparisler;
+                window.globalMasalarListesi = masalar;
+
+                // Masaları Ekrana Basalım
+                const izgara = document.getElementById('masalarIzgara');
+                izgara.innerHTML = '';
+
+                if (masalar.length === 0) {
+                    izgara.innerHTML = '<div class="text-center py-12 text-slate-500 col-span-full">Bu dukkana ait masa bulunamadi.</div>';
+                    return;
+                }
+
+                masalar.forEach(masa => {
+                    const aktifHesap = aktifSiparisler.find(s => Number(s.oge_id) === Number(masa.id) && s.durum === 'açık');
+                    const isDolu = !!aktifHesap;
+                    
+                    const kartColor = isDolu 
+                        ? 'border-orange-500/40 bg-orange-500/5 hover:bg-orange-500/10 text-orange-400 shadow-lg shadow-orange-950/20' 
+                        : 'border-slate-900 bg-slate-900/40 hover:bg-slate-900/80 text-slate-300';
+
+                    const icerikIdStr = isDolu ? `<span class="text-[10px] bg-orange-500 text-white font-black px-1.5 py-0.5 rounded">${aktifHesap.toplam_tutar} TL</span>` : '<span class="text-[10px] text-slate-500">Boş</span>';
+
+                    izgara.innerHTML += `
+                        <button onclick="araciMasaDetayYukle(${masa.id})" class="glass-card border rounded-2xl p-4 text-left transition-all duration-200 flex flex-col justify-between gap-4 h-28 group relative overflow-hidden ${kartColor}">
+                            <div class="flex justify-between items-start w-full">
+                                <span class="font-black text-base tracking-tight text-white group-hover:text-orange-400 transition-colors">${masa.ad}</span>
+                                <i class="fa-solid ${isDolu ? 'fa-bowl-food animate-pulse text-orange-500' : 'fa-chair text-slate-700'} text-lg"></i>
+                            </div>
+                            <div class="flex items-center justify-between w-full border-t border-slate-800/60 pt-2">
+                                ${icerikIdStr}
+                            </div>
+                        </button>
+                    `;
+                });
+
+            } catch (err) {
+                console.error("Terminal yükleme hatası:", err);
+            }
+        }
+
+        function araciMasaDetayYukle(masaId) {
+            const masa = (window.globalMasalarListesi || []).find(m => Number(m.id) === Number(masaId));
+            if (!masa) return;
+
+            const eslesenSiparis = (window.globalAktifSiparislerListesi || []).find(s => Number(s.oge_id) === Number(masa.id) && s.durum === 'açık');
+            masaDetayGetir(masa, eslesenSiparis || null);
+        }
+
+        async function masaDetayGetir(masa, aktifSiparis) {
+            const masaAdi = masa.ad;
+            aktifSeciliMasa = masaAdi;
+            aktifSeciliMasaId = masa.id;
+            document.getElementById('hesapBosDurum').classList.add('hidden');
+            const doluAlan = document.getElementById('hesapDoluDurum');
+            doluAlan.classList.remove('hidden');
+            doluAlan.classList.add('flex');
+
+            document.getElementById('detayMasaAdi').innerText = masaAdi;
+            const liste = document.getElementById('masadaYenenlerListesi');
+            liste.innerHTML = '';
+
+            sepet = {};
+
+            if (aktifSiparis) {
+                document.getElementById('detayMasaDurumBadge').className = "text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md bg-orange-500 text-white animate-pulse";
+                document.getElementById('detayMasaDurumBadge').innerText = "HESAP AÇIK";
+                const siparisTarihi = aktifSiparis.olusturma_tarihi || aktifSiparis.created_at;
+                document.getElementById('detaySiparisTarih').innerText = `Giriş: ${new Date(siparisTarihi).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+                document.getElementById('detayToplamTutar').innerText = `${aktifSiparis.toplam_tutar} TL`;
+
+                try {
+                    const detayRes = await fetch(`/api/siparis-detay/${aktifSiparis.id}`);
+                    if(detayRes.ok) {
+                        const detaylar = await detayRes.json();
+                        detaylar.forEach(item => {
+                            const urunId = item.urun_id || item.id;
+                            const urunAdi = item.urun_adi || item.ad || 'Urun';
+                            const fiyat = parseFloat(item.fiyat || 0);
+                            sepet[urunId] = { urun_id: urunId, urun_adi: urunAdi, adet: parseInt(item.adet), fiyat: fiyat };
+
+                            liste.innerHTML += `
+                                <div class="flex items-center justify-between bg-slate-900/40 p-2.5 rounded-xl border border-slate-900">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-6 h-6 rounded-lg bg-orange-500/10 text-orange-400 text-xs font-black flex items-center justify-center">${item.adet}x</span>
+                                        <span class="text-xs font-bold text-slate-200">${urunAdi}</span>
+                                    </div>
+                                    <span class="text-xs font-extrabold text-slate-400">${(fiyat * item.adet).toFixed(2)} TL</span>
+                                </div>
+                            `;
+                        });
+                    }
+                } catch(e) { console.error(e); }
+
+                document.getElementById('yeniSiparisEkleBtn').onclick = () => modalAc(masaAdi, aktifSiparis.id);
+                document.getElementById('hesabiKapatBtn').onclick = () => hesabiKapat(aktifSiparis.id);
+                document.getElementById('hesabiKapatBtn').classList.remove('hidden');
+
+            } else {
+                document.getElementById('detayMasaDurumBadge').className = "text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md bg-slate-800 text-slate-400";
+                document.getElementById('detayMasaDurumBadge').innerText = "BOŞ MASA";
+                document.getElementById('detaySiparisTarih').innerText = "Hesap kapalı veya işlem yok.";
+                document.getElementById('detayToplamTutar').innerText = "0.00 TL";
+                liste.innerHTML = `<div class="text-center py-8 text-slate-600 text-xs italic">Bu masada şu an sipariş bulunmuyor usta.</div>`;
+                
+                document.getElementById('yeniSiparisEkleBtn').onclick = () => modalAc(masaAdi, null);
+                document.getElementById('hesabiKapatBtn').classList.add('hidden');
+            }
+        }
+
+        // MODAL MENÜ ALANI
+        function modalAc(masaAdi, mevcutSiparisId) {
+            document.getElementById('modalBaslikMasaAdi').innerText = `${masaAdi} - Sipariş Kartı`;
+            document.getElementById('siparisModali').classList.remove('hidden');
+
+            // 🚨 SÜTUN AYARI: Masalar hariç gerçek yemek TÜRLERİNİ getiriyoruz usta
+            const turler = [...new Set(tumUrunler.filter(x => !x.tur?.toLowerCase().includes('masa')).map(x => x.tur || 'Genel'))];
+            
+            const katAlani = document.getElementById('modalKategoriListesi');
+            katAlani.innerHTML = '';
+            
+            turler.forEach((tur, index) => {
+                const activeStyle = index === 0 ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/10' : 'bg-slate-950 text-slate-400 border border-slate-900';
+                katAlani.innerHTML += `
+                    <button onclick="modalTurSec('${tur}', this)" class="kat-modal-btn px-3 py-2 rounded-xl text-xs font-bold text-left whitespace-nowrap transition ${activeStyle}">
+                        ${tur}
+                    </button>
+                `;
+            });
+
+            // İlk türün ürünlerini listele
+            if(turler.length > 0) modalTurSec(turler[0]);
+            modalSepetGuncelle();
+
+            document.getElementById('siparisKaydetMutfakBtn').onclick = () => siparisiVeritabaninaKaydet(mevcutSiparisId);
+        }
+
+        // Kategori yerine Tür seçimi yönetimi
+        function modalTurSec(turAdi, element = null) {
+            if(element) {
+                document.querySelectorAll('.kat-modal-btn').forEach(btn => {
+                    btn.className = "kat-modal-btn px-3 py-2 rounded-xl text-xs font-bold text-left whitespace-nowrap transition bg-slate-950 text-slate-400 border border-slate-900";
+                });
+                element.className = "kat-modal-btn px-3 py-2 rounded-xl text-xs font-bold text-left whitespace-nowrap transition bg-orange-500 text-white shadow-lg shadow-orange-500/10";
+            }
+
+            const urunlerAlani = document.getElementById('modalUrunlerListesi');
+            urunlerAlani.innerHTML = '';
+
+            // 🚨 SÜTUN AYARI: Eşleşmeyi direkt 'tur' alanına göre yapıyoruz usta
+            const filtrelenmisUrunler = tumUrunler.filter(x => x.tur === turAdi);
+
+            filtrelenmisUrunler.forEach(urun => {
+                const urunId = urun.id;
+                const urunAdi = urun.ad || urun.isim;
+                const fiyat = parseFloat(urun.fiyat || 0);
+                const mevcutAdet = sepet[urunId]?.adet || 0;
+
+                urunlerAlani.innerHTML += `
+                    <div onclick="adetDegistir(${urunId}, 1)" class="flex items-center justify-between p-3 bg-slate-950/40 border border-slate-900 rounded-2xl hover:border-orange-500/40 transition cursor-pointer active:scale-[0.99]">
+                        <div>
+                            <h4 class="text-sm font-bold text-white">${urunAdi}</h4>
+                            <span class="text-xs font-extrabold text-orange-400 mt-0.5 block">${fiyat} TL</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-slate-900 p-1.5 rounded-xl border border-slate-800">
+                            <button onclick="event.stopPropagation(); adetDegistir(${urunId}, -1)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-xs active:scale-90 transition">-</button>
+                            <span id="modalAdet_${urunId}" class="w-6 text-center font-black text-xs text-white">${mevcutAdet}</span>
+                            <button onclick="event.stopPropagation(); adetDegistir(${urunId}, 1)" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-xs active:scale-90 transition">+</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function adetDegistir(urunId, degisim) {
+            const urun = tumUrunler.find(x => Number(x.id) === Number(urunId));
+            if (!urun) return;
+
+            const urunAdi = urun.ad || urun.isim;
+            const fiyat = parseFloat(urun.fiyat || 0);
+
+            if (!sepet[urunId]) {
+                sepet[urunId] = { urun_id: urunId, urun_adi: urunAdi, adet: 0, fiyat: fiyat };
+            }
+
+            sepet[urunId].adet += degisim;
+
+            if (sepet[urunId].adet <= 0) {
+                delete sepet[urunId];
+            }
+
+            const span = document.getElementById(`modalAdet_${urunId}`);
+            if(span) span.innerText = sepet[urunId]?.adet || 0;
+
+            modalSepetGuncelle();
+        }
+
+        function modalSepetGuncelle() {
+            let toplam = 0;
+            Object.values(sepet).forEach(item => {
+                toplam += item.adet * item.fiyat;
+            });
+            document.getElementById('modalSepetToplam').innerText = `${toplam.toFixed(2)} TL`;
+        }
+
+        function modalKapat() {
+            document.getElementById('siparisModali').classList.add('hidden');
+        }
+
+        async function siparisiVeritabaninaKaydet(mevcutSiparisId) {
+            let toplamTutar = 0;
+            const urunListesi = [];
+
+            Object.values(sepet).forEach((veri) => {
+                toplamTutar += veri.adet * veri.fiyat;
+                urunListesi.push({
+                    urun_id: veri.urun_id,
+                    urun_adi: veri.urun_adi,
+                    adet: veri.adet,
+                    fiyat: veri.fiyat
+                });
+            });
+
+            if(urunListesi.length === 0 && !mevcutSiparisId) {
+                bildirimGoster("Lütfen önce en az 1 ürün seçin.", "uyari");
+                return;
+            }
+
+            const veriPaketi = {
+                dukkan_id: dukkanId,
+                oge_id: aktifSeciliMasaId,
+                masa_adi: aktifSeciliMasa,
+                toplam_tutar: toplamTutar.toFixed(2),
+                durum: 'açık',
+                urunler: urunListesi,
+                siparis_id: mevcutSiparisId 
+            };
+
+            try {
+                const response = await fetch('/api/siparis/kaydet', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(veriPaketi)
+                });
+
+                if(response.ok) {
+                    modalKapat();
+                    await terminalVerileriniYukle();
+                    document.getElementById('hesapBosDurum').classList.remove('hidden');
+                    document.getElementById('hesapDoluDurum').classList.add('hidden');
+                    bildirimGoster(`Sipariş ${aktifSeciliMasa} için başarıyla kaydedildi.`, "basari");
+                }
+            } catch(err) {
+                console.error("Veritabanı kayıt hatası:", err);
+                bildirimGoster("Sipariş kaydedilirken bir hata oluştu.", "hata");
+            }
+        }
+
+        async function hesabiKapat(siparisId) {
+            const onay = await onayIste(`${aktifSeciliMasa} hesabının ödemesi alındı ve kapatılacak.`, 'Hesabı kapat');
+            if(!onay) return;
+
+            try {
+                const response = await fetch(`/api/siparis/kapat/${siparisId}`, { method: 'POST' });
+                if(response.ok) {
+                    await terminalVerileriniYukle();
+                    document.getElementById('hesapBosDurum').classList.remove('hidden');
+                    document.getElementById('hesapDoluDurum').classList.add('hidden');
+                    bildirimGoster(`${aktifSeciliMasa} hesabı kapatıldı. Masa yeni müşteriye hazır.`, "basari");
+                }
+            } catch(e) {
+                console.error("Hesap kapatma hatası:", e);
+            }
+        }
+    </script>
+</body>
+</html>
