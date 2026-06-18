@@ -107,7 +107,11 @@ function yerelDukkanGorselUrl(slug, tip) {
             YEREL_GORSEL_UZANTILARI.includes(parsed.ext.toLocaleLowerCase('tr-TR'));
     });
 
-    return dosya ? '/resimler/' + encodeURIComponent(dosya) : null;
+    if (!dosya) return null;
+
+    const tamYol = path.join(klasor, dosya);
+    const surum = Math.floor(fs.statSync(tamYol).mtimeMs);
+    return '/resimler/' + encodeURIComponent(dosya) + '?v=' + surum;
 }
 
 function dukkanGorselleriniNormalle(dukkan) {
@@ -745,7 +749,7 @@ app.get('/api/superadmin/mesajlar', apiYetkiGerekli(['superadmin', 'süperadmin'
     try {
         const { data, error } = await supabase
             .from('mesajlar')
-            .select('id, dukkan_id, gonderen_id, gonderen_rol, gonderen_adi, mesaj_turu, baslik, icerik, ust_mesaj_id, onemli, okundu, created_at, dukkanlar(ad, slug)')
+            .select('id, dukkan_id, gonderen_rol, gonderen_adi, mesaj_turu, baslik, icerik, ust_mesaj_id, onemli, okundu, created_at, dukkanlar(ad, slug)')
             .order('id', { ascending: false });
         if (error) throw error;
 
@@ -769,7 +773,6 @@ app.post('/api/superadmin/mesaj-gonder', apiYetkiGerekli(['superadmin', 'süpera
 
         const kayitlar = hedefler.map(dukkan_id => ({
             dukkan_id,
-            gonderen_id: req.session.id || null,
             gonderen_rol: 'superadmin',
             gonderen_adi: req.session.kullanici_id || 'Super Admin',
             mesaj_turu: req.body?.mesaj_turu || 'duyuru',
@@ -795,7 +798,7 @@ app.get('/api/:dukkan_adi/mesajlar', apiYetkiGerekli(['admin', 'superadmin', 's�
 
         const { data, error } = await supabase
             .from('mesajlar')
-            .select('id, dukkan_id, gonderen_id, gonderen_rol, gonderen_adi, mesaj_turu, baslik, icerik, ust_mesaj_id, onemli, okundu, created_at')
+            .select('id, dukkan_id, gonderen_rol, gonderen_adi, mesaj_turu, baslik, icerik, ust_mesaj_id, onemli, okundu, created_at')
             .eq('dukkan_id', dukkan.id)
             .order('id', { ascending: false });
         if (error) throw error;
@@ -816,7 +819,6 @@ app.post('/api/:dukkan_adi/mesaj-gonder', apiYetkiGerekli(['admin', 'superadmin'
 
         const { error } = await supabase.from('mesajlar').insert([{
             dukkan_id: dukkan.id,
-            gonderen_id: req.session.id || null,
             gonderen_rol: req.session.rol || 'admin',
             gonderen_adi: req.session.kullanici_id || 'Admin',
             mesaj_turu: req.body?.ust_mesaj_id ? 'yanit' : 'mesaj',
