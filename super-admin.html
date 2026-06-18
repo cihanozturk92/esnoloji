@@ -924,7 +924,7 @@
                             </div>
                         </div>
                         <div class="actions">
-                            <a class="btn btn-muted" href="${guvenliMetin(dukkan.public_url)}" target="_blank" rel="noreferrer">${acikEtiket}</a>
+                            <a class="btn btn-muted" href="/${encodeURIComponent(dukkan.slug)}" target="_blank" rel="noreferrer">${acikEtiket}</a>
                             <a class="btn btn-soft" href="/${encodeURIComponent(dukkan.slug)}/admin" target="_blank" rel="noreferrer">Admin paneli</a>
                             <button type="button" class="btn btn-primary" onclick="qrYazdir('${encodeURIComponent(dukkan.slug)}')">QR yazdir</button>
                         </div>

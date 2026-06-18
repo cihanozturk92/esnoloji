@@ -151,7 +151,8 @@
             }[karakter]));
         }
 
-                    try {
+        async function vitriniYukle() {
+            try {
                 const response = await fetch(`/api/dukkan-veri/${slug}`);
                 if (!response.ok) throw new Error('Dükkan bulunamadı.');
 

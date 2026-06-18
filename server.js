@@ -86,6 +86,16 @@ function opsiyonelMetin(value) {
     return temiz || null;
 }
 
+function ayAraligiHazirla(ayDegeri) {
+    const eslesme = String(ayDegeri || '').match(/^(\d{4})-(\d{2})$/);
+    const now = new Date();
+    const yil = eslesme ? Number(eslesme[1]) : now.getFullYear();
+    const ay = eslesme ? Number(eslesme[2]) - 1 : now.getMonth();
+    const baslangic = new Date(yil, ay, 1);
+    const bitis = new Date(yil, ay + 1, 1);
+    return { baslangic, bitis, ay: `${yil}-${String(ay + 1).padStart(2, '0')}` };
+}
+
 const YEREL_GORSEL_UZANTILARI = ['.webp', '.png', '.jpg', '.jpeg'];
 
 function yerelDukkanGorselUrl(slug, tip) {
@@ -137,6 +147,16 @@ function gorselKolonuEksikMi(error) {
 function siparisDetayKolonuEksikMi(error) {
     const mesaj = String(error?.message || '').toLocaleLowerCase('tr-TR');
     return error?.code === 'PGRST204' || mesaj.includes('personel_id') || mesaj.includes('personel_adi');
+}
+
+function rezervasyonPersonelKolonuEksikMi(error) {
+    const mesaj = String(error?.message || '').toLocaleLowerCase('tr-TR');
+    return error?.code === 'PGRST204' || mesaj.includes('personel_id') || mesaj.includes('personel_adi');
+}
+
+function giderOgeKolonuEksikMi(error) {
+    const mesaj = String(error?.message || '').toLocaleLowerCase('tr-TR');
+    return error?.code === 'PGRST204' || mesaj.includes('oge_id') || mesaj.includes('oge_adi');
 }
 
 const PASSWORD_HASH_PREFIX = 'scrypt';
@@ -1035,8 +1055,22 @@ app.get('/api/:dukkan_adi/rezervasyon-yonetim', apiYetkiGerekli(['admin', 'super
 
         if (rezervasyonErr) throw rezervasyonErr;
 
+        const { data: personeller, error: personelErr } = await supabase
+            .from('personel')
+            .select('id, kullanici_id, rol')
+            .eq('dukkan_id', dukkan.id)
+            .order('id', { ascending: true });
+
+        if (personelErr) throw personelErr;
+
+        const sahaPersonelleri = (personeller || []).filter(p => {
+            const rol = rolTemizle(p.rol);
+            return rol !== 'admin' && rol !== 'superadmin' && rol !== 'süperadmin';
+        });
+
         res.json({
             ogeler: ogeler || [],
+            personeller: sahaPersonelleri,
             rezervasyonlar: rezervasyonlar || []
         });
     } catch (err) {
@@ -1045,7 +1079,7 @@ app.get('/api/:dukkan_adi/rezervasyon-yonetim', apiYetkiGerekli(['admin', 'super
 });
 
 app.post('/api/:dukkan_adi/rezervasyon-ekle', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
-    const { oge_id, musteri_ad, musteri_telefon, baslangic_tarihi, bitis_tarihi, toplam_tutar, durum, notlar } = req.body || {};
+    const { oge_id, musteri_ad, musteri_telefon, baslangic_tarihi, bitis_tarihi, toplam_tutar, personel_id, durum, notlar } = req.body || {};
 
     try {
         const dukkan = await dukkanBilgisiBulBySlug(req.params.dukkan_adi);
@@ -1054,35 +1088,71 @@ app.post('/api/:dukkan_adi/rezervasyon-ekle', apiYetkiGerekli(['admin', 'superad
             return res.status(400).json({ error: 'Varlik, musteri ve tarih bilgileri zorunlu.' });
         }
 
-        const { data, error } = await supabase
+        let seciliPersonel = null;
+        if (personel_id) {
+            const { data: personel, error: personelErr } = await supabase
+                .from('personel')
+                .select('id, kullanici_id')
+                .eq('id', Number(personel_id))
+                .eq('dukkan_id', dukkan.id)
+                .maybeSingle();
+            if (personelErr) throw personelErr;
+            seciliPersonel = personel || null;
+        }
+
+        const rezervasyonPayload = {
+            dukkan_id: dukkan.id,
+            oge_id: Number(oge_id),
+            musteri_ad,
+            musteri_telefon: musteri_telefon || null,
+            baslangic_tarihi,
+            bitis_tarihi,
+            toplam_tutar: Number(toplam_tutar || 0),
+            personel_id: seciliPersonel?.id || null,
+            personel_adi: seciliPersonel?.kullanici_id || null,
+            durum: durum || 'aktif',
+            notlar: notlar || null
+        };
+
+        let { data, error } = await supabase
             .from('rezervasyonlar')
-            .insert([{
-                dukkan_id: dukkan.id,
-                oge_id: Number(oge_id),
-                musteri_ad,
-                musteri_telefon: musteri_telefon || null,
-                baslangic_tarihi,
-                bitis_tarihi,
-                toplam_tutar: Number(toplam_tutar || 0),
-                durum: durum || 'aktif',
-                notlar: notlar || null
-            }])
+            .insert([rezervasyonPayload])
             .select()
             .single();
+
+        if (error && rezervasyonPersonelKolonuEksikMi(error)) {
+            delete rezervasyonPayload.personel_id;
+            delete rezervasyonPayload.personel_adi;
+            const ikinci = await supabase.from('rezervasyonlar').insert([rezervasyonPayload]).select().single();
+            data = ikinci.data;
+            error = ikinci.error;
+        }
 
         if (error) throw error;
 
         if (Number(toplam_tutar || 0) > 0 && String(durum || 'aktif').toLocaleLowerCase('tr-TR').trim() !== 'iptal') {
-            const { error: gelirErr } = await supabase
-                .from('giderler')
-                .insert([{
-                    dukkan_id: dukkan.id,
-                    baslik: `Rezervasyon #${data.id} - ${musteri_ad}`,
-                    kategori: 'Gelir',
-                    tutar: Number(toplam_tutar || 0)
-                }]);
+            const { data: oge } = await supabase
+                .from('ogeler')
+                .select('id, ad')
+                .eq('id', Number(oge_id))
+                .eq('dukkan_id', dukkan.id)
+                .maybeSingle();
+            const gelirPayload = {
+                dukkan_id: dukkan.id,
+                baslik: `Rezervasyon #${data.id} - ${musteri_ad}`,
+                kategori: 'Gelir',
+                tutar: Number(toplam_tutar || 0),
+                oge_id: oge?.id || Number(oge_id),
+                oge_adi: oge?.ad || null
+            };
+            let gelirSonuc = await supabase.from('giderler').insert([gelirPayload]);
+            if (gelirSonuc.error && giderOgeKolonuEksikMi(gelirSonuc.error)) {
+                delete gelirPayload.oge_id;
+                delete gelirPayload.oge_adi;
+                gelirSonuc = await supabase.from('giderler').insert([gelirPayload]);
+            }
 
-            if (gelirErr) throw gelirErr;
+            if (gelirSonuc.error) throw gelirSonuc.error;
         }
 
         res.json({ status: 'success', rezervasyon: data });
@@ -1237,11 +1307,26 @@ app.get('/api/:dukkan_adi/gelir-gider', apiYetkiGerekli(['admin', 'superadmin', 
 
         if (dukkanErr || !dukkan) return res.status(404).json({ error: "Dukkan bulunamadi" });
 
-        const { data: kayitlar, error } = await supabase
+        const ayAraligi = ayAraligiHazirla(req.query?.ay);
+        let { data: kayitlar, error } = await supabase
             .from('giderler')
-            .select('id, baslik, kategori, tutar, created_at')
+            .select('id, baslik, kategori, tutar, created_at, oge_id, oge_adi')
             .eq('dukkan_id', dukkan.id)
+            .gte('created_at', ayAraligi.baslangic.toISOString())
+            .lt('created_at', ayAraligi.bitis.toISOString())
             .order('created_at', { ascending: false });
+
+        if (error && giderOgeKolonuEksikMi(error)) {
+            const ikinci = await supabase
+                .from('giderler')
+                .select('id, baslik, kategori, tutar, created_at')
+                .eq('dukkan_id', dukkan.id)
+                .gte('created_at', ayAraligi.baslangic.toISOString())
+                .lt('created_at', ayAraligi.bitis.toISOString())
+                .order('created_at', { ascending: false });
+            kayitlar = (ikinci.data || []).map(k => ({ ...k, oge_id: null, oge_adi: null }));
+            error = ikinci.error;
+        }
 
         if (error) throw error;
 
@@ -1257,7 +1342,9 @@ app.get('/api/:dukkan_adi/gelir-gider', apiYetkiGerekli(['admin', 'superadmin', 
                 const { data: siparisler, error: siparisErr } = await supabase
                     .from('siparisler')
                     .select('id, toplam_tutar, created_at, durum')
-                    .eq('dukkan_id', dukkan.id);
+                    .eq('dukkan_id', dukkan.id)
+                    .gte('created_at', ayAraligi.baslangic.toISOString())
+                    .lt('created_at', ayAraligi.bitis.toISOString());
 
                 if (siparisErr) throw siparisErr;
 
@@ -1277,7 +1364,9 @@ app.get('/api/:dukkan_adi/gelir-gider', apiYetkiGerekli(['admin', 'superadmin', 
                 const { data: rezervasyonlar, error: rezervasyonErr } = await supabase
                     .from('rezervasyonlar')
                     .select('id, toplam_tutar, created_at, durum, musteri_ad')
-                    .eq('dukkan_id', dukkan.id);
+                    .eq('dukkan_id', dukkan.id)
+                    .gte('created_at', ayAraligi.baslangic.toISOString())
+                    .lt('created_at', ayAraligi.bitis.toISOString());
 
                 if (rezervasyonErr) throw rezervasyonErr;
 
@@ -1315,6 +1404,7 @@ app.post('/api/:dukkan_adi/gelir-gider/kayit', apiYetkiGerekli(['admin', 'supera
     const kategoriRaw = String(req.body?.kategori || '').trim();
     const baslik = String(req.body?.baslik || '').trim();
     const tutar = Number(req.body?.tutar || 0);
+    const ogeId = req.body?.oge_id ? Number(req.body.oge_id) : null;
 
     try {
         const { data: dukkan, error: dukkanErr } = await supabase
@@ -1329,19 +1419,45 @@ app.post('/api/:dukkan_adi/gelir-gider/kayit', apiYetkiGerekli(['admin', 'supera
         const kategoriNorm = kategoriRaw.toLocaleLowerCase('tr-TR');
         const kategori = kategoriNorm === 'gelir' ? 'Gelir' : 'Gider';
 
-        const { data, error } = await supabase
+        let seciliOge = null;
+        if (ogeId) {
+            const { data: oge, error: ogeErr } = await supabase
+                .from('ogeler')
+                .select('id, ad')
+                .eq('id', ogeId)
+                .eq('dukkan_id', dukkan.id)
+                .maybeSingle();
+            if (ogeErr) throw ogeErr;
+            seciliOge = oge || null;
+        }
+
+        const payload = {
+            dukkan_id: dukkan.id,
+            baslik,
+            kategori,
+            tutar,
+            oge_id: seciliOge?.id || null,
+            oge_adi: seciliOge?.ad || null
+        };
+
+        let sonuc = await supabase
             .from('giderler')
-            .insert([{
-                dukkan_id: dukkan.id,
-                baslik,
-                kategori,
-                tutar
-            }])
-            .select('id, baslik, kategori, tutar, created_at')
+            .insert([payload])
+            .select('id, baslik, kategori, tutar, created_at, oge_id, oge_adi')
             .single();
 
-        if (error) throw error;
-        res.json({ status: "success", kayit: data });
+        if (sonuc.error && giderOgeKolonuEksikMi(sonuc.error)) {
+            delete payload.oge_id;
+            delete payload.oge_adi;
+            sonuc = await supabase
+                .from('giderler')
+                .insert([payload])
+                .select('id, baslik, kategori, tutar, created_at')
+                .single();
+        }
+
+        if (sonuc.error) throw sonuc.error;
+        res.json({ status: "success", kayit: sonuc.data });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -1681,6 +1797,59 @@ app.post('/api/siparis/kaydet', apiYetkiGerekli(['garson', 'admin', 'superadmin'
         }
     } catch (err) {
         console.error("SipariÅŸ veritabanÄ± kayÄ±t hatasÄ±:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/:dukkan_adi/operator-is-raporu', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
+    try {
+        const dukkan = await dukkanBilgisiBulBySlug(req.params.dukkan_adi);
+        if (!dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi.' });
+
+        const { data: rezervasyonlar, error } = await supabase
+            .from('rezervasyonlar')
+            .select('id, oge_id, personel_id, personel_adi, toplam_tutar, durum')
+            .eq('dukkan_id', dukkan.id);
+        if (error) {
+            if (rezervasyonPersonelKolonuEksikMi(error)) {
+                return res.status(400).json({ error: 'Operator raporu icin rezervasyonlar tablosuna personel_id ve personel_adi kolonlari eklenmeli.' });
+            }
+            throw error;
+        }
+
+        const ogeIdleri = [...new Set((rezervasyonlar || []).map(r => r.oge_id).filter(Boolean))];
+        let ogeMap = new Map();
+        if (ogeIdleri.length) {
+            const { data: ogeler, error: ogeErr } = await supabase
+                .from('ogeler')
+                .select('id, ad, tur')
+                .in('id', ogeIdleri);
+            if (ogeErr) throw ogeErr;
+            ogeMap = new Map((ogeler || []).map(o => [Number(o.id), o]));
+        }
+
+        const toparla = new Map();
+        for (const rezervasyon of rezervasyonlar || []) {
+            const durum = String(rezervasyon.durum || '').toLocaleLowerCase('tr-TR').trim();
+            if (durum === 'iptal' || !rezervasyon.personel_id) continue;
+            const oge = ogeMap.get(Number(rezervasyon.oge_id));
+            const anahtar = `${rezervasyon.personel_id}::${rezervasyon.oge_id || 'genel'}`;
+            const mevcut = toparla.get(anahtar) || {
+                personel_id: rezervasyon.personel_id,
+                personel_adi: rezervasyon.personel_adi || 'Bilinmiyor',
+                oge_id: rezervasyon.oge_id || null,
+                oge_adi: oge?.ad || 'Birim',
+                oge_tur: oge?.tur || 'Genel',
+                is_adedi: 0,
+                toplam_tutar: 0
+            };
+            mevcut.is_adedi += 1;
+            mevcut.toplam_tutar += Number(rezervasyon.toplam_tutar || 0);
+            toparla.set(anahtar, mevcut);
+        }
+
+        res.json([...toparla.values()].sort((a, b) => b.toplam_tutar - a.toplam_tutar));
+    } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });

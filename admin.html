@@ -359,6 +359,12 @@
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Varlik</label>
                                 <select id="rezOgeSelect" onchange="rezervasyonTakvimiCiz(); rezervasyonlariListele();" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700 bg-white"></select>
                             </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Operator / Personel</label>
+                                <select id="rezPersonelSelect" onchange="rezervasyonlariListele()" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700 bg-white">
+                                    <option value="">Personel secilmedi</option>
+                                </select>
+                            </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Baslangic</label>
@@ -543,6 +549,32 @@
                 </div>
             </div>
 
+            <div id="operatorIsRaporuBolumu" class="hidden bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-6">
+                <div class="p-5 border-b border-slate-50 bg-slate-50/50 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div>
+                        <span class="font-bold text-slate-700 text-sm tracking-wide uppercase">Operator Is Raporu</span>
+                        <p class="text-xs text-slate-500 mt-1">Hangi operator hangi birimde kac is yapmis ve ne kadar gelir uretmis burada gorunur.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input id="operatorRaporFiltreInput" type="text" placeholder="Operator veya birim ara" oninput="operatorIsRaporuListele()" class="w-full lg:w-72 px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
+                        <button onclick="operatorIsRaporuYukle()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">Yenile</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-100 text-slate-400 text-[11px] font-bold uppercase bg-slate-50/30">
+                                <th class="p-4">Operator</th>
+                                <th class="p-4">Birim</th>
+                                <th class="p-4 text-right">Is Adedi</th>
+                                <th class="p-4 text-right">Toplam Gelir</th>
+                            </tr>
+                        </thead>
+                        <tbody id="operatorIsRaporuGovdesi"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <div id="personelSatisRaporuBolumu" class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="p-5 border-b border-slate-50 bg-slate-50/50 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div>
@@ -580,9 +612,15 @@
         </section>
 
         <section id="gelirGiderSekmesi" class="hidden">
-            <div class="border-b border-slate-200 pb-5 mb-6">
-                <h2 class="text-2xl font-black text-slate-800 tracking-tight">Gelir - Gider Takibi</h2>
-                <p class="text-sm text-slate-500 mt-1">İşletmenizin kasa hareketleri, günlük cirolar ve dükkan masrafları.</p>
+            <div class="border-b border-slate-200 pb-5 mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Gelir - Gider Takibi</h2>
+                    <p class="text-sm text-slate-500 mt-1">İşletmenizin kasa hareketleri, günlük cirolar ve dükkan masrafları.</p>
+                </div>
+                <div class="w-full sm:w-56">
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Rapor Ayi</label>
+                    <input type="month" id="gelirGiderAyInput" onchange="gelirGiderYukle()" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-700 bg-white">
+                </div>
             </div>
             <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
                 <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
@@ -591,12 +629,18 @@
                         <p class="text-sm text-slate-500 mt-1">Mazot, bakım, peşin ödeme, ekstra tahsilat gibi kayıtları buradan işleyin.</p>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-[180px_1fr_180px] gap-4 mt-5">
+                <div class="grid grid-cols-1 lg:grid-cols-[160px_220px_1fr_170px] gap-4 mt-5">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Kayit Turu</label>
                         <select id="finansKategoriInput" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-700 bg-white">
                             <option value="Gelir">Gelir</option>
                             <option value="Gider">Gider</option>
+                        </select>
+                    </div>
+                    <div id="finansBirimAlani" class="hidden">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Birim</label>
+                        <select id="finansOgeSelect" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-700 bg-white">
+                            <option value="">Genel dukkan harcamasi</option>
                         </select>
                     </div>
                     <div>
@@ -825,7 +869,43 @@
             const satisBolumu = document.getElementById('personelSatisRaporuBolumu');
             if (satisBolumu) satisBolumu.classList.toggle('hidden', !restoranIsletmesi);
 
+            const operatorBolumu = document.getElementById('operatorIsRaporuBolumu');
+            if (operatorBolumu) operatorBolumu.classList.toggle('hidden', restoranIsletmesi);
+
+            const finansBirimAlani = document.getElementById('finansBirimAlani');
+            if (finansBirimAlani) finansBirimAlani.classList.toggle('hidden', restoranIsletmesi);
+
             ogeTuruSecenekleriniAyarla();
+            personelRolSecenekleriniAyarla();
+            finansBirimSecenekleriniGuncelle();
+        }
+
+        function personelRolSecenekleriniAyarla() {
+            const select = document.getElementById('personelRolSelect');
+            if (!select) return;
+            const mevcut = select.value;
+            select.innerHTML = restoranIsletmesi
+                ? '<option value="garson">Garson / Saha Elemani</option><option value="admin">Ortak Admin</option>'
+                : '<option value="operator">Operator / Saha Elemani</option><option value="admin">Ortak Admin</option>';
+            if ([...select.options].some(option => option.value === mevcut)) select.value = mevcut;
+        }
+
+        function finansBirimSecenekleriniGuncelle() {
+            const select = document.getElementById('finansOgeSelect');
+            if (!select) return;
+            const kaynak = rezervasyonOgeleri.length ? rezervasyonOgeleri : ogeler;
+            select.innerHTML = '<option value="">Genel dukkan harcamasi</option>' +
+                (kaynak || []).map(o => `<option value="${o.id}">${o.ad} (${o.tur || 'Birim'})</option>`).join('');
+        }
+
+        function finansAyDegeri() {
+            const input = document.getElementById('gelirGiderAyInput');
+            if (!input) return '';
+            if (!input.value) {
+                const bugun = new Date();
+                input.value = bugun.toISOString().slice(0, 7);
+            }
+            return input.value;
         }
 
         function sekmeKullanilabilirMi(sekmeId) {
@@ -957,7 +1037,7 @@
                 <div class="p-4 flex items-center justify-between gap-4">
                     <div class="min-w-0">
                         <div class="font-bold text-slate-800 truncate">${kayit.baslik || 'Kayit'}</div>
-                        <div class="text-xs text-slate-400 mt-0.5">${kayit.kategori || 'Genel'} ${tarih ? '• ' + tarih : ''}</div>
+                        <div class="text-xs text-slate-400 mt-0.5">${kayit.oge_adi ? kayit.oge_adi + ' • ' : ''}${kayit.kategori || 'Genel'} ${tarih ? '• ' + tarih : ''}</div>
                     </div>
                     <div class="font-black ${renk} whitespace-nowrap">${isaret}${paraYaz(kayit.tutar)}</div>
                 </div>
@@ -968,13 +1048,16 @@
             document.getElementById('finansKategoriInput').value = 'Gelir';
             document.getElementById('finansBaslikInput').value = '';
             document.getElementById('finansTutarInput').value = '';
+            const birimSelect = document.getElementById('finansOgeSelect');
+            if (birimSelect) birimSelect.value = '';
         }
 
         async function finansKaydiEkle() {
             const payload = {
                 kategori: document.getElementById('finansKategoriInput').value,
                 baslik: document.getElementById('finansBaslikInput').value.trim(),
-                tutar: Number(document.getElementById('finansTutarInput').value || 0)
+                tutar: Number(document.getElementById('finansTutarInput').value || 0),
+                oge_id: !restoranIsletmesi && document.getElementById('finansOgeSelect')?.value ? Number(document.getElementById('finansOgeSelect').value) : null
             };
 
             if (!payload.baslik || payload.tutar <= 0) {
@@ -1007,7 +1090,8 @@
                 const eskiBilgiKutusu = document.querySelector('#gelirGiderSekmesi > .bg-white.p-8');
                 if (eskiBilgiKutusu) eskiBilgiKutusu.classList.add('hidden');
 
-                const response = await fetch(`/api/${dukkanSlug}/gelir-gider`);
+                const ay = finansAyDegeri();
+                const response = await fetch(`/api/${dukkanSlug}/gelir-gider?ay=${encodeURIComponent(ay)}`);
                 if (!response.ok) throw new Error('Gelir gider verisi alinamadi.');
                 const data = await response.json();
 
@@ -1313,7 +1397,7 @@
                                 <span class="px-2 py-0.5 rounded-full border text-[11px] font-black ${rezDurumRengi(r.durum)}">${r.durum || 'aktif'}</span>
                             </div>
                             <div class="text-sm text-slate-500 mt-1">${oge?.ad || 'Varlik'} | ${rezTarihYaz(r.baslangic_tarihi)} - ${rezTarihYaz(r.bitis_tarihi)}</div>
-                            <div class="text-xs text-slate-400 mt-1">${r.musteri_telefon || 'Telefon yok'} ${r.notlar ? '| ' + r.notlar : ''}</div>
+                            <div class="text-xs text-slate-400 mt-1">${operator ? 'Operator: ' + operator + ' | ' : ''}${r.musteri_telefon || 'Telefon yok'} ${r.notlar ? '| ' + r.notlar : ''}</div>
                         </div>
                         <div class="flex items-center gap-3 lg:justify-end">
                             <div class="font-black text-slate-800 whitespace-nowrap">${paraYaz(r.toplam_tutar)}</div>
@@ -1333,6 +1417,7 @@
                 if (!response.ok) throw new Error(data.error || 'Rezervasyon verisi alinamadi.');
 
                 rezervasyonOgeleri = data.ogeler || [];
+                rezervasyonPersoneller = data.personeller || [];
                 rezervasyonlar = data.rezervasyonlar || [];
 
                 const select = document.getElementById('rezOgeSelect');
@@ -1342,6 +1427,14 @@
                         : '<option value="">Once varlik ekleyin</option>';
                 }
 
+                const personelSelect = document.getElementById('rezPersonelSelect');
+                if (personelSelect) {
+                    personelSelect.innerHTML = '<option value="">Personel secilmedi</option>' +
+                        rezervasyonPersoneller.map(p => `<option value="${p.id}">${p.kullanici_id} (${p.rol || 'personel'})</option>`).join('');
+                }
+
+                finansBirimSecenekleriniGuncelle();
+                operatorIsRaporuYukle();
                 rezervasyonlariListele();
                 rezervasyonTakvimiCiz();
             } catch (err) {
@@ -1356,6 +1449,8 @@
             document.getElementById('rezMusteriInput').value = '';
             document.getElementById('rezTelefonInput').value = '';
             document.getElementById('rezTutarInput').value = '';
+            const personelSelect = document.getElementById('rezPersonelSelect');
+            if (personelSelect) personelSelect.value = '';
             document.getElementById('rezDurumSelect').value = 'aktif';
             document.getElementById('rezNotInput').value = '';
         }
@@ -1370,6 +1465,7 @@
                 musteri_ad: document.getElementById('rezMusteriInput').value.trim(),
                 musteri_telefon: document.getElementById('rezTelefonInput').value.trim(),
                 toplam_tutar: Number(document.getElementById('rezTutarInput').value || 0),
+                personel_id: document.getElementById('rezPersonelSelect')?.value ? Number(document.getElementById('rezPersonelSelect').value) : null,
                 durum: document.getElementById('rezDurumSelect').value,
                 notlar: document.getElementById('rezNotInput').value.trim()
             };
@@ -1390,6 +1486,7 @@
                 bildirimGoster('Rezervasyon takvime islendi.', 'basari');
                 rezervasyonFormunuTemizle();
                 rezervasyonVerileriniCek();
+                operatorIsRaporuYukle();
             } catch (err) {
                 bildirimGoster(err.message || 'Rezervasyon kaydedilemedi.', 'hata');
             }
@@ -1420,6 +1517,7 @@
                 .then(gelenVeriler => {
                     ogeler = gelenVeriler || [];
                     ogeleriListele();
+                    finansBirimSecenekleriniGuncelle();
                 }).catch(err => console.error("Öğe çekme hatası:", err));
         }
 
@@ -1742,7 +1840,51 @@
                 personelSatisRaporu = [];
                 const satisGovde = document.getElementById('personelSatisRaporuGovdesi');
                 if (satisGovde) satisGovde.innerHTML = '';
+                operatorIsRaporuYukle();
             }
+        }
+
+        function operatorIsRaporuYukle() {
+            const govde = document.getElementById('operatorIsRaporuGovdesi');
+            if (restoranIsletmesi) {
+                operatorIsRaporu = [];
+                if (govde) govde.innerHTML = '';
+                return;
+            }
+
+            fetch(`/api/${dukkanSlug}/operator-is-raporu`)
+                .then(res => res.json().then(data => ({ ok: res.ok, data })))
+                .then(({ ok, data }) => {
+                    if (!ok) throw new Error(data.error || 'Operator raporu alinamadi.');
+                    operatorIsRaporu = Array.isArray(data) ? data : [];
+                    operatorIsRaporuListele();
+                })
+                .catch(err => {
+                    console.error('Operator is raporu hatasi:', err);
+                    if (govde) govde.innerHTML = '<tr><td colspan="4" class="p-5 text-sm text-slate-400">Operator raporu icin rezervasyonlar tablosuna personel_id ve personel_adi kolonlari eklenmeli.</td></tr>';
+                });
+        }
+
+        function operatorIsRaporuListele() {
+            const govde = document.getElementById('operatorIsRaporuGovdesi');
+            if (!govde) return;
+            const filtre = String(document.getElementById('operatorRaporFiltreInput')?.value || '').toLocaleLowerCase('tr-TR').trim();
+            const liste = operatorIsRaporu.filter(item => {
+                if (!filtre) return true;
+                return `${item.personel_adi || ''} ${item.oge_adi || ''} ${item.oge_tur || ''}`.toLocaleLowerCase('tr-TR').includes(filtre);
+            });
+            if (!liste.length) {
+                govde.innerHTML = '<tr><td colspan="4" class="p-5 text-sm text-slate-400">Operator is kaydi yok.</td></tr>';
+                return;
+            }
+            govde.innerHTML = liste.map(item => `
+                <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition text-sm">
+                    <td class="p-4 font-bold text-slate-800">${item.personel_adi || 'Bilinmiyor'}</td>
+                    <td class="p-4 text-slate-700">${item.oge_adi || 'Birim'} <div class="text-xs text-slate-400">${item.oge_tur || 'Genel'}</div></td>
+                    <td class="p-4 text-right font-black text-slate-800">${Number(item.is_adedi || 0)}</td>
+                    <td class="p-4 text-right font-black text-emerald-700">${paraYaz(item.toplam_tutar)}</td>
+                </tr>
+            `).join('');
         }
 
         function yeniPersonelEkle() {
