@@ -107,6 +107,8 @@
 </div>
 
     <script>
+        const slug = window.location.pathname.split('/').filter(Boolean)[0];
+
         let tumUrunler = [];
         let aktifKategori = 'Tümü';
 
@@ -175,10 +177,10 @@
                     if (logoUrl) {
                         logo.src = logoUrl;
                         logo.classList.remove('hidden');
-                        icon.classList.add('hidden');
+                        if (icon) icon.classList.add('hidden');
                     } else {
                         logo.classList.add('hidden');
-                        icon.classList.remove('hidden');
+                        if (icon) icon.classList.remove('hidden');
                     }
                 }
 
@@ -192,7 +194,7 @@
                 document.title = `${dukkanIsmi} | Dijital Menü`;
 
                 if (dukkanSektoru.toLocaleLowerCase('tr-TR').includes('kafe') || dukkanSektoru.toLocaleLowerCase('tr-TR').includes('kahve')) {
-                    icon.className = 'fa-solid fa-mug-hot text-2xl';
+                    if (icon) icon.className = 'fa-solid fa-mug-hot text-2xl';
                 }
 
                 const adminBtn = document.getElementById('adminPaneliButon');
