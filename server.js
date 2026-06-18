@@ -403,7 +403,16 @@ function kullaniciRolunuHazirla(rol) {
     return temiz;
 }
 
-app.get('/super-admin', yetkiGerekli(['superadmin', 'sÃ¼peradmin']), (req, res) => res.sendFile(path.join(__dirname, 'super-admin.html')));
+function htmlCacheKapat(res) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+}
+
+app.get('/super-admin', yetkiGerekli(['superadmin', 'sÃ¼peradmin']), (req, res) => {
+    htmlCacheKapat(res);
+    res.sendFile(path.join(__dirname, 'super-admin.html'));
+});
 app.get('/superadmin/dashboard', yetkiGerekli(['superadmin', 'sÃ¼peradmin']), (req, res) => res.redirect('/super-admin'));
 
 app.post('/api/login', async (req, res) => {
@@ -1213,6 +1222,7 @@ app.get('/:dukkan_adi/garson', yetkiGerekli(['garson', 'admin', 'superadmin', 's
         if (!dukkan) return res.redirect('/');
         if (!restoranTuruMu(dukkan.tur)) return res.redirect(`/${req.params.dukkan_adi}/admin`);
 
+        htmlCacheKapat(res);
         res.sendFile(path.join(__dirname, 'garson.html'));
     } catch (err) {
         res.redirect('/');
@@ -1225,14 +1235,19 @@ app.get('/:dukkan_adi', async (req, res, next) => {
 
     try {
         const dukkan = await dukkanBilgisiBulBySlug(slug);
-        if (!dukkan) return res.status(404).sendFile(path.join(__dirname, 'index.html'));
+        if (!dukkan) {
+            htmlCacheKapat(res);
+            return res.status(404).sendFile(path.join(__dirname, 'index.html'));
+        }
 
         const hedefDosya = restoranTuruMu(dukkan.tur)
             ? path.join(__dirname, 'public', 'menu.html')
             : path.join(__dirname, 'public', 'vitrin.html');
 
+        htmlCacheKapat(res);
         res.sendFile(hedefDosya);
     } catch (err) {
+        htmlCacheKapat(res);
         res.status(500).sendFile(path.join(__dirname, 'index.html'));
     }
 });
