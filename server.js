@@ -98,14 +98,16 @@ function yerelDukkanGorselUrl(slug, tip) {
     if (!temizSlug || !['logo', 'arkaplan'].includes(tip)) return null;
 
     const klasor = path.join(__dirname, 'resimler');
-    for (const uzanti of YEREL_GORSEL_UZANTILARI) {
-        const dosyaAdi = temizSlug + '_' + tip + uzanti;
-        if (fs.existsSync(path.join(klasor, dosyaAdi))) {
-            return '/resimler/' + encodeURIComponent(dosyaAdi);
-        }
-    }
+    if (!fs.existsSync(klasor)) return null;
 
-    return null;
+    const beklenenBaslangic = (temizSlug + '_' + tip).toLocaleLowerCase('tr-TR');
+    const dosya = fs.readdirSync(klasor).find((ad) => {
+        const parsed = path.parse(ad);
+        return parsed.name.toLocaleLowerCase('tr-TR') === beklenenBaslangic &&
+            YEREL_GORSEL_UZANTILARI.includes(parsed.ext.toLocaleLowerCase('tr-TR'));
+    });
+
+    return dosya ? '/resimler/' + encodeURIComponent(dosya) : null;
 }
 
 function dukkanGorselleriniNormalle(dukkan) {
