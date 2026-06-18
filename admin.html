@@ -893,9 +893,24 @@
         function finansBirimSecenekleriniGuncelle() {
             const select = document.getElementById('finansOgeSelect');
             if (!select) return;
-            const kaynak = rezervasyonOgeleri.length ? rezervasyonOgeleri : ogeler;
+            const kaynak = ogeler.length ? ogeler : rezervasyonOgeleri;
             select.innerHTML = '<option value="">Genel dukkan harcamasi</option>' +
                 (kaynak || []).map(o => `<option value="${o.id}">${o.ad} (${o.tur || 'Birim'})</option>`).join('');
+        }
+
+        async function finansBirimleriniHazirla() {
+            if (restoranIsletmesi || ogeler.length) {
+                finansBirimSecenekleriniGuncelle();
+                return;
+            }
+
+            const response = await fetch(`/api/${dukkanSlug}/ogeler`);
+            if (!response.ok) throw new Error('Birimler alinamadi.');
+            ogeler = await response.json() || [];
+            finansBirimSecenekleriniGuncelle();
+
+            const govde = document.getElementById('ogelerTabloGövdesi');
+            if (govde) ogeleriListele();
         }
 
         function finansAyDegeri() {
@@ -1084,6 +1099,7 @@
 
         async function gelirGiderYukle() {
             try {
+                await finansBirimleriniHazirla();
                 const panel = document.getElementById('gelirGiderPaneli');
                 if (panel) panel.classList.remove('hidden');
 
