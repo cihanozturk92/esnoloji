@@ -532,6 +532,331 @@ app.post('/api/dukkan-ekle', apiYetkiGerekli(['superadmin', 'sÃ¼peradmin']), a
 
 // --- 2. DUKKAN, LISTELEME VE GIRIS ROTALARI ---
 
+
+// --- SUPER ADMIN YONETIM API'LERI ---
+
+app.get('/api/superadmin/dukkanlar', apiYetkiGerekli(['superadmin', 'süperadmin']), async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('dukkanlar')
+            .select(DUKKAN_KOLONLARI)
+            .order('id', { ascending: false });
+
+        if (error) throw error;
+        res.json((data || []).map(dukkanGorselleriniNormalle));
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'Dukkan listesi alinamadi.' });
+    }
+});
+
+app.get('/api/superadmin/personeller', apiYetkiGerekli(['superadmin', 'süperadmin']), async (req, res) => {
+    try {
+        const { data: personeller, error: personelErr } = await supabase
+            .from('personel')
+            .select('id, kullanici_id, rol, dukkan_id')
+            .order('id', { ascending: false });
+        if (personelErr) throw personelErr;
+
+        const dukkanIdleri = [...new Set((personeller || []).map(p => p.dukkan_id).filter(Boolean))];
+        let dukkanMap = new Map();
+        if (dukkanIdleri.length) {
+            const { data: dukkanlar, error: dukkanErr } = await supabase
+                .from('dukkanlar')
+                .select('id, ad, slug')
+                .in('id', dukkanIdleri);
+            if (dukkanErr) throw dukkanErr;
+            dukkanMap = new Map((dukkanlar || []).map(d => [Number(d.id), d]));
+        }
+
+        res.json((personeller || []).map(personel => {
+            const dukkan = dukkanMap.get(Number(personel.dukkan_id));
+            return {
+                ...personel,
+                dukkan_ad: dukkan?.ad || null,
+                dukkan_slug: dukkan?.slug || null
+            };
+        }));
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'Personel listesi alinamadi.' });
+    }
+});
+
+app.get('/api/superadmin/dukkan-qr/:slug', apiYetkiGerekli(['superadmin', 'süperadmin']), async (req, res) => {
+    try {
+        const slug = String(req.params.slug || '').trim();
+        const publicUrl = siteBaseUrl(req) + '/' + encodeURIComponent(slug);
+        const png = await QRCode.toBuffer(publicUrl, { type: 'png', width: 640, margin: 2 });
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'no-store');
+        res.send(png);
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'QR olusturulamadi.' });
+    }
+});
+
+app.get('/api/superadmin/dukkan-qr-listesi', apiYetkiGerekli(['superadmin', 'süperadmin']), async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('dukkanlar')
+            .select('id, ad, slug, tur')
+            .order('id', { ascending: false });
+        if (error) throw error;
+
+        res.json((data || []).map(dukkan => {
+            const slug = dukkan.slug || String(dukkan.id);
+            const publicUrl = siteBaseUrl(req) + '/' + encodeURIComponent(slug);
+            const qrUrl = '/api/superadmin/dukkan-qr/' + encodeURIComponent(slug);
+            return {
+                ...dukkan,
+                public_url: publicUrl,
+                qr_url: qrUrl,
+                qr_download_url: qrUrl
+            };
+        }));
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'QR listesi alinamadi.' });
+    }
+});
+
+app.put('/api/superadmin/dukkan/:id', apiYetkiGerekli(['superadmin', 'süperadmin']), async (req, res) => {
+    try {
+        const payload = {
+            ad: String(req.body?.ad || '').trim(),
+            slug: String(req.body?.slug || '').trim(),
+            tur: String(req.body?.tur || '').trim(),
+            telefon: opsiyonelMetin(req.body?.telefon),
+            adres: opsiyonelMetin(req.body?.adres),
+            aciklama: opsiyonelMetin(req.body?.aciklama),
+            logo_url: opsiyonelMetin(gorselUrlNormalle(req.body?.logo_url)),
+            arka_plan_url: opsiyonelMetin(gorselUrlNormalle(req.body?.arka_plan_url))
+        };
+
+        if (!payload.ad || !payload.slug || !payload.tur) {
+            return res.status(400).json({ error: 'Dukkan adi, slug ve sektor zorunlu.' });
+        }
+
+        const { data: ayniSlug, error: slugErr } = await supabase
+            .from('dukkanlar')
+            .select('id')
+            .eq('slug', payload.slug)
+            .neq('id', req.params.id)
+            .maybeSingle();
+        if (slugErr) throw slugErr;
+        if (ayniSlug) return res.status(400).json({ error: 'Bu slug baska bir dukkanda kullaniliyor.' });
+
+        const { error } = await supabase
+            .from('dukkanlar')
+            .update(payload)
+            .eq('id', req.params.id);
+        if (error) throw error;
+
+        res.json({ status: 'success' });
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'Dukkan guncellenemedi.' });
+    }
+});
+
+app.delete('/api/superadmin/dukkan/:id', apiYetkiGerekli(['superadmin', 'süperadmin']), async (req, res) => {
+    const dukkanId = Number(req.params.id);
+    try {
+        if (!dukkanId) return res.status(400).json({ error: 'Gecersiz dukkan id.' });
+
+        const { data: siparisler } = await supabase.from('siparisler').select('id').eq('dukkan_id', dukkanId);
+        const siparisIdleri = (siparisler || []).map(s => s.id);
+        if (siparisIdleri.length) {
+            const { error } = await supabase.from('siparis_detaylari').delete().in('siparis_id', siparisIdleri);
+            if (error) throw error;
+        }
+
+        for (const tablo of ['rezervasyonlar', 'stok_hareketleri', 'giderler', 'siparisler', 'urunler', 'ogeler', 'mesajlar', 'personel']) {
+            const { error } = await supabase.from(tablo).delete().eq('dukkan_id', dukkanId);
+            if (error && error.code !== '42P01') throw error;
+        }
+
+        const { error: dukkanErr } = await supabase.from('dukkanlar').delete().eq('id', dukkanId);
+        if (dukkanErr) throw dukkanErr;
+
+        res.json({ status: 'success' });
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'Dukkan silinemedi.' });
+    }
+});
+
+app.post('/api/superadmin/personel', apiYetkiGerekli(['superadmin', 'süperadmin']), async (req, res) => {
+    try {
+        const kullanici_id = String(req.body?.kullanici_id || '').trim();
+        const rol = String(req.body?.rol || '').trim();
+        const dukkan_id = Number(req.body?.dukkan_id || 0);
+        const sifre = String(req.body?.sifre || '');
+
+        if (!kullanici_id || !rol || !dukkan_id || !sifre) {
+            return res.status(400).json({ error: 'Kullanici adi, rol, dukkan ve sifre zorunlu.' });
+        }
+
+        const sifreHatasi = sifrePolitikasiHatasi(sifre, kullanici_id);
+        if (sifreHatasi) return res.status(400).json({ error: sifreHatasi });
+
+        const { data: mevcut, error: mevcutErr } = await supabase
+            .from('personel')
+            .select('id')
+            .ilike('kullanici_id', kullanici_id)
+            .maybeSingle();
+        if (mevcutErr) throw mevcutErr;
+        if (mevcut) return res.status(400).json({ error: 'Bu kullanici adi zaten kullaniliyor.' });
+
+        const { error } = await supabase
+            .from('personel')
+            .insert([{ dukkan_id, kullanici_id, rol, sifre: sifreHashle(sifre) }]);
+        if (error) throw error;
+
+        res.json({ status: 'success' });
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'Personel olusturulamadi.' });
+    }
+});
+
+app.put('/api/superadmin/personel/:id', apiYetkiGerekli(['superadmin', 'süperadmin']), async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+        const kullanici_id = String(req.body?.kullanici_id || '').trim();
+        const rol = String(req.body?.rol || '').trim();
+        const sifre = String(req.body?.sifre || '');
+
+        if (!id || !kullanici_id || !rol) {
+            return res.status(400).json({ error: 'Personel icin kullanici adi ve rol zorunlu.' });
+        }
+
+        const { data: mevcut, error: mevcutErr } = await supabase
+            .from('personel')
+            .select('id')
+            .ilike('kullanici_id', kullanici_id)
+            .neq('id', id)
+            .maybeSingle();
+        if (mevcutErr) throw mevcutErr;
+        if (mevcut) return res.status(400).json({ error: 'Bu kullanici adi zaten kullaniliyor.' });
+
+        const payload = { kullanici_id, rol };
+        if (sifre) {
+            const sifreHatasi = sifrePolitikasiHatasi(sifre, kullanici_id);
+            if (sifreHatasi) return res.status(400).json({ error: sifreHatasi });
+            payload.sifre = sifreHashle(sifre);
+        }
+
+        const { error } = await supabase
+            .from('personel')
+            .update(payload)
+            .eq('id', id);
+        if (error) throw error;
+
+        res.json({ status: 'success' });
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'Personel guncellenemedi.' });
+    }
+});
+
+app.delete('/api/superadmin/personel/:id', apiYetkiGerekli(['superadmin', 'süperadmin']), async (req, res) => {
+    try {
+        const { error } = await supabase.from('personel').delete().eq('id', req.params.id);
+        if (error) throw error;
+        res.json({ status: 'success' });
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'Personel silinemedi.' });
+    }
+});
+
+app.get('/api/superadmin/mesajlar', apiYetkiGerekli(['superadmin', 'süperadmin']), async (req, res) => {
+    try {
+        const { data, error } = await supabase
+            .from('mesajlar')
+            .select('id, dukkan_id, gonderen_id, gonderen_rol, gonderen_adi, mesaj_turu, baslik, icerik, ust_mesaj_id, onemli, okundu, created_at, dukkanlar(ad, slug)')
+            .order('id', { ascending: false });
+        if (error) throw error;
+
+        res.json((data || []).map(mesaj => ({
+            ...mesaj,
+            dukkan_ad: mesaj.dukkanlar?.ad || null,
+            dukkan_slug: mesaj.dukkanlar?.slug || null
+        })));
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'Mesajlar alinamadi.' });
+    }
+});
+
+app.post('/api/superadmin/mesaj-gonder', apiYetkiGerekli(['superadmin', 'süperadmin']), async (req, res) => {
+    try {
+        const hedefler = Array.isArray(req.body?.dukkan_ids) ? req.body.dukkan_ids.map(Number).filter(Boolean) : [];
+        const icerik = String(req.body?.icerik || '').trim();
+        if (!hedefler.length || !icerik) {
+            return res.status(400).json({ error: 'Hedef dukkan ve mesaj icerigi zorunlu.' });
+        }
+
+        const kayitlar = hedefler.map(dukkan_id => ({
+            dukkan_id,
+            gonderen_id: req.session.id || null,
+            gonderen_rol: 'superadmin',
+            gonderen_adi: req.session.kullanici_id || 'Super Admin',
+            mesaj_turu: req.body?.mesaj_turu || 'duyuru',
+            baslik: opsiyonelMetin(req.body?.baslik),
+            icerik,
+            ust_mesaj_id: req.body?.ust_mesaj_id || null,
+            onemli: Boolean(req.body?.onemli),
+            okundu: false
+        }));
+
+        const { error } = await supabase.from('mesajlar').insert(kayitlar);
+        if (error) throw error;
+        res.json({ status: 'success', adet: kayitlar.length });
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'Mesaj gonderilemedi.' });
+    }
+});
+
+app.get('/api/:dukkan_adi/mesajlar', apiYetkiGerekli(['admin', 'superadmin', 'süperadmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
+    try {
+        const dukkan = await dukkanBilgisiBulBySlug(req.params.dukkan_adi);
+        if (!dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi.' });
+
+        const { data, error } = await supabase
+            .from('mesajlar')
+            .select('id, dukkan_id, gonderen_id, gonderen_rol, gonderen_adi, mesaj_turu, baslik, icerik, ust_mesaj_id, onemli, okundu, created_at')
+            .eq('dukkan_id', dukkan.id)
+            .order('id', { ascending: false });
+        if (error) throw error;
+
+        res.json({ mesajlar: data || [] });
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'Mesajlar alinamadi.' });
+    }
+});
+
+app.post('/api/:dukkan_adi/mesaj-gonder', apiYetkiGerekli(['admin', 'superadmin', 'süperadmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
+    try {
+        const dukkan = await dukkanBilgisiBulBySlug(req.params.dukkan_adi);
+        if (!dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi.' });
+
+        const icerik = String(req.body?.icerik || '').trim();
+        if (!icerik) return res.status(400).json({ error: 'Mesaj icerigi zorunlu.' });
+
+        const { error } = await supabase.from('mesajlar').insert([{
+            dukkan_id: dukkan.id,
+            gonderen_id: req.session.id || null,
+            gonderen_rol: req.session.rol || 'admin',
+            gonderen_adi: req.session.kullanici_id || 'Admin',
+            mesaj_turu: req.body?.ust_mesaj_id ? 'yanit' : 'mesaj',
+            baslik: opsiyonelMetin(req.body?.baslik),
+            icerik,
+            ust_mesaj_id: req.body?.ust_mesaj_id || null,
+            onemli: false,
+            okundu: false
+        }]);
+        if (error) throw error;
+
+        res.json({ status: 'success' });
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'Mesaj gonderilemedi.' });
+    }
+});
+
 app.get('/api/dukkanlar/listele', async (req, res) => {
     try {
         const { data, error } = await supabase
