@@ -528,7 +528,7 @@
                     <div class="panel-head">
                         <div>
                             <h2 class="panel-title">Yeni dukkan olustur</h2>
-                            <p class="panel-note">Sektor, gorsel, tanitim ve ilk admin hesabi ayni anda kurulsun.</p>
+                            <p class="panel-note">Sektor, tanitim ve ilk admin hesabi ayni anda kurulsun.</p>
                         </div>
                     </div>
 
@@ -559,15 +559,9 @@
                             <label for="aciklama">Tanitim yazisi</label>
                             <textarea id="aciklama" placeholder="Kisa tanitim metni"></textarea>
                         </div>
-                        <div class="inline-grid">
-                            <div class="field">
-                                <label for="logoUrl">Logo gorseli</label>
-                                <input type="url" id="logoUrl" placeholder="https://drive.google.com/file/d/.../preview">
-                            </div>
-                            <div class="field">
-                                <label for="arkaPlanUrl">Arkaplan gorseli</label>
-                                <input type="url" id="arkaPlanUrl" placeholder="https://drive.google.com/file/d/.../preview">
-                            </div>
+                        <div class="empty-state" style="padding:18px;text-align:left;">
+                            Logo ve arkaplan dosyalari proje icindeki resimler klasorunden otomatik okunur.
+                            Ornek: slug_logo.png ve slug_arkaplan.jpg
                         </div>
                     </div>
 
@@ -613,7 +607,7 @@
                     <div class="panel-head">
                         <div>
                             <h2 class="panel-title">Dukkan yonetimi</h2>
-                            <p class="panel-note">Var olan dukkanlari duzenle, slug degistir, gorsel guncelle, panel veya menu sayfasini ac, istersen kalici olarak sil.</p>
+                            <p class="panel-note">Var olan dukkanlari duzenle, slug degistir, panel veya menu sayfasini ac, istersen kalici olarak sil.</p>
                         </div>
                         <div class="toolbar-actions">
                             <button type="button" class="btn btn-muted" onclick="dukkanlariYukle()">Listeyi yenile</button>
@@ -831,7 +825,7 @@
         }
 
         function formTemizle() {
-            ['ad', 'slug', 'telefon', 'adres', 'aciklama', 'logoUrl', 'arkaPlanUrl', 'adminUser', 'adminPass'].forEach((id) => {
+            ['ad', 'slug', 'telefon', 'adres', 'aciklama', 'adminUser', 'adminPass'].forEach((id) => {
                 const alan = document.getElementById(id);
                 if (alan) alan.value = '';
             });
@@ -947,7 +941,7 @@
                         </div>
                     </div>
 
-                    <div class="three-grid" style="margin-top:12px;">
+                    <div class="inline-grid" style="margin-top:12px;">
                         <div class="field">
                             <label>Sektor / tur</label>
                             <select data-key="tur">${turSecenekleriHtml(dukkan.tur || 'restoran')}</select>
@@ -955,10 +949,6 @@
                         <div class="field">
                             <label>Telefon</label>
                             <input type="text" data-key="telefon" value="${guvenliMetin(dukkan.telefon || '')}">
-                        </div>
-                        <div class="field">
-                            <label>Logo gorseli</label>
-                            <input type="url" data-key="logo_url" value="${guvenliMetin(dukkan.logo_url || '')}">
                         </div>
                     </div>
 
@@ -973,9 +963,8 @@
                         </div>
                     </div>
 
-                    <div class="field" style="margin-top:12px;">
-                        <label>Arkaplan gorseli</label>
-                        <input type="url" data-key="arka_plan_url" value="${guvenliMetin(dukkan.arka_plan_url || '')}">
+                    <div class="empty-state" style="margin-top:12px;padding:14px;text-align:left;">
+                        Gorseller otomatik okunur: resimler/${guvenliMetin(dukkan.slug || 'slug')}_logo ve resimler/${guvenliMetin(dukkan.slug || 'slug')}_arkaplan
                     </div>
 
                     <div class="actions" style="margin-top:14px;">
@@ -1152,8 +1141,6 @@
                 adres: document.getElementById('adres').value.trim(),
                 aciklama: document.getElementById('aciklama').value.trim(),
                 tur: document.getElementById('tur').value,
-                logo_url: document.getElementById('logoUrl').value.trim(),
-                arka_plan_url: document.getElementById('arkaPlanUrl').value.trim(),
                 adminUser: document.getElementById('adminUser').value.trim(),
                 adminPass: document.getElementById('adminPass').value
             };
@@ -1181,7 +1168,7 @@
         }
 
         async function dukkanKaydet(id) {
-            const alanlar = okuCardAlanlari(`[data-dukkan-id="${id}"]`, ['ad', 'slug', 'tur', 'telefon', 'adres', 'aciklama', 'logo_url', 'arka_plan_url']);
+            const alanlar = okuCardAlanlari(`[data-dukkan-id="${id}"]`, ['ad', 'slug', 'tur', 'telefon', 'adres', 'aciklama']);
             if (!alanlar.ad || !alanlar.slug || !alanlar.tur) {
                 bildirimGoster('Dukkan adi, slug ve sektor zorunlu.', 'uyari');
                 return;

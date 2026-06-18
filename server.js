@@ -86,28 +86,26 @@ function opsiyonelMetin(value) {
     return temiz || null;
 }
 
-function gorselUrlNormalle(value) {
-    const temiz = String(value || '').trim();
-    if (!temiz) return null;
+const YEREL_GORSEL_UZANTILARI = ['.webp', '.png', '.jpg', '.jpeg'];
 
-    if (!temiz.includes('drive.google.com') && !temiz.includes('drive.usercontent.google.com')) return temiz;
+function yerelDukkanGorselUrl(slug, tip) {
+    const temizSlug = String(slug || '')
+        .trim()
+        .toLocaleLowerCase('tr-TR')
+        .replace(/[^a-z0-9-_]+/gi, '-')
+        .replace(/^-+|-+$/g, '');
 
-    const eslesme = temiz.match(/\/d\/([a-zA-Z0-9_-]+)|[?&]id=([a-zA-Z0-9_-]+)/);
-    const dosyaId = eslesme?.[1] || eslesme?.[2];
-    if (!dosyaId) return temiz;
+    if (!temizSlug || !['logo', 'arkaplan'].includes(tip)) return null;
 
-    return `https://drive.google.com/uc?export=view&id=${dosyaId}`;
-}
-
-function gorselSunumUrlOlustur(value) {
-    const normalUrl = gorselUrlNormalle(value);
-    if (!normalUrl) return null;
-
-    if (normalUrl.includes('drive.google.com') || normalUrl.includes('drive.usercontent.google.com')) {
-        return `/api/gorsel?src=${encodeURIComponent(normalUrl)}`;
+    const klasor = path.join(__dirname, 'resimler');
+    for (const uzanti of YEREL_GORSEL_UZANTILARI) {
+        const dosyaAdi = temizSlug + '_' + tip + uzanti;
+        if (fs.existsSync(path.join(klasor, dosyaAdi))) {
+            return '/resimler/' + encodeURIComponent(dosyaAdi);
+        }
     }
 
-    return normalUrl;
+    return null;
 }
 
 function dukkanGorselleriniNormalle(dukkan) {
@@ -115,8 +113,8 @@ function dukkanGorselleriniNormalle(dukkan) {
 
     return {
         ...dukkan,
-        logo_url: gorselSunumUrlOlustur(dukkan.logo_url),
-        arka_plan_url: gorselSunumUrlOlustur(dukkan.arka_plan_url)
+        logo_url: yerelDukkanGorselUrl(dukkan.slug, 'logo'),
+        arka_plan_url: yerelDukkanGorselUrl(dukkan.slug, 'arkaplan')
     };
 }
 
@@ -379,22 +377,6 @@ function kullaniciRolunuHazirla(rol) {
     return temiz;
 }
 
-app.get('/api/gorsel', (req, res) => {
-    try {
-        const src = String(req.query.src || '').trim();
-        if (!src) return res.status(400).send('Gorsel adresi gerekli.');
-
-        const url = new URL(src);
-        if (!['http:', 'https:'].includes(url.protocol)) {
-            return res.status(400).send('Gecersiz gorsel adresi.');
-        }
-
-        return res.redirect(src);
-    } catch (err) {
-        return res.status(400).send('Gorsel adresi gecersiz.');
-    }
-});
-
 app.get('/super-admin', yetkiGerekli(['superadmin', 'sÃ¼peradmin']), (req, res) => res.sendFile(path.join(__dirname, 'super-admin.html')));
 app.get('/superadmin/dashboard', yetkiGerekli(['superadmin', 'sÃ¼peradmin']), (req, res) => res.redirect('/super-admin'));
 
@@ -481,7 +463,7 @@ app.post('/api/logout', (req, res) => {
 });
 
 app.post('/api/dukkan-ekle', apiYetkiGerekli(['superadmin', 'sÃ¼peradmin']), async (req, res) => {
-    const { ad, slug, tur, adminUser, adminPass, telefon, adres, aciklama, logo_url, arka_plan_url } = req.body;
+    const { ad, slug, tur, adminUser, adminPass, telefon, adres, aciklama } = req.body;
 
     try {
         const sifreHatasi = sifrePolitikasiHatasi(adminPass, adminUser);
@@ -494,8 +476,6 @@ app.post('/api/dukkan-ekle', apiYetkiGerekli(['superadmin', 'sÃ¼peradmin']), a
         if (opsiyonelMetin(telefon)) yeniDukkan.telefon = opsiyonelMetin(telefon);
         if (opsiyonelMetin(adres)) yeniDukkan.adres = opsiyonelMetin(adres);
         if (opsiyonelMetin(aciklama)) yeniDukkan.aciklama = opsiyonelMetin(aciklama);
-        if (opsiyonelMetin(logo_url)) yeniDukkan.logo_url = gorselUrlNormalle(logo_url);
-        if (opsiyonelMetin(arka_plan_url)) yeniDukkan.arka_plan_url = gorselUrlNormalle(arka_plan_url);
 
         const { data: dukkan, error: dukkanErr } = await supabase
             .from('dukkanlar')
@@ -505,9 +485,6 @@ app.post('/api/dukkan-ekle', apiYetkiGerekli(['superadmin', 'sÃ¼peradmin']), a
         if (dukkanErr) {
             if (tanitimKolonuEksikMi(dukkanErr)) {
                 return res.status(400).json({ error: "Dukkan tanitim kolonlari eksik. Supabase'de telefon, adres ve aciklama kolonlarini olusturun." });
-            }
-            if (gorselKolonuEksikMi(dukkanErr)) {
-                return res.status(400).json({ error: "Dukkan gorsel kolonlari eksik. Supabase'de logo_url ve arka_plan_url kolonlarini olusturun." });
             }
             throw dukkanErr;
         }
@@ -626,9 +603,7 @@ app.put('/api/superadmin/dukkan/:id', apiYetkiGerekli(['superadmin', 'süperadmi
             tur: String(req.body?.tur || '').trim(),
             telefon: opsiyonelMetin(req.body?.telefon),
             adres: opsiyonelMetin(req.body?.adres),
-            aciklama: opsiyonelMetin(req.body?.aciklama),
-            logo_url: opsiyonelMetin(gorselUrlNormalle(req.body?.logo_url)),
-            arka_plan_url: opsiyonelMetin(gorselUrlNormalle(req.body?.arka_plan_url))
+            aciklama: opsiyonelMetin(req.body?.aciklama)
         };
 
         if (!payload.ad || !payload.slug || !payload.tur) {
@@ -988,8 +963,8 @@ app.put('/api/:dukkan_adi/dukkan-bilgileri', apiYetkiGerekli(['admin', 'superadm
             telefon: opsiyonelMetin(req.body?.telefon),
             adres: opsiyonelMetin(req.body?.adres),
             aciklama: opsiyonelMetin(req.body?.aciklama),
-            logo_url: opsiyonelMetin(req.body?.logo_url) ? gorselUrlNormalle(req.body.logo_url) : null,
-            arka_plan_url: opsiyonelMetin(req.body?.arka_plan_url) ? gorselUrlNormalle(req.body.arka_plan_url) : null
+            logo_url: null,
+            arka_plan_url: null
         };
 
         if (!payload.ad) return res.status(400).json({ error: 'Dukkan adi zorunlu.' });
@@ -1004,9 +979,6 @@ app.put('/api/:dukkan_adi/dukkan-bilgileri', apiYetkiGerekli(['admin', 'superadm
         if (error) {
             if (tanitimKolonuEksikMi(error)) {
                 return res.status(400).json({ error: "Telefon, adres ve aciklama kolonlari eksik. Once Supabase tarafini tamamlayin." });
-            }
-            if (gorselKolonuEksikMi(error)) {
-                return res.status(400).json({ error: "Logo ve arka plan kolonlari eksik. Once Supabase tarafini tamamlayin." });
             }
             throw error;
         }

@@ -151,23 +151,7 @@
             }[karakter]));
         }
 
-        function gorselUrlNormalle(deger) {
-            const temiz = String(deger || '').trim();
-            if (!temiz) return '';
-            if (!temiz.includes('drive.google.com')) return temiz;
-
-            const eslesme = temiz.match(/\/d\/([a-zA-Z0-9_-]+)|[?&]id=([a-zA-Z0-9_-]+)/);
-            const dosyaId = eslesme?.[1] || eslesme?.[2];
-            return dosyaId ? 'https://drive.google.com/uc?export=view&id=' + dosyaId : temiz;
-        }
-        async function vitriniYukle() {
-            const slug = window.location.pathname.split('/').filter(Boolean)[0];
-            if (!slug) {
-                bosDurum('Dükkan adresi bulunamadı.', 'URL sonunda dükkan kısa adını kullanın.');
-                return;
-            }
-
-            try {
+                    try {
                 const response = await fetch(`/api/dukkan-veri/${slug}`);
                 if (!response.ok) throw new Error('Dükkan bulunamadı.');
 
@@ -178,7 +162,7 @@
                 const dukkanIsmi = dukkan.ad || dukkan.adi || dukkan.slug || 'İşletme';
                 const dukkanSektoru = dukkan.tur || dukkan.kategori || 'Restoran & Kafe';
                 const heroArkaplan = document.getElementById('dukkan-hero-arkaplan');
-                const arkaPlanUrl = gorselUrlNormalle(dukkan.arka_plan_url);
+                const arkaPlanUrl = dukkan.arka_plan_url;
                 if (heroArkaplan && arkaPlanUrl) {
                     heroArkaplan.style.backgroundImage = `url('${String(arkaPlanUrl).replace(/'/g, "%27")}')`;
                 }
@@ -186,7 +170,7 @@
                 const logo = document.getElementById('dukkan-logo');
                 const icon = document.getElementById('dukkan-icon');
                 if (logo) {
-                    const logoUrl = gorselUrlNormalle(dukkan.logo_url);
+                    const logoUrl = dukkan.logo_url;
                     if (logoUrl) {
                         logo.src = logoUrl;
                         logo.classList.remove('hidden');

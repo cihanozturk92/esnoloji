@@ -179,17 +179,7 @@
             }[karakter]));
         }
 
-        function gorselUrlNormalle(deger) {
-            const temiz = String(deger || '').trim();
-            if (!temiz) return '';
-            if (!temiz.includes('drive.google.com')) return temiz;
-
-            const eslesme = temiz.match(/\/d\/([a-zA-Z0-9_-]+)|[?&]id=([a-zA-Z0-9_-]+)/);
-            const dosyaId = eslesme?.[1] || eslesme?.[2];
-            return dosyaId ? 'https://drive.google.com/uc?export=view&id=' + dosyaId : temiz;
-        }
-
-        function personelKartiniYukle() {
+                function personelKartiniYukle() {
             const personelStr = localStorage.getItem('girisYapanPersonel');
             if (!personelStr) return;
 
@@ -263,7 +253,7 @@
             const dukkan = data.dukkan || {};
             const ogeler = data.ogeler || [];
             const vitrinArkaplan = document.getElementById('vitrin-arkaplan');
-            const arkaPlanUrl = gorselUrlNormalle(dukkan.arka_plan_url);
+            const arkaPlanUrl = dukkan.arka_plan_url;
             if (vitrinArkaplan && arkaPlanUrl) {
                 vitrinArkaplan.style.backgroundImage = `url('${String(arkaPlanUrl).replace(/'/g, "%27")}')`;
             }
@@ -271,7 +261,7 @@
             const dukkanLogo = document.getElementById('dukkanLogo');
             const dukkanLogoIkon = document.getElementById('dukkanLogoIkon');
             if (dukkanLogo) {
-                const logoUrl = gorselUrlNormalle(dukkan.logo_url);
+                const logoUrl = dukkan.logo_url;
                 if (logoUrl) {
                     dukkanLogo.src = logoUrl;
                     dukkanLogo.classList.remove('hidden');

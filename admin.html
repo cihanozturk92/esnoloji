@@ -237,13 +237,9 @@
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Tanitim Yazisi</label>
                             <textarea id="dukkanAciklamaInput" rows="4" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700" placeholder="Kisa tanitim metni"></textarea>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Logo URL</label>
-                            <input type="url" id="dukkanLogoUrlInput" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700" placeholder="https://drive.google.com/file/d/.../view">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Arkaplan URL</label>
-                            <input type="url" id="dukkanArkaPlanUrlInput" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700" placeholder="https://drive.google.com/file/d/.../view">
+                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+                            Logo ve arkaplan dosyalari proje icindeki <b>resimler</b> klasorunden otomatik okunur.
+                            Ornek: <b>dukkan-slug_logo.png</b> ve <b>dukkan-slug_arkaplan.jpg</b>
                         </div>
                     </div>
                 </div>
@@ -864,8 +860,6 @@
                 document.getElementById('dukkanTelefonInput').value = dukkanBilgisi?.telefon || '';
                 document.getElementById('dukkanAdresInput').value = dukkanBilgisi?.adres || '';
                 document.getElementById('dukkanAciklamaInput').value = dukkanBilgisi?.aciklama || '';
-                document.getElementById('dukkanLogoUrlInput').value = dukkanBilgisi?.logo_url || '';
-                document.getElementById('dukkanArkaPlanUrlInput').value = dukkanBilgisi?.arka_plan_url || '';
 
                 document.getElementById('dukkanOnizlemeAd').textContent = dukkanBilgisi?.ad || '-';
                 document.getElementById('dukkanOnizlemeTelefon').textContent = dukkanBilgisi?.telefon || '-';
@@ -900,9 +894,7 @@
                 ad: document.getElementById('dukkanAdInput').value.trim(),
                 telefon: document.getElementById('dukkanTelefonInput').value.trim(),
                 adres: document.getElementById('dukkanAdresInput').value.trim(),
-                aciklama: document.getElementById('dukkanAciklamaInput').value.trim(),
-                logo_url: document.getElementById('dukkanLogoUrlInput').value.trim(),
-                arka_plan_url: document.getElementById('dukkanArkaPlanUrlInput').value.trim()
+                aciklama: document.getElementById('dukkanAciklamaInput').value.trim()
             };
 
             if (!payload.ad) return bildirimGoster('Dükkan adı boş kalamaz.', 'uyari');
