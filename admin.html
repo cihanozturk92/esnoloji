@@ -345,7 +345,7 @@
                     <h2 class="text-2xl font-black text-slate-800 tracking-tight">Rezervasyon & Doluluk Takvimi</h2>
                     <p class="text-sm text-slate-500 mt-1">Arac, oda, ev veya ekipman icin dolu tarihleri buradan isleyin.</p>
                 </div>
-                <button onclick="rezervasyonKaydet()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">
+                <button id="rezKaydetButon" onclick="rezervasyonKaydet()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">
                     Rezervasyonu Kaydet
                 </button>
             </div>
@@ -353,7 +353,7 @@
             <div class="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-6">
                 <div class="space-y-6">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
-                        <h3 class="font-black text-slate-800 mb-4">Yeni Rezervasyon</h3>
+                        <h3 id="rezFormBaslik" class="font-black text-slate-800 mb-4">Yeni Rezervasyon</h3>
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Varlik</label>
@@ -385,8 +385,8 @@
                                     <input type="text" id="rezTelefonInput" placeholder="05xx..." class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Tutar</label>
-                                    <input type="number" id="rezTutarInput" placeholder="0" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Toplam Tutar</label>
+                                    <input type="number" id="rezTutarInput" placeholder="Anlasilan toplam tutar" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
                                 </div>
                             </div>
                             <div>
@@ -400,6 +400,7 @@
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Not</label>
                                 <textarea id="rezNotInput" rows="3" placeholder="Teslim saati, kapora, ek not..." class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700"></textarea>
                             </div>
+                            <button id="rezDuzenlemeIptalButon" onclick="rezervasyonDuzenlemeIptal()" class="hidden w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-600 transition hover:bg-slate-100" type="button">Düzenlemeyi İptal Et</button>
                         </div>
                     </div>
 
@@ -795,6 +796,7 @@
         let rezervasyonOgeleri = [];
         let rezervasyonlar = [];
         let rezervasyonAy = new Date();
+        let duzenlenenRezervasyonId = null;
         let dukkanBilgisi = null;
         let personelSatisRaporu = [];
         let personelSatisKategori = 'tum';
@@ -1404,6 +1406,8 @@
 
             alan.innerHTML = liste.map(r => {
                 const oge = rezervasyonOgeleri.find(o => Number(o.id) === Number(r.oge_id));
+                const personel = rezervasyonPersoneller.find(p => Number(p.id) === Number(r.personel_id));
+                const operatorAdi = r.personel_adi || personel?.kullanici_id || '';
                 const iptal = String(r.durum || '').toLocaleLowerCase('tr-TR') === 'iptal';
                 return `
                     <div class="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -1413,11 +1417,13 @@
                                 <span class="px-2 py-0.5 rounded-full border text-[11px] font-black ${rezDurumRengi(r.durum)}">${r.durum || 'aktif'}</span>
                             </div>
                             <div class="text-sm text-slate-500 mt-1">${oge?.ad || 'Varlik'} | ${rezTarihYaz(r.baslangic_tarihi)} - ${rezTarihYaz(r.bitis_tarihi)}</div>
-                            <div class="text-xs text-slate-400 mt-1">${operator ? 'Operator: ' + operator + ' | ' : ''}${r.musteri_telefon || 'Telefon yok'} ${r.notlar ? '| ' + r.notlar : ''}</div>
+                            <div class="text-xs text-slate-400 mt-1">${operatorAdi ? 'Operator: ' + operatorAdi + ' | ' : ''}${r.musteri_telefon || 'Telefon yok'} ${r.notlar ? '| ' + r.notlar : ''}</div>
                         </div>
                         <div class="flex items-center gap-3 lg:justify-end">
                             <div class="font-black text-slate-800 whitespace-nowrap">${paraYaz(r.toplam_tutar)}</div>
-                            <button onclick="rezervasyonIptalEt(${r.id})" class="${iptal ? 'hidden' : ''} text-xs font-black text-red-600 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition">Iptal</button>
+                            <button onclick="rezervasyonDuzenleAc(${r.id})" class="text-xs font-black text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg transition">Düzenle</button>
+                            <button onclick="rezervasyonIptalEt(${r.id})" class="${iptal ? 'hidden' : ''} text-xs font-black text-amber-700 bg-amber-50 hover:bg-amber-100 px-3 py-2 rounded-lg transition">İptal</button>
+                            <button onclick="rezervasyonSil(${r.id})" class="text-xs font-black text-red-600 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition">Sil</button>
                         </div>
                     </div>
                 `;
@@ -1460,6 +1466,13 @@
         }
 
         function rezervasyonFormunuTemizle() {
+            duzenlenenRezervasyonId = null;
+            const formBaslik = document.getElementById('rezFormBaslik');
+            const kaydetButon = document.getElementById('rezKaydetButon');
+            const iptalButon = document.getElementById('rezDuzenlemeIptalButon');
+            if (formBaslik) formBaslik.textContent = 'Yeni Rezervasyon';
+            if (kaydetButon) kaydetButon.textContent = 'Rezervasyonu Kaydet';
+            if (iptalButon) iptalButon.classList.add('hidden');
             document.getElementById('rezBaslangicInput').value = '';
             document.getElementById('rezBitisInput').value = '';
             document.getElementById('rezMusteriInput').value = '';
@@ -1469,6 +1482,36 @@
             if (personelSelect) personelSelect.value = '';
             document.getElementById('rezDurumSelect').value = 'aktif';
             document.getElementById('rezNotInput').value = '';
+        }
+
+        function rezervasyonDuzenleAc(id) {
+            const rezervasyon = rezervasyonlar.find(r => Number(r.id) === Number(id));
+            if (!rezervasyon) return bildirimGoster('Rezervasyon bulunamadi.', 'hata');
+
+            duzenlenenRezervasyonId = Number(id);
+            document.getElementById('rezOgeSelect').value = rezervasyon.oge_id || '';
+            document.getElementById('rezPersonelSelect').value = rezervasyon.personel_id || '';
+            document.getElementById('rezBaslangicInput').value = rezervasyon.baslangic_tarihi || '';
+            document.getElementById('rezBitisInput').value = rezervasyon.bitis_tarihi || '';
+            document.getElementById('rezMusteriInput').value = rezervasyon.musteri_ad || '';
+            document.getElementById('rezTelefonInput').value = rezervasyon.musteri_telefon || '';
+            document.getElementById('rezTutarInput').value = Number(rezervasyon.toplam_tutar || 0);
+            document.getElementById('rezDurumSelect').value = rezervasyon.durum || 'aktif';
+            document.getElementById('rezNotInput').value = rezervasyon.notlar || '';
+
+            const formBaslik = document.getElementById('rezFormBaslik');
+            const kaydetButon = document.getElementById('rezKaydetButon');
+            const iptalButon = document.getElementById('rezDuzenlemeIptalButon');
+            if (formBaslik) formBaslik.textContent = 'Rezervasyonu Düzenle';
+            if (kaydetButon) kaydetButon.textContent = 'Rezervasyonu Güncelle';
+            if (iptalButon) iptalButon.classList.remove('hidden');
+
+            rezervasyonTakvimiCiz();
+            document.getElementById('rezBaslangicInput')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function rezervasyonDuzenlemeIptal() {
+            rezervasyonFormunuTemizle();
         }
 
         async function rezervasyonKaydet() {
@@ -1491,15 +1534,15 @@
             }
 
             try {
-                const response = await fetch(`/api/${dukkanSlug}/rezervasyon-ekle`, {
-                    method: 'POST',
+                const response = await fetch(duzenlenenRezervasyonId ? `/api/${dukkanSlug}/rezervasyon/${duzenlenenRezervasyonId}` : `/api/${dukkanSlug}/rezervasyon-ekle`, {
+                    method: duzenlenenRezervasyonId ? 'PATCH' : 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Rezervasyon kaydedilemedi.');
 
-                bildirimGoster('Rezervasyon takvime islendi.', 'basari');
+                bildirimGoster(duzenlenenRezervasyonId ? 'Rezervasyon guncellendi.' : 'Rezervasyon takvime islendi.', 'basari');
                 rezervasyonFormunuTemizle();
                 rezervasyonVerileriniCek();
                 operatorIsRaporuYukle();
@@ -1523,6 +1566,25 @@
                 bildirimGoster(err.message || 'Rezervasyon iptal edilemedi.', 'hata');
             }
         }
+
+        async function rezervasyonSil(id) {
+            const onay = await onayIste('Bu rezervasyonu kalici olarak silmek istiyor musun?', 'Rezervasyonu sil');
+            if (!onay) return;
+
+            try {
+                const response = await fetch(`/api/${dukkanSlug}/rezervasyon/${id}`, { method: 'DELETE' });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Rezervasyon silinemedi.');
+
+                if (duzenlenenRezervasyonId === Number(id)) rezervasyonFormunuTemizle();
+                bildirimGoster('Rezervasyon silindi.', 'basari');
+                rezervasyonVerileriniCek();
+                operatorIsRaporuYukle();
+            } catch (err) {
+                bildirimGoster(err.message || 'Rezervasyon silinemedi.', 'hata');
+            }
+        }
+
 
         // ==========================================
         // 📦 MODÜL 1: BİRİM (ÖĞE) YÖNETİMİ

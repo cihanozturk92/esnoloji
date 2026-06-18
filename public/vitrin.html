@@ -161,6 +161,15 @@
             return fiyat > 0 ? `${fiyat.toFixed(2)} TL` : 'Fiyat sorunuz';
         }
 
+        function sayfaArkaPlaniniAyarla(url) {
+            if (!url) return;
+            const temizUrl = String(url).replace(/'/g, "%27");
+            document.body.style.backgroundImage = `linear-gradient(rgba(248,250,252,0.88), rgba(248,250,252,0.92)), url('${temizUrl}')`;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.style.backgroundAttachment = 'fixed';
+        }
+
         function ikon(tur) {
             const t = String(tur || '').toLocaleLowerCase('tr-TR');
             if (t.includes('araç') || t.includes('araç') || t.includes('oto')) return 'fa-car';
@@ -257,6 +266,7 @@
             if (vitrinArkaplan && arkaPlanUrl) {
                 vitrinArkaplan.style.backgroundImage = `url('${String(arkaPlanUrl).replace(/'/g, "%27")}')`;
             }
+            sayfaArkaPlaniniAyarla(arkaPlanUrl);
 
             const dukkanLogo = document.getElementById('dukkanLogo');
             const dukkanLogoIkon = document.getElementById('dukkanLogoIkon');

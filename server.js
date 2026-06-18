@@ -1212,6 +1212,161 @@ app.patch('/api/:dukkan_adi/rezervasyon/:id/iptal', apiYetkiGerekli(['admin', 's
     }
 });
 
+
+async function rezervasyonGelirKaydiniYenile(dukkanId, rezervasyon, ogeId) {
+    const gelirBaslik = `Rezervasyon #${rezervasyon.id} - ${rezervasyon.musteri_ad}`;
+
+    const { error: gelirTemizleErr } = await supabase
+        .from('giderler')
+        .delete()
+        .eq('dukkan_id', dukkanId)
+        .eq('kategori', 'Gelir')
+        .like('baslik', `Rezervasyon #${rezervasyon.id} - %`);
+
+    if (gelirTemizleErr) throw gelirTemizleErr;
+
+    if (Number(rezervasyon.toplam_tutar || 0) <= 0) return;
+    if (String(rezervasyon.durum || 'aktif').toLocaleLowerCase('tr-TR').trim() === 'iptal') return;
+
+    const { data: oge } = await supabase
+        .from('ogeler')
+        .select('id, ad')
+        .eq('id', Number(ogeId || rezervasyon.oge_id))
+        .eq('dukkan_id', dukkanId)
+        .maybeSingle();
+
+    const gelirPayload = {
+        dukkan_id: dukkanId,
+        baslik: gelirBaslik,
+        kategori: 'Gelir',
+        tutar: Number(rezervasyon.toplam_tutar || 0),
+        oge_id: oge?.id || Number(ogeId || rezervasyon.oge_id),
+        oge_adi: oge?.ad || null
+    };
+
+    let gelirSonuc = await supabase.from('giderler').insert([gelirPayload]);
+    if (gelirSonuc.error && giderOgeKolonuEksikMi(gelirSonuc.error)) {
+        delete gelirPayload.oge_id;
+        delete gelirPayload.oge_adi;
+        gelirSonuc = await supabase.from('giderler').insert([gelirPayload]);
+    }
+
+    if (gelirSonuc.error) throw gelirSonuc.error;
+}
+
+app.patch('/api/:dukkan_adi/rezervasyon/:id', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
+    const { oge_id, musteri_ad, musteri_telefon, baslangic_tarihi, bitis_tarihi, toplam_tutar, personel_id, durum, notlar } = req.body || {};
+
+    try {
+        const dukkan = await dukkanBilgisiBulBySlug(req.params.dukkan_adi);
+        if (!dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi.' });
+        if (!oge_id || !musteri_ad || !baslangic_tarihi || !bitis_tarihi) {
+            return res.status(400).json({ error: 'Varlik, musteri ve tarih bilgileri zorunlu.' });
+        }
+
+        const { data: mevcutRezervasyon, error: mevcutRezErr } = await supabase
+            .from('rezervasyonlar')
+            .select('id')
+            .eq('id', req.params.id)
+            .eq('dukkan_id', dukkan.id)
+            .single();
+
+        if (mevcutRezErr || !mevcutRezervasyon) return res.status(404).json({ error: 'Rezervasyon bulunamadi.' });
+
+        let seciliPersonel = null;
+        if (personel_id) {
+            const { data: personel, error: personelErr } = await supabase
+                .from('personel')
+                .select('id, kullanici_id')
+                .eq('id', Number(personel_id))
+                .eq('dukkan_id', dukkan.id)
+                .maybeSingle();
+            if (personelErr) throw personelErr;
+            seciliPersonel = personel || null;
+        }
+
+        const payload = {
+            oge_id: Number(oge_id),
+            musteri_ad,
+            musteri_telefon: musteri_telefon || null,
+            baslangic_tarihi,
+            bitis_tarihi,
+            toplam_tutar: Number(toplam_tutar || 0),
+            personel_id: seciliPersonel?.id || null,
+            personel_adi: seciliPersonel?.kullanici_id || null,
+            durum: durum || 'aktif',
+            notlar: notlar || null
+        };
+
+        let { data, error } = await supabase
+            .from('rezervasyonlar')
+            .update(payload)
+            .eq('id', req.params.id)
+            .eq('dukkan_id', dukkan.id)
+            .select()
+            .single();
+
+        if (error && rezervasyonPersonelKolonuEksikMi(error)) {
+            delete payload.personel_id;
+            delete payload.personel_adi;
+            const ikinci = await supabase
+                .from('rezervasyonlar')
+                .update(payload)
+                .eq('id', req.params.id)
+                .eq('dukkan_id', dukkan.id)
+                .select()
+                .single();
+            data = ikinci.data;
+            error = ikinci.error;
+        }
+
+        if (error) throw error;
+
+        await rezervasyonGelirKaydiniYenile(dukkan.id, data, oge_id);
+
+        res.json({ status: 'success', rezervasyon: data });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/:dukkan_adi/rezervasyon/:id', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
+    try {
+        const dukkan = await dukkanBilgisiBulBySlug(req.params.dukkan_adi);
+        if (!dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi.' });
+
+        const { data: mevcutRezervasyon, error: mevcutRezErr } = await supabase
+            .from('rezervasyonlar')
+            .select('id')
+            .eq('id', req.params.id)
+            .eq('dukkan_id', dukkan.id)
+            .single();
+
+        if (mevcutRezErr || !mevcutRezervasyon) return res.status(404).json({ error: 'Rezervasyon bulunamadi.' });
+
+        const { error: gelirSilErr } = await supabase
+            .from('giderler')
+            .delete()
+            .eq('dukkan_id', dukkan.id)
+            .eq('kategori', 'Gelir')
+            .like('baslik', `Rezervasyon #${req.params.id} - %`);
+
+        if (gelirSilErr) throw gelirSilErr;
+
+        const { error } = await supabase
+            .from('rezervasyonlar')
+            .delete()
+            .eq('id', req.params.id)
+            .eq('dukkan_id', dukkan.id);
+
+        if (error) throw error;
+
+        res.json({ status: 'success' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.get('/:dukkan_adi/admin', yetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin'], { dukkanSlugEslesmeli: true }), (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
