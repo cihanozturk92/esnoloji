@@ -150,7 +150,7 @@
                 <span>🏷️</span> <span>Dükkan Bilgileri</span>
             </a>
             <a href="#" id="nav-oge-yonetimi" onclick="sekmeDegistir('oge-yonetimi')" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition font-medium text-sm text-slate-400 hover:text-white">
-                <span>📦</span> <span>Dükkan Düzeni (Masa/Araç)</span>
+                <span>📦</span> <span>Kayıtlar / Hizmetler</span>
             </a>
             <a href="#" id="nav-rezervasyon" onclick="sekmeDegistir('rezervasyon')" class="hidden flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition font-medium text-sm text-slate-400 hover:text-white">
                 <span>📅</span> <span>Rezervasyon Takvimi</span>
@@ -280,11 +280,11 @@
         <section id="ogeYonetimiSekmesi" class="hidden">
             <div class="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"><div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
                 <div>
-                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Dükkan Düzeni & Varlık Yönetimi</h2>
-                    <p class="text-sm text-slate-500 mt-1">Sisteminize kayıtlı masa, araç, oda veya diğer tüm ticari ögeler.</p>
+                    <h2 id="ogeYonetimiBaslik" class="text-2xl font-black text-slate-800 tracking-tight">Dükkan Düzeni & Varlık Yönetimi</h2>
+                    <p id="ogeYonetimiAciklama" class="text-sm text-slate-500 mt-1">Sisteminize kayıtlı masa, araç, oda veya diğer tüm ticari ögeler.</p>
                 </div>
-                <button onclick="formuKapatAc('yeniOgeFormu', 'butonMetniOge', '+ Yeni Birim')" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">
-                    <span id="butonMetniOge">+ Yeni Birim</span>
+                <button id="yeniOgeAcButonu" onclick="formuKapatAc('yeniOgeFormu', 'butonMetniOge', ogeArayuzAyarlari().buton)" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">
+                    <span id="butonMetniOge">+ Yeni Kayıt Ekle</span>
                 </button>
             </div>
 
@@ -294,11 +294,11 @@
                 </h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Birim Adı / Kimliği</label>
+                        <label id="ogeAdiLabel" class="block text-xs font-bold text-slate-500 uppercase mb-2">Kayıt Adı</label>
                         <input type="text" id="ogeAdiInput" placeholder="Örn: Masa 1, Masa 5, 34 PUMA 123" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Birim Türü / Kategorisi</label>
+                        <label id="ogeTurLabel" class="block text-xs font-bold text-slate-500 uppercase mb-2">Tür / Kategori</label>
                         <select id="ogeTuruSelect" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700 bg-white">
                             <option value="Masa">🪑 Masa (Restoran/Kafe)</option>
                             <option value="Araç">🚗 Araç / Otomobil (Kiralama)</option>
@@ -308,11 +308,11 @@
                 </div>
                 <div id="kiralamaOgeAlanlari" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Varlik Detayi</label>
+                        <label id="ogeDetayLabel" class="block text-xs font-bold text-slate-500 uppercase mb-2">Detay / Açıklama</label>
                         <input type="text" id="ogeDetayInput" placeholder="Orn: Otomatik, dizel, 2022 model" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Gunluk / Birim Fiyat</label>
+                        <label id="ogeFiyatLabel" class="block text-xs font-bold text-slate-500 uppercase mb-2">Günlük / Birim Fiyat</label>
                         <input type="number" id="ogeFiyatInput" placeholder="Orn: 2500" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700">
                     </div>
                 </div>
@@ -323,15 +323,15 @@
 
             <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="p-5 border-b border-slate-50 bg-slate-50/70 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <span class="font-bold text-slate-700 text-sm tracking-wide uppercase">Kayıtlı Birimler</span>
+                    <span id="kayitliOgelerBaslik" class="font-bold text-slate-700 text-sm tracking-wide uppercase">KAYITLI KAYITLAR</span>
                     <span id="toplamOgeSayisi" class="bg-blue-50 text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full">0 Öğe</span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="border-b border-slate-100 text-slate-400 text-[11px] font-bold uppercase bg-slate-50/30">
-                                <th class="p-4">Birim Tanımı</th>
-                                <th class="p-4">Türü</th>
+                                <th id="ogeTabloAdBaslik" class="p-4">Kayıt Tanımı</th>
+                                <th id="ogeTabloTurBaslik" class="p-4">Türü</th>
                                 <th class="p-4">QR Kod / Erişim Linki</th>
                                 <th class="p-4 text-right">İşlem</th>
                             </tr>
@@ -882,18 +882,178 @@
             personelSatisRaporuListele();
         }
 
+        function sektorMetni() {
+            return String(dukkanBilgisi?.tur || '').toLocaleLowerCase('tr-TR');
+        }
+
+        function profesyonelTuruMuAdmin(tur) {
+            const temizTur = String(tur || '').toLocaleLowerCase('tr-TR');
+            return temizTur.includes('avukat') || temizTur.includes('hukuk') || temizTur.includes('mali') || temizTur.includes('musavir') || temizTur.includes('müşavir') || temizTur.includes('muhasebe') || temizTur.includes('danisman') || temizTur.includes('danışman');
+        }
+
+        function ogeArayuzAyarlari() {
+            const tur = sektorMetni();
+            if (restoranIsletmesi) {
+                return {
+                    baslik: 'Dükkan Düzeni & Masa Yönetimi',
+                    aciklama: 'Restoran veya kafenizde kullanılacak masaları ve alanları yönetin.',
+                    buton: '+ Masa / Alan Ekle',
+                    listeBaslik: 'KAYITLI MASALAR & ALANLAR',
+                    adLabel: 'Masa / Alan Adı',
+                    adPlaceholder: 'Örn: Masa 1, Bahçe 3, Teras',
+                    turLabel: 'Masa / Alan Türü',
+                    detayLabel: 'Detay / Not',
+                    detayPlaceholder: 'Örn: Bahçe, cam kenarı, 4 kişilik',
+                    fiyatLabel: 'Fiyat',
+                    tabloAd: 'Masa / Alan',
+                    tabloTur: 'Tür',
+                    modalBaslik: 'Masa / Alan Düzenle',
+                    kayitAdiBos: 'Masa / alan adı boş olamaz.',
+                    secenekler: [['Masa', 'Masa'], ['Bahçe', 'Bahçe'], ['Teras', 'Teras'], ['Salon', 'Salon'], ['Paket', 'Paket / Gel Al']]
+                };
+            }
+            if (saatliRandevuTuruMu(dukkanBilgisi?.tur)) {
+                return {
+                    baslik: 'Hizmet & Randevu Yönetimi',
+                    aciklama: 'Müşterinin randevu alabileceği hizmetleri, süre/fiyat ve açıklamalarıyla tanımlayın.',
+                    buton: '+ Berber Ekle',
+                    listeBaslik: 'KAYITLI HİZMETLER',
+                    adLabel: 'Hizmet Adı',
+                    adPlaceholder: 'Örn: Saç kesimi, sakal tıraşı, boya',
+                    turLabel: 'Hizmet Türü',
+                    detayLabel: 'Süre / Detay',
+                    detayPlaceholder: 'Örn: 30 dk, yıkama dahil, randevulu',
+                    fiyatLabel: 'Hizmet Fiyatı',
+                    tabloAd: 'Hizmet',
+                    tabloTur: 'Kategori',
+                    modalBaslik: 'Hizmet Düzenle',
+                    kayitAdiBos: 'Hizmet adı boş olamaz.',
+                    secenekler: [['Saç', 'Saç'], ['Sakal', 'Sakal'], ['Bakım', 'Bakım'], ['Boya', 'Boya'], ['Cilt Bakımı', 'Cilt Bakımı'], ['Paket Hizmet', 'Paket Hizmet']]
+                };
+            }
+            if (tur.includes('avukat') || tur.includes('hukuk')) {
+                return {
+                    baslik: 'Dava & Hizmet Alanları',
+                    aciklama: 'Müvekkillerin destek alabileceği dava ve danışmanlık türlerini net şekilde listeleyin.',
+                    buton: '+ Dava / Hizmet Türü Ekle',
+                    listeBaslik: 'KAYITLI DAVA & HİZMET TÜRLERİ',
+                    adLabel: 'Dava / Hizmet Adı',
+                    adPlaceholder: 'Örn: Boşanma davası, icra takibi, iş hukuku',
+                    turLabel: 'Hukuk Alanı',
+                    detayLabel: 'Kapsam / Açıklama',
+                    detayPlaceholder: 'Örn: Ön görüşme, evrak inceleme, dava takibi kapsamı',
+                    fiyatLabel: 'Danışmanlık / Başlangıç Ücreti',
+                    tabloAd: 'Dava / Hizmet',
+                    tabloTur: 'Alan',
+                    modalBaslik: 'Dava / Hizmet Düzenle',
+                    kayitAdiBos: 'Dava / hizmet adı boş olamaz.',
+                    secenekler: [['Aile Hukuku', 'Aile Hukuku'], ['Ceza Hukuku', 'Ceza Hukuku'], ['İş Hukuku', 'İş Hukuku'], ['İcra Hukuku', 'İcra Hukuku'], ['Ticaret Hukuku', 'Ticaret Hukuku'], ['Gayrimenkul Hukuku', 'Gayrimenkul Hukuku'], ['Danışmanlık', 'Danışmanlık']]
+                };
+            }
+            if (tur.includes('mali') || tur.includes('musavir') || tur.includes('müşavir') || tur.includes('muhasebe')) {
+                return {
+                    baslik: 'Defter & Mali Hizmetler',
+                    aciklama: 'Defter türleri, beyanname ve danışmanlık hizmetlerini müşteriye anlaşılır gösterin.',
+                    buton: '+ Defter / Hizmet Türü Ekle',
+                    listeBaslik: 'KAYITLI DEFTER & HİZMET TÜRLERİ',
+                    adLabel: 'Defter / Hizmet Adı',
+                    adPlaceholder: 'Örn: Limited şirket defteri, şahıs işletmesi, bordro',
+                    turLabel: 'Mali Hizmet Türü',
+                    detayLabel: 'Kapsam / Açıklama',
+                    detayPlaceholder: 'Örn: Aylık beyan, bordro, e-defter, danışmanlık',
+                    fiyatLabel: 'Aylık / Hizmet Ücreti',
+                    tabloAd: 'Defter / Hizmet',
+                    tabloTur: 'Tür',
+                    modalBaslik: 'Defter / Hizmet Düzenle',
+                    kayitAdiBos: 'Defter / hizmet adı boş olamaz.',
+                    secenekler: [['Şahıs İşletmesi', 'Şahıs İşletmesi'], ['Limited Şirket', 'Limited Şirket'], ['Anonim Şirket', 'Anonim Şirket'], ['Beyanname', 'Beyanname'], ['Bordro', 'Bordro'], ['E-Defter', 'E-Defter'], ['Danışmanlık', 'Danışmanlık']]
+                };
+            }
+            if (tur.includes('danisman') || tur.includes('danışman')) {
+                return {
+                    baslik: 'Danışmanlık Hizmetleri',
+                    aciklama: 'Danışmanlık paketlerini, kapsamlarını ve başlangıç fiyatlarını yönetin.',
+                    buton: '+ Danışmanlık Hizmeti Ekle',
+                    listeBaslik: 'KAYITLI DANIŞMANLIK HİZMETLERİ',
+                    adLabel: 'Hizmet / Paket Adı',
+                    adPlaceholder: 'Örn: Marka danışmanlığı, proje danışmanlığı',
+                    turLabel: 'Danışmanlık Türü',
+                    detayLabel: 'Kapsam / Açıklama',
+                    detayPlaceholder: 'Örn: Ön analiz, raporlama, aylık takip',
+                    fiyatLabel: 'Paket / Başlangıç Ücreti',
+                    tabloAd: 'Hizmet / Paket',
+                    tabloTur: 'Tür',
+                    modalBaslik: 'Danışmanlık Hizmeti Düzenle',
+                    kayitAdiBos: 'Hizmet adı boş olamaz.',
+                    secenekler: [['Strateji', 'Strateji'], ['Proje', 'Proje'], ['Marka', 'Marka'], ['Finans', 'Finans'], ['Operasyon', 'Operasyon'], ['Eğitim', 'Eğitim']]
+                };
+            }
+            if (tur.includes('galeri')) {
+                return {
+                    baslik: 'Galeri & Koleksiyon Yönetimi',
+                    aciklama: 'Sergilenen eser, ürün veya koleksiyon kayıtlarını tanımlayın.',
+                    buton: '+ Ürün / Eser Ekle',
+                    listeBaslik: 'KAYITLI ÜRÜN & ESERLER',
+                    adLabel: 'Ürün / Eser Adı',
+                    adPlaceholder: 'Örn: Yağlı boya tablo, el işi ürün',
+                    turLabel: 'Kategori',
+                    detayLabel: 'Detay / Açıklama',
+                    detayPlaceholder: 'Örn: Ölçü, sanatçı, teknik, stok bilgisi',
+                    fiyatLabel: 'Satış / Başlangıç Fiyatı',
+                    tabloAd: 'Ürün / Eser',
+                    tabloTur: 'Kategori',
+                    modalBaslik: 'Ürün / Eser Düzenle',
+                    kayitAdiBos: 'Ürün / eser adı boş olamaz.',
+                    secenekler: [['Tablo', 'Tablo'], ['Heykel', 'Heykel'], ['El İşi', 'El İşi'], ['Takı', 'Takı'], ['Koleksiyon', 'Koleksiyon'], ['Diğer', 'Diğer']]
+                };
+            }
+            return {
+                baslik: 'Varlık & Hizmet Yönetimi',
+                aciklama: 'Araç, oda, ekipman veya kiralanabilir tüm varlıkları yönetin.',
+                buton: '+ Araç / Varlık Ekle',
+                listeBaslik: 'KAYITLI VARLIKLAR & HİZMETLER',
+                adLabel: 'Araç / Varlık Adı',
+                adPlaceholder: 'Örn: 34 ABC 123, Platform 28 M, Oda 4',
+                turLabel: 'Varlık Türü',
+                detayLabel: 'Detay / Açıklama',
+                detayPlaceholder: 'Örn: Otomatik, dizel, 2022 model',
+                fiyatLabel: 'Günlük / Birim Fiyat',
+                tabloAd: 'Varlık / Hizmet',
+                tabloTur: 'Tür',
+                modalBaslik: 'Varlık Düzenle',
+                kayitAdiBos: 'Kayıt adı boş olamaz.',
+                secenekler: [['Araç', 'Araç / Otomobil'], ['Oda', 'Oda'], ['Ev', 'Ev / Daire'], ['Vinç', 'Vinç'], ['Ekipman', 'Ekipman'], ['Tekne', 'Tekne'], ['Karavan', 'Karavan'], ['Ofis', 'Ofis / Salon']]
+            };
+        }
+
+        function ogeArayuzMetinleriniAyarla() {
+            const ayar = ogeArayuzAyarlari();
+            const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+            const setPlaceholder = (id, text) => { const el = document.getElementById(id); if (el) el.placeholder = text; };
+            setText('ogeYonetimiBaslik', ayar.baslik);
+            setText('ogeYonetimiAciklama', ayar.aciklama);
+            setText('butonMetniOge', ayar.buton);
+            setText('kayitliOgelerBaslik', ayar.listeBaslik);
+            setText('ogeAdiLabel', ayar.adLabel);
+            setText('ogeTurLabel', ayar.turLabel);
+            setText('ogeDetayLabel', ayar.detayLabel);
+            setText('ogeFiyatLabel', ayar.fiyatLabel);
+            setText('ogeTabloAdBaslik', ayar.tabloAd);
+            setText('ogeTabloTurBaslik', ayar.tabloTur);
+            setText('modalOgeBaslik', ayar.modalBaslik);
+            setPlaceholder('ogeAdiInput', ayar.adPlaceholder);
+            setPlaceholder('ogeDetayInput', ayar.detayPlaceholder);
+            setPlaceholder('modalOgeAdi', ayar.adLabel);
+            setPlaceholder('modalOgeDetay', ayar.detayPlaceholder);
+            setPlaceholder('modalOgeFiyat', ayar.fiyatLabel);
+        }
+
         function ogeTuruSecenekleriniAyarla() {
             const select = document.getElementById('ogeTuruSelect');
             if (!select) return;
-            select.innerHTML = restoranIsletmesi
-                ? '<option value="Masa">Masa (Restoran/Kafe)</option>'
-                : `
-                    <option value="Araç">Araç / Otomobil</option>
-                    <option value="Oda">Oda</option>
-                    <option value="Ev">Ev / Daire</option>
-                    <option value="Vinç">Vinç</option>
-                    <option value="Ekipman">Ekipman</option>
-                `;
+            const ayar = ogeArayuzAyarlari();
+            select.innerHTML = ayar.secenekler.map(([value, label]) => '<option value="' + value + '">' + label + '</option>').join('');
+            ogeArayuzMetinleriniAyarla();
         }
 
         function modulleriSektoruneGoreAyarla() {
@@ -915,6 +1075,7 @@
 
             const kiralamaAlanlari = document.getElementById('kiralamaOgeAlanlari');
             if (kiralamaAlanlari) kiralamaAlanlari.classList.toggle('hidden', restoranIsletmesi);
+            ogeArayuzMetinleriniAyarla();
 
             const satisBolumu = document.getElementById('personelSatisRaporuBolumu');
             if (satisBolumu) satisBolumu.classList.toggle('hidden', !restoranIsletmesi);
@@ -1870,7 +2031,7 @@
                 adInput.value = "";
                 if (detayInput) detayInput.value = "";
                 if (fiyatInput) fiyatInput.value = "";
-                formuKapatAc('yeniOgeFormu', 'butonMetniOge', '+ Yeni Birim');
+                formuKapatAc('yeniOgeFormu', 'butonMetniOge', ogeArayuzAyarlari().buton);
                 verileriSunucudanCek();
             });
         }
@@ -1918,7 +2079,7 @@
                 fiyat: restoranIsletmesi ? null : Number(document.getElementById('modalOgeFiyat').value || 0)
             };
 
-            if (!payload.ad) return bildirimGoster('Birim adı boş olamaz.', 'uyari');
+            if (!payload.ad) return bildirimGoster(ogeArayuzAyarlari().kayitAdiBos, 'uyari');
 
             fetch(`/api/${dukkanSlug}/oge-guncelle/${id}`, {
                 method: 'PUT',
@@ -1927,13 +2088,13 @@
             })
             .then(res => res.json().then(data => ({ ok: res.ok, data })))
             .then(({ ok, data }) => {
-                if (!ok) return bildirimGoster(data.error || 'Birim güncellenemedi.', 'hata');
+                if (!ok) return bildirimGoster(data.error || 'Kayıt güncellenemedi.', 'hata');
                 ogeDuzenleKapat();
                 verileriSunucudanCek();
             })
             .catch(err => {
-                console.error('Birim güncelleme hatası:', err);
-                bildirimGoster('Birim güncellenirken bağlantı hatası oluştu.', 'hata');
+                console.error('Kayıt güncelleme hatası:', err);
+                bildirimGoster('Kayıt güncellenirken bağlantı hatası oluştu.', 'hata');
             });
         }
 
@@ -2328,10 +2489,10 @@ function urunuGuncelleKaydet() {
 </div>
     <div id="duzenleOgeModal" class="hidden fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-            <h2 class="text-lg font-bold text-slate-800 mb-4">Birim Düzenle</h2>
+            <h2 id="modalOgeBaslik" class="text-lg font-bold text-slate-800 mb-4">Kayıt Düzenle</h2>
 
             <div class="space-y-4">
-                <input type="text" id="modalOgeAdi" class="w-full p-3 border border-slate-200 rounded-xl" placeholder="Birim Adı">
+                <input type="text" id="modalOgeAdi" class="w-full p-3 border border-slate-200 rounded-xl" placeholder="Kayıt adı">
                 <select id="modalOgeTur" class="w-full p-3 border border-slate-200 rounded-xl bg-white"></select>
                 <textarea id="modalOgeDetay" class="w-full p-3 border border-slate-200 rounded-xl" placeholder="Detay"></textarea>
                 <input type="number" id="modalOgeFiyat" class="w-full p-3 border border-slate-200 rounded-xl" placeholder="Fiyat">
