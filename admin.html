@@ -345,9 +345,6 @@
                     <h2 class="text-2xl font-black text-slate-800 tracking-tight">Rezervasyon & Doluluk Takvimi</h2>
                     <p class="text-sm text-slate-500 mt-1">Arac, oda, ev veya ekipman icin dolu tarihleri buradan isleyin.</p>
                 </div>
-                <button id="rezKaydetButon" onclick="rezervasyonKaydet()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">
-                    Rezervasyonu Kaydet
-                </button>
             </div>
 
             <div class="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-6">
@@ -356,7 +353,7 @@
                         <h3 id="rezFormBaslik" class="font-black text-slate-800 mb-4">Yeni Rezervasyon</h3>
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Varlik</label>
+                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Varlik / Liste Filtresi</label>
                                 <select id="rezOgeSelect" onchange="rezervasyonTakvimiCiz(); rezervasyonlariListele();" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700 bg-white"></select>
                             </div>
                             <div>
@@ -400,7 +397,10 @@
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Not</label>
                                 <textarea id="rezNotInput" rows="3" placeholder="Teslim saati, kapora, ek not..." class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700"></textarea>
                             </div>
-                            <button id="rezDuzenlemeIptalButon" onclick="rezervasyonDuzenlemeIptal()" class="hidden w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-600 transition hover:bg-slate-100" type="button">Düzenlemeyi İptal Et</button>
+                            <div class="grid grid-cols-1 gap-3">
+                                <button id="rezKaydetButon" onclick="rezervasyonKaydet()" class="w-full rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]" type="button">Rezervasyonu Kaydet</button>
+                                <button id="rezDuzenlemeIptalButon" onclick="rezervasyonDuzenlemeIptal()" class="hidden w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-600 transition hover:bg-slate-100" type="button">Düzenlemeyi İptal Et</button>
+                            </div>
                         </div>
                     </div>
 
@@ -626,7 +626,7 @@
             <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
                 <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
                     <div>
-                        <h3 class="text-xl font-black text-slate-900">Manuel Gelir / Gider Ekle</h3>
+                        <h3 id="finansFormBaslik" class="text-xl font-black text-slate-900">Manuel Gelir / Gider Ekle</h3>
                         <p class="text-sm text-slate-500 mt-1">Mazot, bakım, peşin ödeme, ekstra tahsilat gibi kayıtları buradan işleyin.</p>
                     </div>
                 </div>
@@ -654,7 +654,8 @@
                     </div>
                 </div>
                 <div class="mt-4 flex justify-end">
-                    <button onclick="finansKaydiEkle()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">Kaydi Isle</button>
+                    <button id="finansDuzenlemeIptalButon" onclick="finansDuzenlemeIptal()" class="hidden mr-3 inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-600 transition hover:bg-slate-50" type="button">Düzenlemeyi İptal Et</button>
+                    <button id="finansKaydetButon" onclick="finansKaydiEkle()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">Kaydi Isle</button>
                 </div>
             </div>
             <div id="gelirGiderPaneli" class="hidden mt-6">
@@ -804,6 +805,8 @@
         let duzenlenenUrunId = null;
         let duzenlenenOgeId = null;
         let adminMesajlar = [];
+        let gelirGiderKayitlari = [];
+        let duzenlenenFinansKaydiId = null;
 
         function paraYaz(deger) {
             return `${Number(deger || 0).toFixed(2)} TL`;
@@ -1046,27 +1049,74 @@
         }
 
         // 🔄 SEKMELER ARASI AKICI GEÇİŞ MOTORU
+        function finansKaydiManuelMi(kayit) {
+            const id = String(kayit?.id || '');
+            const baslik = String(kayit?.baslik || '').toLocaleLowerCase('tr-TR').trim();
+            if (!/^\d+$/.test(id)) return false;
+            if (baslik.startsWith('siparis #') || baslik.startsWith('sipariş #') || baslik.startsWith('rezervasyon #')) return false;
+            return true;
+        }
+
         function kayitSatiri(kayit, tip) {
             const renk = tip === 'gelir' ? 'text-emerald-700' : 'text-red-700';
             const isaret = tip === 'gelir' ? '+' : '-';
             const tarih = kayit.created_at ? new Date(kayit.created_at).toLocaleDateString('tr-TR') : '';
+            const manuel = finansKaydiManuelMi(kayit);
             return `
                 <div class="p-4 flex items-center justify-between gap-4">
                     <div class="min-w-0">
                         <div class="font-bold text-slate-800 truncate">${kayit.baslik || 'Kayit'}</div>
-                        <div class="text-xs text-slate-400 mt-0.5">${kayit.oge_adi ? kayit.oge_adi + ' • ' : ''}${kayit.kategori || 'Genel'} ${tarih ? '• ' + tarih : ''}</div>
+                        <div class="text-xs text-slate-400 mt-0.5">${kayit.oge_adi ? kayit.oge_adi + ' • ' : ''}${kayit.kategori || 'Genel'} ${tarih ? '• ' + tarih : ''}${manuel ? ' • Manuel' : ' • Sistem'}</div>
                     </div>
-                    <div class="font-black ${renk} whitespace-nowrap">${isaret}${paraYaz(kayit.tutar)}</div>
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        <div class="font-black ${renk} whitespace-nowrap">${isaret}${paraYaz(kayit.tutar)}</div>
+                        ${manuel ? `
+                            <button onclick="finansKaydiDuzenleAc(${kayit.id})" class="rounded-lg bg-blue-50 px-3 py-2 text-xs font-black text-blue-700 transition hover:bg-blue-100">Düzenle</button>
+                            <button onclick="finansKaydiSil(${kayit.id})" class="rounded-lg bg-red-50 px-3 py-2 text-xs font-black text-red-600 transition hover:bg-red-100">Sil</button>
+                        ` : ''}
+                    </div>
                 </div>
             `;
         }
 
         function finansFormunuTemizle() {
+            duzenlenenFinansKaydiId = null;
             document.getElementById('finansKategoriInput').value = 'Gelir';
             document.getElementById('finansBaslikInput').value = '';
             document.getElementById('finansTutarInput').value = '';
             const birimSelect = document.getElementById('finansOgeSelect');
             if (birimSelect) birimSelect.value = '';
+
+            const baslik = document.getElementById('finansFormBaslik');
+            const buton = document.getElementById('finansKaydetButon');
+            const iptal = document.getElementById('finansDuzenlemeIptalButon');
+            if (baslik) baslik.textContent = 'Manuel Gelir / Gider Ekle';
+            if (buton) buton.textContent = 'Kaydi Isle';
+            if (iptal) iptal.classList.add('hidden');
+        }
+
+        function finansDuzenlemeIptal() {
+            finansFormunuTemizle();
+        }
+
+        function finansKaydiDuzenleAc(id) {
+            const kayit = gelirGiderKayitlari.find(k => Number(k.id) === Number(id));
+            if (!kayit || !finansKaydiManuelMi(kayit)) return bildirimGoster('Sadece manuel kayıtlar düzenlenebilir.', 'uyari');
+
+            duzenlenenFinansKaydiId = Number(id);
+            document.getElementById('finansKategoriInput').value = String(kayit.kategori || '').toLocaleLowerCase('tr-TR') === 'gelir' ? 'Gelir' : 'Gider';
+            document.getElementById('finansBaslikInput').value = kayit.baslik || '';
+            document.getElementById('finansTutarInput').value = Number(kayit.tutar || 0);
+            const birimSelect = document.getElementById('finansOgeSelect');
+            if (birimSelect) birimSelect.value = kayit.oge_id || '';
+
+            const baslik = document.getElementById('finansFormBaslik');
+            const buton = document.getElementById('finansKaydetButon');
+            const iptal = document.getElementById('finansDuzenlemeIptalButon');
+            if (baslik) baslik.textContent = 'Manuel Kaydı Düzenle';
+            if (buton) buton.textContent = 'Kaydı Güncelle';
+            if (iptal) iptal.classList.remove('hidden');
+            document.getElementById('finansBaslikInput')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         async function finansKaydiEkle() {
@@ -1082,8 +1132,9 @@
             }
 
             try {
-                const response = await fetch(`/api/${dukkanSlug}/gelir-gider/kayit`, {
-                    method: 'POST',
+                const duzenlemeModu = Boolean(duzenlenenFinansKaydiId);
+                const response = await fetch(duzenlemeModu ? `/api/${dukkanSlug}/gelir-gider/kayit/${duzenlenenFinansKaydiId}` : `/api/${dukkanSlug}/gelir-gider/kayit`, {
+                    method: duzenlemeModu ? 'PATCH' : 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
@@ -1091,11 +1142,31 @@
                 if (!response.ok) throw new Error(data.error || 'Finans kaydi eklenemedi.');
 
                 finansFormunuTemizle();
-                bildirimGoster('Finans kaydi eklendi.', 'basari');
+                bildirimGoster(duzenlemeModu ? 'Finans kaydi guncellendi.' : 'Finans kaydi eklendi.', 'basari');
                 gelirGiderYukle();
             } catch (err) {
                 console.error('Finans kaydi ekleme hatasi:', err);
                 bildirimGoster(err.message || 'Finans kaydi eklenemedi.', 'hata');
+            }
+        }
+
+        async function finansKaydiSil(id) {
+            const kayit = gelirGiderKayitlari.find(k => Number(k.id) === Number(id));
+            if (!kayit || !finansKaydiManuelMi(kayit)) return bildirimGoster('Sadece manuel kayıtlar silinebilir.', 'uyari');
+
+            const onay = await onayIste('Bu manuel gelir/gider kaydını silmek istiyor musun?', 'Finans kaydı sil');
+            if (!onay) return;
+
+            try {
+                const response = await fetch(`/api/${dukkanSlug}/gelir-gider/kayit/${id}`, { method: 'DELETE' });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Finans kaydi silinemedi.');
+
+                if (duzenlenenFinansKaydiId === Number(id)) finansFormunuTemizle();
+                bildirimGoster('Finans kaydi silindi.', 'basari');
+                gelirGiderYukle();
+            } catch (err) {
+                bildirimGoster(err.message || 'Finans kaydi silinemedi.', 'hata');
             }
         }
 
@@ -1118,6 +1189,7 @@
 
                 const gelirler = data.gelirler || [];
                 const giderler = data.giderler || [];
+                gelirGiderKayitlari = [...gelirler, ...giderler];
                 document.getElementById('gelirlerListesi').innerHTML = gelirler.length
                     ? gelirler.map(k => kayitSatiri(k, 'gelir')).join('')
                     : '<div class="p-5 text-sm text-slate-400">Henüz gelir kaydı yok.</div>';
@@ -1352,7 +1424,7 @@
             const seciliId = Number(rezSeciliOgeId());
             return rezervasyonlar.some(r => {
                 const aktif = String(r.durum || '').toLocaleLowerCase('tr-TR') !== 'iptal';
-                return aktif && Number(r.oge_id) === seciliId && key >= r.baslangic_tarihi && key <= r.bitis_tarihi;
+                return aktif && (!seciliId || Number(r.oge_id) === seciliId) && key >= r.baslangic_tarihi && key <= r.bitis_tarihi;
             });
         }
 
@@ -1400,7 +1472,7 @@
             if (sayac) sayac.textContent = `${liste.length} Kayit`;
 
             if (!liste.length) {
-                alan.innerHTML = '<div class="p-6 text-sm text-slate-400">Bu varlik icin henuz rezervasyon yok.</div>';
+                alan.innerHTML = `<div class="p-6 text-sm text-slate-400">${seciliId ? 'Bu varlik icin henuz rezervasyon yok.' : 'Henuz rezervasyon yok.'}</div>`;
                 return;
             }
 
@@ -1445,7 +1517,7 @@
                 const select = document.getElementById('rezOgeSelect');
                 if (select) {
                     select.innerHTML = rezervasyonOgeleri.length
-                        ? rezervasyonOgeleri.map(o => `<option value="${o.id}">${o.ad} (${o.tur || 'Varlik'})</option>`).join('')
+                        ? '<option value="">Tüm varlıklar / tüm rezervasyonlar</option>' + rezervasyonOgeleri.map(o => `<option value="${o.id}">${o.ad} (${o.tur || 'Varlik'})</option>`).join('')
                         : '<option value="">Once varlik ekleyin</option>';
                 }
 

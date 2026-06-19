@@ -1633,6 +1633,130 @@ app.post('/api/:dukkan_adi/gelir-gider/kayit', apiYetkiGerekli(['admin', 'supera
     }
 });
 
+
+function manuelFinansKaydiKilitliMi(kayit) {
+    const baslik = String(kayit?.baslik || '').toLocaleLowerCase('tr-TR').trim();
+    return baslik.startsWith('siparis #') || baslik.startsWith('sipariş #') || baslik.startsWith('rezervasyon #');
+}
+
+async function finansKaydiPayloadHazirla(req, dukkanId) {
+    const kategoriRaw = String(req.body?.kategori || '').trim();
+    const baslik = String(req.body?.baslik || '').trim();
+    const tutar = Number(req.body?.tutar || 0);
+    const ogeId = req.body?.oge_id ? Number(req.body.oge_id) : null;
+
+    if (!baslik || tutar <= 0) {
+        const hata = new Error('Baslik ve pozitif tutar zorunlu.');
+        hata.statusCode = 400;
+        throw hata;
+    }
+
+    const kategoriNorm = kategoriRaw.toLocaleLowerCase('tr-TR');
+    const kategori = kategoriNorm === 'gelir' ? 'Gelir' : 'Gider';
+
+    let seciliOge = null;
+    if (ogeId) {
+        const { data: oge, error: ogeErr } = await supabase
+            .from('ogeler')
+            .select('id, ad')
+            .eq('id', ogeId)
+            .eq('dukkan_id', dukkanId)
+            .maybeSingle();
+        if (ogeErr) throw ogeErr;
+        seciliOge = oge || null;
+    }
+
+    return {
+        baslik,
+        kategori,
+        tutar,
+        oge_id: seciliOge?.id || null,
+        oge_adi: seciliOge?.ad || null
+    };
+}
+
+app.patch('/api/:dukkan_adi/gelir-gider/kayit/:id', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
+    try {
+        const { data: dukkan, error: dukkanErr } = await supabase
+            .from('dukkanlar')
+            .select('id')
+            .eq('slug', req.params.dukkan_adi)
+            .single();
+
+        if (dukkanErr || !dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi' });
+
+        const { data: mevcut, error: mevcutErr } = await supabase
+            .from('giderler')
+            .select('id, baslik')
+            .eq('id', req.params.id)
+            .eq('dukkan_id', dukkan.id)
+            .single();
+
+        if (mevcutErr || !mevcut) return res.status(404).json({ error: 'Finans kaydi bulunamadi.' });
+        if (manuelFinansKaydiKilitliMi(mevcut)) return res.status(403).json({ error: 'Siparis veya rezervasyon kaynakli kayitlar buradan duzenlenemez.' });
+
+        const payload = await finansKaydiPayloadHazirla(req, dukkan.id);
+
+        let sonuc = await supabase
+            .from('giderler')
+            .update(payload)
+            .eq('id', req.params.id)
+            .eq('dukkan_id', dukkan.id)
+            .select('id, baslik, kategori, tutar, created_at, oge_id, oge_adi')
+            .single();
+
+        if (sonuc.error && giderOgeKolonuEksikMi(sonuc.error)) {
+            delete payload.oge_id;
+            delete payload.oge_adi;
+            sonuc = await supabase
+                .from('giderler')
+                .update(payload)
+                .eq('id', req.params.id)
+                .eq('dukkan_id', dukkan.id)
+                .select('id, baslik, kategori, tutar, created_at')
+                .single();
+        }
+
+        if (sonuc.error) throw sonuc.error;
+        res.json({ status: 'success', kayit: sonuc.data });
+    } catch (err) {
+        res.status(err.statusCode || 500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/:dukkan_adi/gelir-gider/kayit/:id', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
+    try {
+        const { data: dukkan, error: dukkanErr } = await supabase
+            .from('dukkanlar')
+            .select('id')
+            .eq('slug', req.params.dukkan_adi)
+            .single();
+
+        if (dukkanErr || !dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi' });
+
+        const { data: mevcut, error: mevcutErr } = await supabase
+            .from('giderler')
+            .select('id, baslik')
+            .eq('id', req.params.id)
+            .eq('dukkan_id', dukkan.id)
+            .single();
+
+        if (mevcutErr || !mevcut) return res.status(404).json({ error: 'Finans kaydi bulunamadi.' });
+        if (manuelFinansKaydiKilitliMi(mevcut)) return res.status(403).json({ error: 'Siparis veya rezervasyon kaynakli kayitlar buradan silinemez.' });
+
+        const { error } = await supabase
+            .from('giderler')
+            .delete()
+            .eq('id', req.params.id)
+            .eq('dukkan_id', dukkan.id);
+
+        if (error) throw error;
+        res.json({ status: 'success' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.post('/api/:dukkan_adi/yeniOgeEkle', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
     const { ad, tur, detay, fiyat } = req.body;
     try {
