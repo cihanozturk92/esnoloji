@@ -102,6 +102,28 @@ function dosyaAdiTemizle(value) {
         .replace(/^-+|-+$/g, '') || 'dukkan';
 }
 
+function ilSlugHazirla(value) {
+    return String(value || '')
+        .trim()
+        .toLocaleLowerCase('tr-TR')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/ı/g, 'i')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+}
+
+function publicDukkanYolu(dukkan) {
+    const slug = encodeURIComponent(String(dukkan?.slug || '').trim());
+    if (!slug) return '/';
+    const ilSlug = ilSlugHazirla(dukkan?.il_slug || dukkan?.il);
+    return ilSlug ? '/' + encodeURIComponent(ilSlug) + '/' + slug : '/' + slug;
+}
+
+function publicDukkanUrl(req, dukkan) {
+    return siteBaseUrl(req) + publicDukkanYolu(dukkan);
+}
+
 function opsiyonelMetin(value) {
     const temiz = String(value || '').trim();
     return temiz || null;
@@ -178,6 +200,197 @@ function rezervasyonPersonelKolonuEksikMi(error) {
 function giderOgeKolonuEksikMi(error) {
     const mesaj = String(error?.message || '').toLocaleLowerCase('tr-TR');
     return error?.code === 'PGRST204' || mesaj.includes('oge_id') || mesaj.includes('oge_adi');
+}
+
+function telegramKolonuEksikMi(error) {
+    const mesaj = String(error?.message || '').toLocaleLowerCase('tr-TR');
+    return error?.code === 'PGRST204' ||
+        mesaj.includes('telegram_chat_id') ||
+        mesaj.includes('telegram_bildirim_aktif');
+}
+
+function telegramTarihYaz(value) {
+    if (!value) return '-';
+    try {
+        const str = String(value);
+        if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+            return new Date(str + 'T00:00:00').toLocaleDateString('tr-TR');
+        }
+        const tarih = value instanceof Date ? value : new Date(value);
+        if (Number.isNaN(tarih.getTime())) return str;
+        return tarih.toLocaleDateString('tr-TR');
+    } catch {
+        return String(value);
+    }
+}
+
+function telegramParaYaz(value) {
+    return Number(value || 0).toLocaleString('tr-TR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }) + ' TL';
+}
+
+function telegramMesajMetni(type, payload = {}) {
+    if (type === 'rezervasyon') {
+        const baslangic = payload.baslangic_tarihi || payload.tarih;
+        const bitis = payload.bitis_tarihi && payload.bitis_tarihi !== baslangic ? payload.bitis_tarihi : null;
+        const tarihMetni = bitis
+            ? telegramTarihYaz(baslangic) + ' - ' + telegramTarihYaz(bitis)
+            : telegramTarihYaz(baslangic);
+        const saatMetni = payload.saat || payload.baslangic_saati || payload.saat_araligi || '-';
+        const detay = payload.notlar || payload.detay || '-';
+        return [
+            '🔔 Yeni Rezervasyon',
+            '',
+            'İşletme: ' + (payload.isletme || '-'),
+            'Müşteri: ' + (payload.musteri_ad || payload.musteri || '-'),
+            'Tarih: ' + tarihMetni,
+            'Saat: ' + saatMetni,
+            'Detay: ' + detay
+        ].join('\n');
+    }
+
+    if (type === 'gunluk-ciro') {
+        return [
+            '📊 Günlük Ciro Özeti',
+            '',
+            'İşletme: ' + (payload.isletme || '-'),
+            'Tarih: ' + (payload.tarih || telegramTarihYaz(new Date())),
+            'Toplam Ciro: Bugün ' + telegramParaYaz(payload.gunlukCiro) + ' | Bu ay ' + telegramParaYaz(payload.aylikCiro),
+            'En Çok Satılan Ürün: ' + (payload.enCokSatilanUrun || '-')
+        ].join('\n');
+    }
+
+    return '';
+}
+
+async function telegramAyarlariGetir(dukkanId) {
+    const { data, error } = await supabase
+        .from('dukkanlar')
+        .select('id, ad, tur, telegram_chat_id, telegram_bildirim_aktif')
+        .eq('id', dukkanId)
+        .maybeSingle();
+
+    if (error) {
+        if (telegramKolonuEksikMi(error)) {
+            console.warn('Telegram kolonlari eksik gorunuyor. Supabase SQL eklemesini kontrol edin.');
+            return null;
+        }
+        throw error;
+    }
+
+    return data || null;
+}
+
+async function telegramAyarlariPublicGetir(dukkanId) {
+    const ayarlar = await telegramAyarlariGetir(dukkanId);
+    return {
+        telegram_chat_id: ayarlar?.telegram_chat_id || '',
+        telegram_bildirim_aktif: Boolean(ayarlar?.telegram_bildirim_aktif)
+    };
+}
+
+async function sendTelegramNotification(dukkanId, type, payload = {}) {
+    try {
+        const ayarlar = await telegramAyarlariGetir(dukkanId);
+        if (!ayarlar) return { sent: false, skipped: true, reason: 'telegram_columns_missing' };
+        if (!ayarlar.telegram_bildirim_aktif) return { sent: false, skipped: true, reason: 'telegram_inactive' };
+
+        const token = String(process.env.TELEGRAM_BOT_TOKEN || '').trim();
+        const chatId = String(ayarlar.telegram_chat_id || '').trim();
+        if (!token) return { sent: false, skipped: true, reason: 'telegram_bot_token_missing' };
+        if (!chatId) return { sent: false, skipped: true, reason: 'telegram_chat_id_missing' };
+
+        const text = telegramMesajMetni(type, {
+            ...payload,
+            isletme: payload.isletme || ayarlar.ad
+        });
+        if (!text) return { sent: false, skipped: true, reason: 'unknown_notification_type' };
+
+        const response = await fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: chatId, text })
+        });
+
+        if (!response.ok) {
+            const body = await response.text().catch(() => '');
+            console.error('Telegram bildirimi gonderilemedi:', response.status, body.slice(0, 300));
+            return { sent: false, error: 'telegram_http_' + response.status };
+        }
+
+        return { sent: true };
+    } catch (err) {
+        console.error('Telegram bildirimi sirasinda hata:', err.message || err);
+        return { sent: false, error: err.message || String(err) };
+    }
+}
+
+async function sendRestaurantDailyRevenueSummary(dukkanId, tarih = new Date()) {
+    try {
+        const dukkan = await dukkanBilgisiBulById(dukkanId);
+        if (!dukkan) return { sent: false, skipped: true, reason: 'dukkan_not_found' };
+        if (!restoranTuruMu(dukkan.tur)) return { sent: false, skipped: true, reason: 'not_restaurant' };
+
+        const now = tarih instanceof Date ? tarih : new Date(tarih);
+        const bugunBaslangic = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const yarinBaslangic = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+        const ayBaslangic = new Date(now.getFullYear(), now.getMonth(), 1);
+        const gelecekAyBaslangic = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+        const { data: bugunSiparisleri, error: bugunErr } = await supabase
+            .from('siparisler')
+            .select('id, toplam_tutar')
+            .eq('dukkan_id', dukkan.id)
+            .gte('created_at', bugunBaslangic.toISOString())
+            .lt('created_at', yarinBaslangic.toISOString());
+        if (bugunErr) throw bugunErr;
+
+        const { data: aySiparisleri, error: ayErr } = await supabase
+            .from('siparisler')
+            .select('toplam_tutar')
+            .eq('dukkan_id', dukkan.id)
+            .gte('created_at', ayBaslangic.toISOString())
+            .lt('created_at', gelecekAyBaslangic.toISOString());
+        if (ayErr) throw ayErr;
+
+        const toplam = (liste) => (liste || []).reduce((sum, item) => sum + Number(item.toplam_tutar || 0), 0);
+        let enCokSatilanUrun = '-';
+        const siparisIdleri = (bugunSiparisleri || []).map(siparis => siparis.id).filter(Boolean);
+
+        if (siparisIdleri.length) {
+            const { data: detaylar, error: detayErr } = await supabase
+                .from('siparis_detaylari')
+                .select('urun_id, adet, urunler(ad)')
+                .in('siparis_id', siparisIdleri);
+
+            if (detayErr) {
+                console.warn('Telegram ciro ozeti icin en cok satilan urun alinamadi:', detayErr.message || detayErr);
+            } else {
+                const urunMap = new Map();
+                for (const detay of (detaylar || [])) {
+                    const id = detay.urun_id || detay.urunler?.ad || 'urun';
+                    const onceki = urunMap.get(id) || { ad: detay.urunler?.ad || 'Urun', adet: 0 };
+                    onceki.adet += Number(detay.adet || 0);
+                    urunMap.set(id, onceki);
+                }
+                const sirali = Array.from(urunMap.values()).sort((a, b) => b.adet - a.adet);
+                if (sirali[0]) enCokSatilanUrun = sirali[0].ad + ' (' + sirali[0].adet + ' adet)';
+            }
+        }
+
+        return await sendTelegramNotification(dukkan.id, 'gunluk-ciro', {
+            isletme: dukkan.ad,
+            tarih: telegramTarihYaz(now),
+            gunlukCiro: toplam(bugunSiparisleri),
+            aylikCiro: toplam(aySiparisleri),
+            enCokSatilanUrun
+        });
+    } catch (err) {
+        console.error('Restoran gunluk ciro Telegram ozeti hazirlanamadi:', err.message || err);
+        return { sent: false, error: err.message || String(err) };
+    }
 }
 
 const PASSWORD_HASH_PREFIX = 'scrypt';
@@ -352,7 +565,7 @@ function apiYetkiGerekli(roller, ayarlar = {}) {
 
 app.use(express.static(__dirname));
 
-const DUKKAN_KOLONLARI = 'id, slug, ad, tur, telefon, adres, aciklama, logo_url, arka_plan_url';
+const DUKKAN_KOLONLARI = 'id, slug, ad, tur, telefon, adres, aciklama, logo_url, arka_plan_url, il, il_slug';
 
 async function dukkanBilgisiBulBySlug(slug) {
     const { data, error } = await supabase
@@ -377,10 +590,28 @@ async function dukkanBilgisiBulBySlug(slug) {
             adres: null,
             aciklama: null,
             logo_url: null,
-            arka_plan_url: null
+            arka_plan_url: null,
+            il: null,
+            il_slug: null
         });
     }
 
+    if (error) throw error;
+    return null;
+}
+
+async function dukkanBilgisiBulByIlVeSlug(ilSlug, slug) {
+    const temizIlSlug = ilSlugHazirla(ilSlug);
+    if (!temizIlSlug || !slug) return null;
+
+    const { data, error } = await supabase
+        .from('dukkanlar')
+        .select(DUKKAN_KOLONLARI)
+        .eq('slug', slug)
+        .eq('il_slug', temizIlSlug)
+        .maybeSingle();
+
+    if (!error && data) return dukkanGorselleriniNormalle(data);
     if (error) throw error;
     return null;
 }
@@ -410,7 +641,9 @@ async function dukkanBilgisiBulById(id) {
             adres: null,
             aciklama: null,
             logo_url: null,
-            arka_plan_url: null
+            arka_plan_url: null,
+            il: null,
+            il_slug: null
         });
     }
 
@@ -428,6 +661,13 @@ function htmlCacheKapat(res) {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
+}
+
+function publicDukkanDosyasi(dukkan) {
+    if (restoranTuruMu(dukkan.tur)) return path.join(__dirname, 'public', 'menu.html');
+    if (saatliRandevuTuruMu(dukkan.tur)) return path.join(__dirname, 'public', 'randevu.html');
+    if (profesyonelTuruMu(dukkan.tur)) return path.join(__dirname, 'public', 'profesyonel.html');
+    return path.join(__dirname, 'public', 'vitrin.html');
 }
 
 app.get('/super-admin', yetkiGerekli(['superadmin', 'sÃ¼peradmin']), (req, res) => {
@@ -519,7 +759,7 @@ app.post('/api/logout', (req, res) => {
 });
 
 app.post('/api/dukkan-ekle', apiYetkiGerekli(['superadmin', 'sÃ¼peradmin']), async (req, res) => {
-    const { ad, slug, tur, adminUser, adminPass, telefon, adres, aciklama } = req.body;
+    const { ad, slug, tur, adminUser, adminPass, telefon, adres, aciklama, il, il_slug } = req.body;
 
     try {
         const sifreHatasi = sifrePolitikasiHatasi(adminPass, adminUser);
@@ -529,6 +769,8 @@ app.post('/api/dukkan-ekle', apiYetkiGerekli(['superadmin', 'sÃ¼peradmin']), a
         if (existing) return res.status(400).json({ error: 'Bu URL zaten kullanimda!' });
 
         const yeniDukkan = { ad, slug, tur };
+        if (opsiyonelMetin(il)) yeniDukkan.il = opsiyonelMetin(il);
+        if (opsiyonelMetin(il_slug) || opsiyonelMetin(il)) yeniDukkan.il_slug = ilSlugHazirla(il_slug || il);
         if (opsiyonelMetin(telefon)) yeniDukkan.telefon = opsiyonelMetin(telefon);
         if (opsiyonelMetin(adres)) yeniDukkan.adres = opsiyonelMetin(adres);
         if (opsiyonelMetin(aciklama)) yeniDukkan.aciklama = opsiyonelMetin(aciklama);
@@ -617,7 +859,8 @@ app.get('/api/superadmin/personeller', apiYetkiGerekli(['superadmin', 'süperadm
 app.get('/api/superadmin/dukkan-qr/:slug', apiYetkiGerekli(['superadmin', 'süperadmin']), async (req, res) => {
     try {
         const slug = String(req.params.slug || '').trim();
-        const publicUrl = siteBaseUrl(req) + '/' + encodeURIComponent(slug);
+        const dukkan = await dukkanBilgisiBulBySlug(slug);
+        const publicUrl = dukkan ? publicDukkanUrl(req, dukkan) : siteBaseUrl(req) + '/' + encodeURIComponent(slug);
         const png = await QRCode.toBuffer(publicUrl, { type: 'png', width: 640, margin: 2 });
         res.setHeader('Content-Type', 'image/png');
         res.setHeader('Cache-Control', 'no-store');
@@ -631,13 +874,13 @@ app.get('/api/superadmin/dukkan-qr-listesi', apiYetkiGerekli(['superadmin', 'sü
     try {
         const { data, error } = await supabase
             .from('dukkanlar')
-            .select('id, ad, slug, tur')
+            .select('id, ad, slug, tur, il, il_slug')
             .order('id', { ascending: false });
         if (error) throw error;
 
         res.json((data || []).map(dukkan => {
             const slug = dukkan.slug || String(dukkan.id);
-            const publicUrl = siteBaseUrl(req) + '/' + encodeURIComponent(slug);
+            const publicUrl = publicDukkanUrl(req, dukkan);
             const qrUrl = '/api/superadmin/dukkan-qr/' + encodeURIComponent(slug);
             return {
                 ...dukkan,
@@ -659,7 +902,9 @@ app.put('/api/superadmin/dukkan/:id', apiYetkiGerekli(['superadmin', 'süperadmi
             tur: String(req.body?.tur || '').trim(),
             telefon: opsiyonelMetin(req.body?.telefon),
             adres: opsiyonelMetin(req.body?.adres),
-            aciklama: opsiyonelMetin(req.body?.aciklama)
+            aciklama: opsiyonelMetin(req.body?.aciklama),
+            il: opsiyonelMetin(req.body?.il),
+            il_slug: opsiyonelMetin(req.body?.il_slug) || ilSlugHazirla(req.body?.il)
         };
 
         if (!payload.ad || !payload.slug || !payload.tur) {
@@ -972,13 +1217,77 @@ app.get('/api/:dukkan_adi/rezervasyonlar/:ogeId', async (req, res) => {
             .select('id, oge_id, baslangic_tarihi, bitis_tarihi, durum')
             .eq('dukkan_id', dukkan.id)
             .eq('oge_id', Number(req.params.ogeId))
-            .neq('durum', 'iptal')
+            .eq('durum', 'aktif')
             .order('baslangic_tarihi', { ascending: true });
 
         if (error) throw error;
         res.json(data || []);
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/:dukkan_adi/rezervasyon-talep', async (req, res) => {
+    const { oge_id, musteri_ad, musteri_telefon, baslangic_tarihi, bitis_tarihi, notlar } = req.body || {};
+
+    try {
+        const dukkan = await dukkanBilgisiBulBySlug(req.params.dukkan_adi);
+        if (!dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi.' });
+        if (!oge_id || !musteri_ad || !baslangic_tarihi || !bitis_tarihi) {
+            return res.status(400).json({ error: 'Varlik, ad soyad ve tarih bilgileri zorunlu.' });
+        }
+
+        const { data: oge, error: ogeErr } = await supabase
+            .from('ogeler')
+            .select('id')
+            .eq('id', Number(oge_id))
+            .eq('dukkan_id', dukkan.id)
+            .maybeSingle();
+        if (ogeErr) throw ogeErr;
+        if (!oge) return res.status(404).json({ error: 'Varlik bulunamadi.' });
+
+        const { data: cakisan, error: cakismaErr } = await supabase
+            .from('rezervasyonlar')
+            .select('id')
+            .eq('dukkan_id', dukkan.id)
+            .eq('oge_id', Number(oge_id))
+            .eq('durum', 'aktif')
+            .lte('baslangic_tarihi', bitis_tarihi)
+            .gte('bitis_tarihi', baslangic_tarihi)
+            .limit(1);
+        if (cakismaErr) throw cakismaErr;
+        if ((cakisan || []).length) return res.status(409).json({ error: 'Secilen tarihlerde bu varlik dolu gorunuyor.' });
+
+        const payload = {
+            dukkan_id: dukkan.id,
+            oge_id: Number(oge_id),
+            musteri_ad: String(musteri_ad || '').trim(),
+            musteri_telefon: musteri_telefon || null,
+            baslangic_tarihi,
+            bitis_tarihi,
+            toplam_tutar: 0,
+            durum: 'beklemede',
+            notlar: notlar || null
+        };
+
+        const { data, error } = await supabase
+            .from('rezervasyonlar')
+            .insert([payload])
+            .select()
+            .single();
+        if (error) throw error;
+
+        await sendTelegramNotification(dukkan.id, 'rezervasyon', {
+            isletme: dukkan.ad,
+            musteri_ad: payload.musteri_ad,
+            baslangic_tarihi: payload.baslangic_tarihi,
+            bitis_tarihi: payload.bitis_tarihi,
+            notlar: payload.notlar
+        });
+
+        res.json({ status: 'success', rezervasyon: data });
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'Rezervasyon talebi alinamadi.' });
     }
 });
 
@@ -1018,7 +1327,9 @@ app.put('/api/:dukkan_adi/dukkan-bilgileri', apiYetkiGerekli(['admin', 'superadm
             adres: opsiyonelMetin(req.body?.adres),
             aciklama: opsiyonelMetin(req.body?.aciklama),
             logo_url: null,
-            arka_plan_url: null
+            arka_plan_url: null,
+            il: null,
+            il_slug: null
         };
 
         if (!payload.ad) return res.status(400).json({ error: 'Dukkan adi zorunlu.' });
@@ -1160,7 +1471,7 @@ app.post('/api/:dukkan_adi/rezervasyon-ekle', apiYetkiGerekli(['admin', 'superad
 
         if (error) throw error;
 
-        if (Number(toplam_tutar || 0) > 0 && String(durum || 'aktif').toLocaleLowerCase('tr-TR').trim() !== 'iptal') {
+        if (Number(toplam_tutar || 0) > 0 && String(durum || 'aktif').toLocaleLowerCase('tr-TR').trim() === 'aktif') {
             const { data: oge } = await supabase
                 .from('ogeler')
                 .select('id, ad')
@@ -1184,6 +1495,14 @@ app.post('/api/:dukkan_adi/rezervasyon-ekle', apiYetkiGerekli(['admin', 'superad
 
             if (gelirSonuc.error) throw gelirSonuc.error;
         }
+
+        await sendTelegramNotification(dukkan.id, 'rezervasyon', {
+            isletme: dukkan.ad,
+            musteri_ad,
+            baslangic_tarihi,
+            bitis_tarihi,
+            notlar
+        });
 
         res.json({ status: 'success', rezervasyon: data });
     } catch (err) {
@@ -1247,7 +1566,7 @@ async function rezervasyonGelirKaydiniYenile(dukkanId, rezervasyon, ogeId) {
     if (gelirTemizleErr) throw gelirTemizleErr;
 
     if (Number(rezervasyon.toplam_tutar || 0) <= 0) return;
-    if (String(rezervasyon.durum || 'aktif').toLocaleLowerCase('tr-TR').trim() === 'iptal') return;
+    if (String(rezervasyon.durum || 'aktif').toLocaleLowerCase('tr-TR').trim() !== 'aktif') return;
 
     const { data: oge } = await supabase
         .from('ogeler')
@@ -1274,6 +1593,34 @@ async function rezervasyonGelirKaydiniYenile(dukkanId, rezervasyon, ogeId) {
 
     if (gelirSonuc.error) throw gelirSonuc.error;
 }
+
+app.patch('/api/:dukkan_adi/rezervasyon/:id/durum', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
+    try {
+        const dukkan = await dukkanBilgisiBulBySlug(req.params.dukkan_adi);
+        if (!dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi.' });
+
+        const durum = String(req.body?.durum || '').toLocaleLowerCase('tr-TR').trim();
+        if (!['aktif', 'beklemede', 'iptal'].includes(durum)) {
+            return res.status(400).json({ error: 'Gecersiz rezervasyon durumu.' });
+        }
+
+        const { data, error } = await supabase
+            .from('rezervasyonlar')
+            .update({ durum })
+            .eq('id', req.params.id)
+            .eq('dukkan_id', dukkan.id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        if (!data) return res.status(404).json({ error: 'Rezervasyon bulunamadi.' });
+
+        await rezervasyonGelirKaydiniYenile(dukkan.id, data, data.oge_id);
+        res.json({ status: 'success', rezervasyon: data });
+    } catch (err) {
+        res.status(500).json({ error: err.message || 'Rezervasyon durumu guncellenemedi.' });
+    }
+});
 
 app.patch('/api/:dukkan_adi/rezervasyon/:id', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
     const { oge_id, musteri_ad, musteri_telefon, baslangic_tarihi, bitis_tarihi, toplam_tutar, personel_id, durum, notlar } = req.body || {};
@@ -1405,6 +1752,26 @@ app.get('/:dukkan_adi/garson', yetkiGerekli(['garson', 'admin', 'superadmin', 's
     }
 });
 
+app.get('/:il_slug/:dukkan_adi', async (req, res, next) => {
+    const ilSlug = req.params.il_slug;
+    const slug = req.params.dukkan_adi;
+    if (!ilSlug || !slug || ilSlug === 'api' || ilSlug === 'super-admin' || ilSlug === 'superadmin' || slug === 'admin' || slug === 'garson') return next();
+
+    try {
+        const dukkan = await dukkanBilgisiBulByIlVeSlug(ilSlug, slug) || await dukkanBilgisiBulBySlug(slug);
+        if (!dukkan) {
+            htmlCacheKapat(res);
+            return res.status(404).sendFile(path.join(__dirname, 'index.html'));
+        }
+
+        htmlCacheKapat(res);
+        res.sendFile(publicDukkanDosyasi(dukkan));
+    } catch (err) {
+        htmlCacheKapat(res);
+        res.status(500).sendFile(path.join(__dirname, 'index.html'));
+    }
+});
+
 app.get('/:dukkan_adi', async (req, res, next) => {
     const slug = req.params.dukkan_adi;
     if (!slug || slug === 'api' || slug === 'super-admin' || slug === 'superadmin') return next();
@@ -1415,17 +1782,8 @@ app.get('/:dukkan_adi', async (req, res, next) => {
             htmlCacheKapat(res);
             return res.status(404).sendFile(path.join(__dirname, 'index.html'));
         }
-
-        const hedefDosya = restoranTuruMu(dukkan.tur)
-            ? path.join(__dirname, 'public', 'menu.html')
-            : (saatliRandevuTuruMu(dukkan.tur)
-                ? path.join(__dirname, 'public', 'randevu.html')
-                : (profesyonelTuruMu(dukkan.tur)
-                    ? path.join(__dirname, 'public', 'profesyonel.html')
-                    : path.join(__dirname, 'public', 'vitrin.html')));
-
         htmlCacheKapat(res);
-        res.sendFile(hedefDosya);
+        res.sendFile(publicDukkanDosyasi(dukkan));
     } catch (err) {
         htmlCacheKapat(res);
         res.status(500).sendFile(path.join(__dirname, 'index.html'));
@@ -1677,6 +2035,27 @@ app.get('/api/:dukkan_adi/ozet', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼p
     }
 });
 
+
+
+app.post('/api/:dukkan_adi/telegram/gunluk-ciro', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin', 'süperadmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
+    try {
+        const dukkan = await dukkanBilgisiBulBySlug(req.params.dukkan_adi);
+        if (!dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi.' });
+        if (!restoranTuruMu(dukkan.tur)) {
+            return res.status(400).json({ error: 'Gunluk ciro Telegram ozeti sadece restoran isletmeleri icin kullanilir.' });
+        }
+
+        const sonuc = await sendRestaurantDailyRevenueSummary(dukkan.id);
+        res.json({
+            status: sonuc.sent ? 'success' : 'skipped',
+            sent: Boolean(sonuc.sent),
+            reason: sonuc.reason || sonuc.error || null
+        });
+    } catch (err) {
+        console.error('Telegram gunluk ciro endpoint hatasi:', err);
+        res.status(500).json({ error: err.message || 'Telegram ozeti gonderilemedi.' });
+    }
+});
 app.get('/api/:dukkan_adi/gelir-gider', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
     try {
         const { data: dukkan, error: dukkanErr } = await supabase
@@ -1751,7 +2130,7 @@ app.get('/api/:dukkan_adi/gelir-gider', apiYetkiGerekli(['admin', 'superadmin', 
                 if (rezervasyonErr) throw rezervasyonErr;
 
                 gelirler = (rezervasyonlar || [])
-                    .filter((rezervasyon) => durumNorm(rezervasyon.durum) !== 'iptal' && Number(rezervasyon.toplam_tutar || 0) > 0)
+                    .filter((rezervasyon) => durumNorm(rezervasyon.durum) === 'aktif' && Number(rezervasyon.toplam_tutar || 0) > 0)
                     .map((rezervasyon) => ({
                         id: 'rezervasyon-' + rezervasyon.id,
                         baslik: rezervasyon.musteri_ad ? rezervasyon.musteri_ad + ' rezervasyonu' : 'Rezervasyon #' + rezervasyon.id,
@@ -2335,7 +2714,7 @@ app.get('/api/:dukkan_adi/operator-is-raporu', apiYetkiGerekli(['admin', 'supera
         const toparla = new Map();
         for (const rezervasyon of rezervasyonlar || []) {
             const durum = String(rezervasyon.durum || '').toLocaleLowerCase('tr-TR').trim();
-            if (durum === 'iptal' || !rezervasyon.personel_id) continue;
+            if (durum !== 'aktif' || !rezervasyon.personel_id) continue;
             const oge = ogeMap.get(Number(rezervasyon.oge_id));
             const anahtar = `${rezervasyon.personel_id}::${rezervasyon.oge_id || 'genel'}`;
             const mevcut = toparla.get(anahtar) || {

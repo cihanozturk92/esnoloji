@@ -122,6 +122,8 @@
         </button>
     </div>
 
+    <div id="toastAlani" class="fixed bottom-5 right-5 z-[60] space-y-2"></div>
+
     <div id="takvimModal" class="hidden fixed inset-0 z-50 bg-slate-950/70 p-4 backdrop-blur-sm items-center justify-center">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
             <div class="p-5 border-b border-slate-100 flex items-center justify-between">
@@ -141,12 +143,71 @@
                     <div>Pzt</div><div>Sal</div><div>Car</div><div>Per</div><div>Cum</div><div>Cmt</div><div>Paz</div>
                 </div>
                 <div id="takvimGrid" class="grid grid-cols-7 gap-2"></div>
+
+                <form id="rezTalepForm" onsubmit="rezervasyonTalebiGonder(event)" class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div class="text-sm font-black text-slate-900">Rezervasyon talebi gönder</div>
+                    <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <input id="talepBaslangic" type="date" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
+                        <input id="talepBitis" type="date" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
+                        <input id="talepAd" type="text" placeholder="Ad soyad" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
+                        <input id="talepTelefon" type="text" placeholder="Telefon" class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
+                    </div>
+                    <textarea id="talepNot" rows="2" placeholder="Notunuz" class="mt-3 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700"></textarea>
+                    <button type="submit" class="mt-3 w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-500">Talep Gönder</button>
+                    <p class="mt-2 text-xs text-slate-500">Talebiniz işletme tarafından onaylanınca takvimde dolu görünür.</p>
+                </form>
             </div>
         </div>
     </div>
 
     <script>
-        const slug = window.location.pathname.split('/').filter(Boolean)[0];
+        function aktifDukkanSlug() {
+            const parcalar = window.location.pathname.split('/').filter(Boolean);
+            if (parcalar.length >= 2 && !['admin', 'garson', 'super-admin', 'superadmin'].includes(parcalar[1])) {
+                return parcalar[1];
+            }
+            return parcalar[0] || '';
+        }
+
+        const slug = aktifDukkanSlug();
+
+        function seoBilgileriniGuncelle(dukkan) {
+            const ad = dukkan?.ad || dukkan?.adi || dukkan?.slug || 'İşletme';
+            const sektor = dukkan?.tur || dukkan?.kategori || 'İşletme';
+            const il = dukkan?.il || '';
+            const ilSektor = [il, sektor].filter(Boolean).join(' ');
+            const baslik = ad + ' | ' + (ilSektor || sektor) + ' | Esnoloji';
+            const aciklama = dukkan?.aciklama || (ad + ', ' + (il || 'bulunduğu') + ' bölgesinde ' + sektor + ' hizmeti vermektedir. Esnoloji üzerinden iletişim, menü ve hizmet bilgilerine ulaşabilirsiniz.');
+            const canonicalUrl = 'https://esnoloji.tr/' + encodeURIComponent(dukkan?.slug || slug);
+
+            document.title = baslik;
+            metaEtiketiYaz('meta[name="description"]', { name: 'description', content: aciklama });
+            canonicalYaz(canonicalUrl);
+            metaEtiketiYaz('meta[property="og:title"]', { property: 'og:title', content: baslik });
+            metaEtiketiYaz('meta[property="og:description"]', { property: 'og:description', content: aciklama });
+            metaEtiketiYaz('meta[property="og:url"]', { property: 'og:url', content: canonicalUrl });
+            metaEtiketiYaz('meta[property="og:type"]', { property: 'og:type', content: 'website' });
+        }
+
+        function metaEtiketiYaz(selector, attrs) {
+            let el = document.head.querySelector(selector);
+            if (!el) {
+                el = document.createElement('meta');
+                document.head.appendChild(el);
+            }
+            Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
+        }
+
+        function canonicalYaz(url) {
+            let el = document.head.querySelector('link[rel="canonical"]');
+            if (!el) {
+                el = document.createElement('link');
+                el.setAttribute('rel', 'canonical');
+                document.head.appendChild(el);
+            }
+            el.setAttribute('href', url);
+        }
+
         let seciliOge = null;
         let rezervasyonlar = [];
         let gorunenAy = new Date();
@@ -155,6 +216,22 @@
             personelKartiniYukle();
             vitrinYukle();
         });
+
+        function bildirimGoster(mesaj, tur = 'bilgi') {
+            const alan = document.getElementById('toastAlani');
+            if (!alan) return;
+            const renk = tur === 'hata' ? 'border-red-200 bg-red-50 text-red-700' : (tur === 'basari' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-white text-slate-700');
+            const toast = document.createElement('div');
+            toast.className = 'min-w-[260px] max-w-sm rounded-2xl border px-4 py-3 text-sm font-bold shadow-xl ' + renk;
+            toast.textContent = mesaj;
+            alan.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(8px)';
+                toast.style.transition = 'all 220ms ease';
+                setTimeout(() => toast.remove(), 260);
+            }, 3200);
+        }
 
         function fiyatYaz(deger) {
             const fiyat = Number(deger || 0);
@@ -299,7 +376,7 @@
                 document.getElementById('bilgiKartiAdres').textContent = dukkan.adres || '-';
             }
             panelKisayollariniYukle(dukkan.slug || slug, dukkan.tur || '');
-            document.title = `${dukkan.ad || 'Vitrin'} | Müsaitlik`;
+            seoBilgileriniGuncelle(dukkan);
 
             const alan = document.getElementById('ogeListesi');
             if (!ogeler.length) {
@@ -333,6 +410,7 @@
             document.getElementById('takvimModal').classList.add('flex');
             const res = await fetch(`/api/${slug}/rezervasyonlar/${oge.id}`);
             rezervasyonlar = await res.json();
+            talepFormunuHazirla();
             takvimCiz();
         }
 
@@ -347,12 +425,68 @@
         }
 
         function tarihKey(date) {
-            return date.toISOString().slice(0, 10);
+            const yil = date.getFullYear();
+            const ay = String(date.getMonth() + 1).padStart(2, '0');
+            const gun = String(date.getDate()).padStart(2, '0');
+            return `${yil}-${ay}-${gun}`;
         }
 
         function doluMu(date) {
             const key = tarihKey(date);
-            return rezervasyonlar.some(r => key >= r.baslangic_tarihi && key <= r.bitis_tarihi);
+            return rezervasyonlar.some(r => {
+                const aktif = String(r.durum || 'aktif').toLocaleLowerCase('tr-TR') === 'aktif';
+                return aktif && key >= r.baslangic_tarihi && key <= r.bitis_tarihi;
+            });
+        }
+
+        function talepFormunuHazirla() {
+            const bugun = tarihKey(new Date());
+            ['talepBaslangic', 'talepBitis'].forEach((id) => {
+                const alan = document.getElementById(id);
+                if (alan) {
+                    alan.min = bugun;
+                    alan.value = '';
+                }
+            });
+            ['talepAd', 'talepTelefon', 'talepNot'].forEach((id) => {
+                const alan = document.getElementById(id);
+                if (alan) alan.value = '';
+            });
+        }
+
+        async function rezervasyonTalebiGonder(event) {
+            event.preventDefault();
+            if (!seciliOge) return bildirimGoster('Once bir varlik secin.', 'hata');
+
+            const payload = {
+                oge_id: seciliOge.id,
+                baslangic_tarihi: document.getElementById('talepBaslangic').value,
+                bitis_tarihi: document.getElementById('talepBitis').value,
+                musteri_ad: document.getElementById('talepAd').value.trim(),
+                musteri_telefon: document.getElementById('talepTelefon').value.trim(),
+                notlar: document.getElementById('talepNot').value.trim()
+            };
+
+            if (!payload.baslangic_tarihi || !payload.bitis_tarihi || !payload.musteri_ad) {
+                return bildirimGoster('Tarih ve ad soyad zorunlu.', 'hata');
+            }
+            if (payload.bitis_tarihi < payload.baslangic_tarihi) {
+                return bildirimGoster('Bitis tarihi baslangictan once olamaz.', 'hata');
+            }
+
+            try {
+                const res = await fetch(`/api/${slug}/rezervasyon-talep`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Talep gonderilemedi.');
+                bildirimGoster('Talebiniz alindi. Isletme onayladiginda takvim dolu gorunecek.', 'basari');
+                talepFormunuHazirla();
+            } catch (err) {
+                bildirimGoster(err.message || 'Talep gonderilemedi.', 'hata');
+            }
         }
 
         function takvimCiz() {

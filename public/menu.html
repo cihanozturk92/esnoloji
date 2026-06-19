@@ -107,7 +107,53 @@
 </div>
 
     <script>
-        const slug = window.location.pathname.split('/').filter(Boolean)[0];
+        function aktifDukkanSlug() {
+            const parcalar = window.location.pathname.split('/').filter(Boolean);
+            if (parcalar.length >= 2 && !['admin', 'garson', 'super-admin', 'superadmin'].includes(parcalar[1])) {
+                return parcalar[1];
+            }
+            return parcalar[0] || '';
+        }
+
+        const slug = aktifDukkanSlug();
+
+        function seoBilgileriniGuncelle(dukkan) {
+            const ad = dukkan?.ad || dukkan?.adi || dukkan?.slug || 'İşletme';
+            const sektor = dukkan?.tur || dukkan?.kategori || 'İşletme';
+            const il = dukkan?.il || '';
+            const ilSektor = [il, sektor].filter(Boolean).join(' ');
+            const baslik = ad + ' | ' + (ilSektor || sektor) + ' | Esnoloji';
+            const aciklama = dukkan?.aciklama || (ad + ', ' + (il || 'bulunduğu') + ' bölgesinde ' + sektor + ' hizmeti vermektedir. Esnoloji üzerinden iletişim, menü ve hizmet bilgilerine ulaşabilirsiniz.');
+            const canonicalUrl = 'https://esnoloji.tr/' + encodeURIComponent(dukkan?.slug || slug);
+
+            document.title = baslik;
+            metaEtiketiYaz('meta[name="description"]', { name: 'description', content: aciklama });
+            canonicalYaz(canonicalUrl);
+            metaEtiketiYaz('meta[property="og:title"]', { property: 'og:title', content: baslik });
+            metaEtiketiYaz('meta[property="og:description"]', { property: 'og:description', content: aciklama });
+            metaEtiketiYaz('meta[property="og:url"]', { property: 'og:url', content: canonicalUrl });
+            metaEtiketiYaz('meta[property="og:type"]', { property: 'og:type', content: 'website' });
+        }
+
+        function metaEtiketiYaz(selector, attrs) {
+            let el = document.head.querySelector(selector);
+            if (!el) {
+                el = document.createElement('meta');
+                document.head.appendChild(el);
+            }
+            Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
+        }
+
+        function canonicalYaz(url) {
+            let el = document.head.querySelector('link[rel="canonical"]');
+            if (!el) {
+                el = document.createElement('link');
+                el.setAttribute('rel', 'canonical');
+                document.head.appendChild(el);
+            }
+            el.setAttribute('href', url);
+        }
+
 
         let tumUrunler = [];
         let aktifKategori = 'Tümü';
@@ -201,7 +247,7 @@
                     ${dukkan.telefon ? `<a href="tel:${String(dukkan.telefon).replace(/[^0-9+]/g, '')}" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/15 transition"><i class="fa-solid fa-phone"></i> ${guvenliMetin(dukkan.telefon)}</a>` : ''}
                     ${dukkan.adres ? `<span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white/90"><i class="fa-solid fa-location-dot"></i> ${guvenliMetin(dukkan.adres)}</span>` : ''}
                 `;
-                document.title = `${dukkanIsmi} | Dijital Menü`;
+                seoBilgileriniGuncelle(dukkan);
 
                 if (dukkanSektoru.toLocaleLowerCase('tr-TR').includes('kafe') || dukkanSektoru.toLocaleLowerCase('tr-TR').includes('kahve')) {
                     if (icon) icon.className = 'fa-solid fa-mug-hot text-2xl';

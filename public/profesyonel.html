@@ -98,6 +98,8 @@
         </section>
     </main>
 
+    <div id="toastAlani" class="fixed bottom-5 right-5 z-[60] space-y-2"></div>
+
     <div id="panelKisayollari" class="fixed bottom-4 left-4 right-4 z-50 mx-auto hidden max-w-md gap-2">
         <button id="adminPaneliButon" class="hidden flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-black text-slate-950 shadow-lg">
             <i class="fa-solid fa-gear mr-1"></i> Yonetim Paneli
@@ -105,7 +107,53 @@
     </div>
 
     <script>
-        const slug = window.location.pathname.split('/').filter(Boolean)[0];
+        function aktifDukkanSlug() {
+            const parcalar = window.location.pathname.split('/').filter(Boolean);
+            if (parcalar.length >= 2 && !['admin', 'garson', 'super-admin', 'superadmin'].includes(parcalar[1])) {
+                return parcalar[1];
+            }
+            return parcalar[0] || '';
+        }
+
+        const slug = aktifDukkanSlug();
+
+        function seoBilgileriniGuncelle(dukkan) {
+            const ad = dukkan?.ad || dukkan?.adi || dukkan?.slug || 'İşletme';
+            const sektor = dukkan?.tur || dukkan?.kategori || 'İşletme';
+            const il = dukkan?.il || '';
+            const ilSektor = [il, sektor].filter(Boolean).join(' ');
+            const baslik = ad + ' | ' + (ilSektor || sektor) + ' | Esnoloji';
+            const aciklama = dukkan?.aciklama || (ad + ', ' + (il || 'bulunduğu') + ' bölgesinde ' + sektor + ' hizmeti vermektedir. Esnoloji üzerinden iletişim, menü ve hizmet bilgilerine ulaşabilirsiniz.');
+            const canonicalUrl = 'https://esnoloji.tr/' + encodeURIComponent(dukkan?.slug || slug);
+
+            document.title = baslik;
+            metaEtiketiYaz('meta[name="description"]', { name: 'description', content: aciklama });
+            canonicalYaz(canonicalUrl);
+            metaEtiketiYaz('meta[property="og:title"]', { property: 'og:title', content: baslik });
+            metaEtiketiYaz('meta[property="og:description"]', { property: 'og:description', content: aciklama });
+            metaEtiketiYaz('meta[property="og:url"]', { property: 'og:url', content: canonicalUrl });
+            metaEtiketiYaz('meta[property="og:type"]', { property: 'og:type', content: 'website' });
+        }
+
+        function metaEtiketiYaz(selector, attrs) {
+            let el = document.head.querySelector(selector);
+            if (!el) {
+                el = document.createElement('meta');
+                document.head.appendChild(el);
+            }
+            Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
+        }
+
+        function canonicalYaz(url) {
+            let el = document.head.querySelector('link[rel="canonical"]');
+            if (!el) {
+                el = document.createElement('link');
+                el.setAttribute('rel', 'canonical');
+                document.head.appendChild(el);
+            }
+            el.setAttribute('href', url);
+        }
+
 
         document.addEventListener('DOMContentLoaded', () => {
             personelKartiniYukle();
@@ -120,6 +168,22 @@
                 '"': '&quot;',
                 "'": '&#039;'
             }[karakter]));
+        }
+
+        function bildirimGoster(mesaj, tur = 'bilgi') {
+            const alan = document.getElementById('toastAlani');
+            if (!alan) return;
+            const renk = tur === 'hata' ? 'border-red-200 bg-red-50 text-red-700' : 'border-slate-200 bg-white text-slate-700';
+            const toast = document.createElement('div');
+            toast.className = 'min-w-[260px] max-w-sm rounded-2xl border px-4 py-3 text-sm font-bold shadow-xl ' + renk;
+            toast.textContent = mesaj;
+            alan.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(8px)';
+                toast.style.transition = 'all 220ms ease';
+                setTimeout(() => toast.remove(), 260);
+            }, 3000);
         }
 
         function fiyatYaz(deger) {
@@ -192,9 +256,9 @@
 
         function whatsappLink(dukkan, hizmet) {
             const numara = whatsappNumara(dukkan.telefon);
-            if (!numara) return '#iletisimCta';
-            const hizmetAdi = hizmet?.ad ? ' ' + hizmet.ad + ' hizmeti hakkında' : '';
-            const mesaj = 'Merhaba, ' + (dukkan.ad || 'işletmeniz') + hizmetAdi + ' bilgi almak istiyorum.';
+            if (!numara) return '';
+            const hizmetAdi = hizmet?.ad ? ' ' + hizmet.ad + ' hizmeti hakkinda' : '';
+            const mesaj = 'Merhaba, ' + (dukkan.ad || 'isletmeniz') + hizmetAdi + ' bilgi almak istiyorum.';
             return 'https://wa.me/' + numara + '?text=' + encodeURIComponent(mesaj);
         }
 
@@ -242,7 +306,7 @@
             document.getElementById('dukkanAciklama').textContent = aciklama;
             document.getElementById('dukkanIletisim').innerHTML = iletisimHtml(dukkan);
             document.getElementById('altIletisim').innerHTML = iletisimHtml(dukkan, true);
-            document.title = (dukkan.ad || 'Profesyonel Hizmet') + ' | Hizmetler';
+            seoBilgileriniGuncelle(dukkan);
             panelKisayollariniYukle(dukkan.slug || slug);
 
             const alan = document.getElementById('hizmetListesi');
@@ -253,7 +317,9 @@
 
             alan.innerHTML = hizmetler.map((hizmet) => {
                 const bilgiLinki = whatsappLink(dukkan, hizmet);
-                const linkHedef = bilgiLinki.startsWith('http') ? '_blank' : '_self';
+                const bilgiAksiyon = bilgiLinki
+                    ? '<a href="' + bilgiLinki + '" target="_blank" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-500"><i class="fa-brands fa-whatsapp"></i> Bilgi al</a>'
+                    : '<button type="button" onclick="bildirimGoster(\'Bu isletme icin telefon bilgisi eklenmemis.\', \'hata\')" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/20 transition hover:bg-slate-800"><i class="fa-solid fa-circle-info"></i> Bilgi al</button>';
                 return '<article class="group relative overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-2xl">' +
                     '<div class="absolute left-0 top-0 h-full w-1.5 bg-slate-950"></div>' +
                     '<div class="flex items-start justify-between gap-5">' +
@@ -262,11 +328,11 @@
                     '</div>' +
                     '<div class="mt-6">' +
                         '<h3 class="text-2xl font-black leading-tight text-slate-950">' + guvenliMetin(hizmet.ad || 'Hizmet') + '</h3>' +
-                        '<p class="mt-4 min-h-[108px] text-base leading-8 text-slate-600">' + guvenliMetin(hizmet.detay || 'Bu hizmet alanı için kapsam, süreç ve ücret bilgisi görüşmede netleştirilir.') + '</p>' +
+                        '<p class="mt-4 min-h-[108px] text-base leading-8 text-slate-600">' + guvenliMetin(hizmet.detay || 'Bu hizmet alani icin kapsam, surec ve ucret bilgisi gorusmede netlestirilir.') + '</p>' +
                     '</div>' +
                     '<div class="mt-6 flex flex-col gap-3 border-t border-stone-100 pt-5 sm:flex-row sm:items-center sm:justify-between">' +
-                        '<div><div class="text-[11px] font-black uppercase tracking-[0.18em] text-stone-400">Başlangıç</div><div class="mt-1 text-lg font-black text-slate-950">' + fiyatYaz(hizmet.fiyat) + '</div></div>' +
-                        '<a href="' + bilgiLinki + '" target="' + linkHedef + '" class="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-500"><i class="fa-brands fa-whatsapp"></i> Bilgi al</a>' +
+                        '<div><div class="text-[11px] font-black uppercase tracking-[0.18em] text-stone-400">Baslangic</div><div class="mt-1 text-lg font-black text-slate-950">' + fiyatYaz(hizmet.fiyat) + '</div></div>' +
+                        bilgiAksiyon +
                     '</div>' +
                 '</article>';
             }).join('');

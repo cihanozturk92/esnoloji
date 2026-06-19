@@ -541,6 +541,11 @@
                             <label for="slug">Slug</label>
                             <input type="text" id="slug" placeholder="Orn: kemal-usta">
                         </div>
+                        <div class="field">
+                            <label for="il">Il</label>
+                            <input type="text" id="il" placeholder="Orn: Karabuk">
+                            <p class="helper">URL icin otomatik sade hale getirilir: karabuk, istanbul, sanliurfa.</p>
+                        </div>
                         <div class="inline-grid">
                             <div class="field">
                                 <label for="telefon">Telefon</label>
@@ -828,8 +833,14 @@
             document.getElementById('tur').innerHTML = turSecenekleriHtml('restoran');
         }
 
+        function dukkanPublicPath(dukkan) {
+            const slug = encodeURIComponent(dukkan?.slug || '');
+            const ilSlug = slugOlustur(dukkan?.il_slug || dukkan?.il || '');
+            return ilSlug ? `/${encodeURIComponent(ilSlug)}/${slug}` : `/${slug}`;
+        }
+
         function formTemizle() {
-            ['ad', 'slug', 'telefon', 'adres', 'aciklama', 'adminUser', 'adminPass'].forEach((id) => {
+            ['ad', 'slug', 'il', 'telefon', 'adres', 'aciklama', 'adminUser', 'adminPass'].forEach((id) => {
                 const alan = document.getElementById(id);
                 if (alan) alan.value = '';
             });
@@ -911,6 +922,7 @@
             const logoIcerik = dukkan.logo_url
                 ? `<img src="${guvenliMetin(dukkan.logo_url)}" alt="${guvenliMetin(dukkan.ad)} logo">`
                 : `<span>${guvenliMetin(avatarMetni(dukkan.ad))}</span>`;
+            const publicPath = dukkanPublicPath(dukkan);
 
             return `
                 <article class="manage-card" data-dukkan-id="${dukkan.id}">
@@ -924,11 +936,11 @@
                                     ${kartBadge(`${dukkan.personel_sayisi || 0} personel`, 'badge-amber')}
                                     ${kartBadge(`${dukkan.admin_sayisi || 0} admin`, 'badge-blue')}
                                 </div>
-                                <p>Slug: /${guvenliMetin(dukkan.slug)}<br>Adminler: ${guvenliMetin(adminler)}</p>
+                                <p>Il: ${guvenliMetin(dukkan.il || '-')}<br>Slug: ${guvenliMetin(publicPath)}<br>Adminler: ${guvenliMetin(adminler)}</p>
                             </div>
                         </div>
                         <div class="actions">
-                            <a class="btn btn-muted" href="/${encodeURIComponent(dukkan.slug)}" target="_blank" rel="noreferrer">${acikEtiket}</a>
+                            <a class="btn btn-muted" href="${publicPath}" target="_blank" rel="noreferrer">${acikEtiket}</a>
                             <a class="btn btn-soft" href="/${encodeURIComponent(dukkan.slug)}/admin" target="_blank" rel="noreferrer">Admin paneli</a>
                             <button type="button" class="btn btn-primary" onclick="qrYazdir('${encodeURIComponent(dukkan.slug)}')">QR yazdir</button>
                         </div>
@@ -945,10 +957,14 @@
                         </div>
                     </div>
 
-                    <div class="inline-grid" style="margin-top:12px;">
+                    <div class="three-grid" style="margin-top:12px;">
                         <div class="field">
                             <label>Sektor / tur</label>
                             <select data-key="tur">${turSecenekleriHtml(dukkan.tur || 'restoran')}</select>
+                        </div>
+                        <div class="field">
+                            <label>Il</label>
+                            <input type="text" data-key="il" value="${guvenliMetin(dukkan.il || '')}" placeholder="Orn: Karabuk">
                         </div>
                         <div class="field">
                             <label>Telefon</label>
@@ -1141,6 +1157,8 @@
             const payload = {
                 ad: document.getElementById('ad').value.trim(),
                 slug: document.getElementById('slug').value.trim() || slugOlustur(document.getElementById('ad').value),
+                il: document.getElementById('il').value.trim(),
+                il_slug: slugOlustur(document.getElementById('il').value),
                 telefon: document.getElementById('telefon').value.trim(),
                 adres: document.getElementById('adres').value.trim(),
                 aciklama: document.getElementById('aciklama').value.trim(),
@@ -1172,7 +1190,8 @@
         }
 
         async function dukkanKaydet(id) {
-            const alanlar = okuCardAlanlari(`[data-dukkan-id="${id}"]`, ['ad', 'slug', 'tur', 'telefon', 'adres', 'aciklama']);
+            const alanlar = okuCardAlanlari(`[data-dukkan-id="${id}"]`, ['ad', 'slug', 'tur', 'il', 'telefon', 'adres', 'aciklama']);
+            alanlar.il_slug = slugOlustur(alanlar.il);
             if (!alanlar.ad || !alanlar.slug || !alanlar.tur) {
                 bildirimGoster('Dukkan adi, slug ve sektor zorunlu.', 'uyari');
                 return;
@@ -1282,7 +1301,8 @@
 
         function qrYazdir(encodedSlug) {
             const slug = decodeURIComponent(encodedSlug);
-            const publicUrl = `${window.location.origin}/${slug}`;
+            const dukkan = state.dukkanlar.find((item) => String(item.slug) === String(slug));
+            const publicUrl = dukkan ? window.location.origin + dukkanPublicPath(dukkan) : `${window.location.origin}/${slug}`;
             const qrUrl = new URL(`/api/superadmin/dukkan-qr/${encodeURIComponent(slug)}`, window.location.origin).href;
             const pencere = window.open('', '_blank', 'width=520,height=720');
 

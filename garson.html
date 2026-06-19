@@ -206,14 +206,12 @@
             }
 
             document.getElementById('personelIsim').innerText = `${personelAdi(personel)} (${rolEtiketi(personel)})`;
-            if (personel.dukkanSlug) {
-                dukkanSlug = personel.dukkanSlug;
-            }
 
-            if (!dukkanSlug) {
-                const pathParts = window.location.pathname.split('/').filter(Boolean);
-                dukkanSlug = pathParts[0] || "cihan-restoran";
-            }
+            const pathParts = window.location.pathname.split('/').filter(Boolean);
+            const urlSlug = pathParts[0] && !['garson', 'admin', 'super-admin', 'superadmin'].includes(pathParts[0])
+                ? pathParts[0]
+                : '';
+            dukkanSlug = urlSlug || personel.dukkanSlug || personel.dukkan_slug || "cihan-restoran";
 
             terminalVerileriniYukle();
         });

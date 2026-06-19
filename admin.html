@@ -208,7 +208,13 @@
                     <h3 class="text-2xl font-black text-slate-800 mt-2">0 Adet</h3>
                 </div>
             </div>
-        </section>
+        
+            <div id="telegramCiroGonderButon" class="hidden mt-5">
+                <button onclick="telegramGunlukCiroGonder()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">
+                    Telegram'a Günlük Ciro Özeti Gönder
+                </button>
+            </div>
+</section>
 
         <section id="dukkanBilgileriSekmesi" class="hidden">
             <div class="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"><div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
@@ -243,6 +249,20 @@
                         <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
                             Logo ve arkaplan dosyalari proje icindeki <b>resimler</b> klasorunden otomatik okunur.
                             Ornek: <b>dukkan-slug_logo.png</b> ve <b>dukkan-slug_arkaplan.jpg</b>
+                        </div>
+                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <div class="text-sm font-black text-slate-800">Telegram Bildirimleri</div>
+                            <p class="mt-1 text-xs leading-5 text-slate-500">Esnoloji ortak botu kullanılır. Buraya sadece işletmenin Telegram chat ID bilgisini gir.</p>
+                            <div class="mt-4 space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Telegram Chat ID</label>
+                                    <input type="text" id="telegramChatIdInput" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 text-sm text-slate-700" placeholder="Örn: 123456789">
+                                </div>
+                                <label class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-bold text-slate-700">
+                                    <input type="checkbox" id="telegramAktifInput" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                                    Telegram bildirimleri aktif
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1150,11 +1170,18 @@
                 dukkanBilgisi = data.dukkan || null;
                 restoranIsletmesi = Boolean(data.restoranMi);
                 modulleriSektoruneGoreAyarla();
+                telegramCiroButonunuAyarla();
             } catch (err) {
                 console.error('Admin bilgisi yukleme hatasi:', err);
                 restoranIsletmesi = true;
                 modulleriSektoruneGoreAyarla();
+                telegramCiroButonunuAyarla();
             }
+        }
+
+        function telegramCiroButonunuAyarla() {
+            const alan = document.getElementById('telegramCiroGonderButon');
+            if (alan) alan.classList.toggle('hidden', !restoranIsletmesi);
         }
 
         async function dukkanBilgileriniYukle() {
@@ -1168,6 +1195,10 @@
                 document.getElementById('dukkanTelefonInput').value = dukkanBilgisi?.telefon || '';
                 document.getElementById('dukkanAdresInput').value = dukkanBilgisi?.adres || '';
                 document.getElementById('dukkanAciklamaInput').value = dukkanBilgisi?.aciklama || '';
+                const telegramChatIdInput = document.getElementById('telegramChatIdInput');
+                const telegramAktifInput = document.getElementById('telegramAktifInput');
+                if (telegramChatIdInput) telegramChatIdInput.value = dukkanBilgisi?.telegram_chat_id || '';
+                if (telegramAktifInput) telegramAktifInput.checked = Boolean(dukkanBilgisi?.telegram_bildirim_aktif);
 
                 document.getElementById('dukkanOnizlemeAd').textContent = dukkanBilgisi?.ad || '-';
                 document.getElementById('dukkanOnizlemeTelefon').textContent = dukkanBilgisi?.telefon || '-';
@@ -1202,7 +1233,9 @@
                 ad: document.getElementById('dukkanAdInput').value.trim(),
                 telefon: document.getElementById('dukkanTelefonInput').value.trim(),
                 adres: document.getElementById('dukkanAdresInput').value.trim(),
-                aciklama: document.getElementById('dukkanAciklamaInput').value.trim()
+                aciklama: document.getElementById('dukkanAciklamaInput').value.trim(),
+                telegram_chat_id: document.getElementById('telegramChatIdInput')?.value.trim() || '',
+                telegram_bildirim_aktif: Boolean(document.getElementById('telegramAktifInput')?.checked)
             };
 
             if (!payload.ad) return bildirimGoster('Dükkan adı boş kalamaz.', 'uyari');
@@ -1217,15 +1250,38 @@
                 if (!response.ok) throw new Error(data.error || 'Dükkan bilgileri kaydedilemedi.');
 
                 dukkanBilgisi = data.dukkan || dukkanBilgisi;
-                bildirimGoster('Dükkan bilgileri kaydedildi.', 'basari');
+                bildirimGoster(data.telegramKolonlariEksik ? 'Dükkan bilgileri kaydedildi. Telegram ayar kolonlari Supabase tarafinda eksik.' : 'Dükkan bilgileri kaydedildi.', data.telegramKolonlariEksik ? 'uyari' : 'basari');
                 dukkanBilgileriniYukle();
             } catch (err) {
                 bildirimGoster(err.message || 'Dükkan bilgileri kaydedilemedi.', 'hata');
             }
         }
 
+        async function telegramGunlukCiroGonder() {
+            const alan = document.getElementById('telegramCiroGonderButon');
+            const buton = alan?.querySelector('button');
+            try {
+                if (buton) {
+                    buton.disabled = true;
+                    buton.textContent = 'Gönderiliyor...';
+                }
+                const response = await fetch(`/api/${dukkanSlug}/telegram/gunluk-ciro`, { method: 'POST' });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Telegram ciro özeti gönderilemedi.');
+                bildirimGoster(data.sent ? 'Günlük ciro özeti Telegram’a gönderildi.' : 'Telegram ayarı pasif veya eksik, gönderim yapılmadı.', data.sent ? 'basari' : 'uyari');
+            } catch (err) {
+                bildirimGoster(err.message || 'Telegram ciro özeti gönderilemedi.', 'hata');
+            } finally {
+                if (buton) {
+                    buton.disabled = false;
+                    buton.textContent = "Telegram'a Günlük Ciro Özeti Gönder";
+                }
+            }
+        }
+
         async function genelOzetiYukle() {
             try {
+                telegramCiroButonunuAyarla();
                 const response = await fetch(`/api/${dukkanSlug}/ozet`);
                 if (!response.ok) throw new Error('Ozet verisi alinamadi.');
                 const ozet = await response.json();
@@ -1731,7 +1787,7 @@
             const key = rezTarihKey(date);
             const seciliId = Number(rezSeciliOgeId());
             return rezervasyonlar.some(r => {
-                const aktif = String(r.durum || '').toLocaleLowerCase('tr-TR') !== 'iptal';
+                const aktif = String(r.durum || '').toLocaleLowerCase('tr-TR') === 'aktif';
                 return aktif && (!seciliId || Number(r.oge_id) === seciliId) && key >= r.baslangic_tarihi && key <= r.bitis_tarihi;
             });
         }
@@ -1788,7 +1844,9 @@
                 const oge = rezervasyonOgeleri.find(o => Number(o.id) === Number(r.oge_id));
                 const personel = rezervasyonPersoneller.find(p => Number(p.id) === Number(r.personel_id));
                 const operatorAdi = r.personel_adi || personel?.kullanici_id || '';
-                const iptal = String(r.durum || '').toLocaleLowerCase('tr-TR') === 'iptal';
+                const durumTemiz = String(r.durum || '').toLocaleLowerCase('tr-TR');
+                const iptal = durumTemiz === 'iptal';
+                const beklemede = durumTemiz === 'beklemede';
                 return `
                     <div class="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         <div class="min-w-0">
@@ -1801,6 +1859,7 @@
                         </div>
                         <div class="flex items-center gap-3 lg:justify-end">
                             <div class="font-black text-slate-800 whitespace-nowrap">${paraYaz(r.toplam_tutar)}</div>
+                            <button onclick="rezervasyonDurumGuncelle(${r.id}, 'aktif')" class="${!beklemede ? 'hidden' : ''} text-xs font-black text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-2 rounded-lg transition">Onayla</button>
                             <button onclick="rezervasyonDuzenleAc(${r.id})" class="text-xs font-black text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg transition">Düzenle</button>
                             <button onclick="rezervasyonIptalEt(${r.id})" class="${iptal ? 'hidden' : ''} text-xs font-black text-amber-700 bg-amber-50 hover:bg-amber-100 px-3 py-2 rounded-lg transition">İptal</button>
                             <button onclick="rezervasyonSil(${r.id})" class="text-xs font-black text-red-600 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition">Sil</button>
@@ -1928,6 +1987,24 @@
                 operatorIsRaporuYukle();
             } catch (err) {
                 bildirimGoster(err.message || 'Rezervasyon kaydedilemedi.', 'hata');
+            }
+        }
+
+        async function rezervasyonDurumGuncelle(id, durum) {
+            try {
+                const response = await fetch(`/api/${dukkanSlug}/rezervasyon/${id}/durum`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ durum })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Rezervasyon durumu guncellenemedi.');
+
+                bildirimGoster(durum === 'aktif' ? 'Rezervasyon onaylandi.' : 'Rezervasyon guncellendi.', 'basari');
+                rezervasyonVerileriniCek();
+                operatorIsRaporuYukle();
+            } catch (err) {
+                bildirimGoster(err.message || 'Rezervasyon durumu guncellenemedi.', 'hata');
             }
         }
 
