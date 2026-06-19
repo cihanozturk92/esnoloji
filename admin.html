@@ -155,6 +155,9 @@
             <a href="#" id="nav-rezervasyon" onclick="sekmeDegistir('rezervasyon')" class="hidden flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition font-medium text-sm text-slate-400 hover:text-white">
                 <span>📅</span> <span>Rezervasyon Takvimi</span>
             </a>
+            <a href="#" id="nav-saatli-randevu" onclick="sekmeDegistir('saatli-randevu')" class="hidden flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition font-medium text-sm text-slate-400 hover:text-white">
+                <span>🗓️</span> <span>Saatli Randevular</span>
+            </a>
             <a href="#" id="nav-urunler" onclick="sekmeDegistir('urunler')" class="flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition font-medium text-sm text-slate-400 hover:text-white">
                 <span>☕</span> <span>Ürünlerim & Fiyatlar</span>
             </a>
@@ -423,6 +426,39 @@
                         <span id="toplamRezervasyonSayisi" class="bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">0 Kayit</span>
                     </div>
                     <div id="rezervasyonListesi" class="divide-y divide-slate-100"></div>
+                </div>
+            </div>
+        </section>
+
+
+        <section id="saatliRandevuSekmesi" class="hidden">
+            <div class="flex flex-col gap-4 border-b border-slate-200 pb-5 mb-6 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Saatli Randevu Talepleri</h2>
+                    <p class="text-sm text-slate-500 mt-1">Musteriden gelen saatli randevu taleplerini onaylayin veya reddedin.</p>
+                </div>
+                <button onclick="saatliRandevulariYukle()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800">Yenile</button>
+            </div>
+
+            <div class="grid gap-4 lg:grid-cols-[220px_1fr]">
+                <aside class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <label class="block text-xs font-black uppercase text-slate-500 mb-2">Durum Filtresi</label>
+                    <select id="saatliRandevuDurumFiltre" onchange="saatliRandevulariBas()" class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-700">
+                        <option value="tum">Tumu</option>
+                        <option value="beklemede">Beklemede</option>
+                        <option value="onaylandi">Onaylandi</option>
+                        <option value="reddedildi">Reddedildi</option>
+                        <option value="iptal">Iptal</option>
+                    </select>
+                    <p class="mt-4 text-xs leading-5 text-slate-500">Onaylanan randevular musteri sayfasinda dolu saat olarak gorunur.</p>
+                </aside>
+
+                <div class="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                    <div class="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 p-5">
+                        <span class="text-sm font-black uppercase tracking-wide text-slate-700">Randevu Akisi</span>
+                        <span id="saatliRandevuSayac" class="rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700">0 Kayit</span>
+                    </div>
+                    <div id="saatliRandevuListesi" class="divide-y divide-slate-100"></div>
                 </div>
             </div>
         </section>
@@ -797,6 +833,8 @@
         let rezervasyonOgeleri = [];
         let rezervasyonlar = [];
         let rezervasyonAy = new Date();
+        let saatliRandevular = [];
+        let saatliRandevuHizmetleri = [];
         let duzenlenenRezervasyonId = null;
         let dukkanBilgisi = null;
         let personelSatisRaporu = [];
@@ -815,6 +853,11 @@
         function restoranTuruMu(tur) {
             const temizTur = String(tur || '').toLocaleLowerCase('tr-TR');
             return temizTur.includes('restoran') || temizTur.includes('cafe') || temizTur.includes('kafe');
+        }
+
+        function saatliRandevuTuruMu(tur) {
+            const temizTur = String(tur || '').toLocaleLowerCase('tr-TR');
+            return temizTur.includes('kuafor') || temizTur.includes('kuaför') || temizTur.includes('berber') || temizTur.includes('guzellik') || temizTur.includes('güzellik');
         }
 
         function satisKategoriEslesir(urunTuru, filtre) {
@@ -859,7 +902,9 @@
                 if (el) el.classList.toggle('hidden', !goster);
             };
 
-            navGoster('nav-rezervasyon', !restoranIsletmesi);
+            const saatliRandevuIsletmesi = saatliRandevuTuruMu(dukkanBilgisi?.tur);
+            navGoster('nav-rezervasyon', !restoranIsletmesi && !saatliRandevuIsletmesi);
+            navGoster('nav-saatli-randevu', saatliRandevuIsletmesi);
             navGoster('nav-urunler', restoranIsletmesi);
             navGoster('nav-ambar', restoranIsletmesi);
 
@@ -929,7 +974,9 @@
         }
 
         function sekmeKullanilabilirMi(sekmeId) {
-            if (restoranIsletmesi && sekmeId === 'rezervasyon') return false;
+            const saatliRandevuIsletmesi = saatliRandevuTuruMu(dukkanBilgisi?.tur);
+            if ((restoranIsletmesi || saatliRandevuIsletmesi) && sekmeId === 'rezervasyon') return false;
+            if (!saatliRandevuIsletmesi && sekmeId === 'saatli-randevu') return false;
             if (!restoranIsletmesi && (sekmeId === 'urunler' || sekmeId === 'ambar')) return false;
             return true;
         }
@@ -1322,7 +1369,7 @@
             }
 
             // 1. Tüm seksiyonları gizle
-            const sekmeler = ['ozetSekmesi', 'dukkanBilgileriSekmesi', 'ogeYonetimiSekmesi', 'rezervasyonSekmesi', 'urunlerSekmesi', 'personelSekmesi', 'gelirGiderSekmesi', 'ambarSekmesi', 'mesajlarSekmesi'];
+            const sekmeler = ['ozetSekmesi', 'dukkanBilgileriSekmesi', 'ogeYonetimiSekmesi', 'rezervasyonSekmesi', 'saatliRandevuSekmesi', 'urunlerSekmesi', 'personelSekmesi', 'gelirGiderSekmesi', 'ambarSekmesi', 'mesajlarSekmesi'];
             sekmeler.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.classList.add('hidden');
@@ -1334,6 +1381,7 @@
             if (sekmeId === 'dukkan-bilgileri') hedefSekme = 'dukkanBilgileriSekmesi';
             if (sekmeId === 'oge-yonetimi') hedefSekme = 'ogeYonetimiSekmesi';
             if (sekmeId === 'rezervasyon') hedefSekme = 'rezervasyonSekmesi';
+            if (sekmeId === 'saatli-randevu') hedefSekme = 'saatliRandevuSekmesi';
             if (sekmeId === 'urunler') hedefSekme = 'urunlerSekmesi';
             if (sekmeId === 'personel') hedefSekme = 'personelSekmesi';
             if (sekmeId === 'gelir-gider') hedefSekme = 'gelirGiderSekmesi';
@@ -1343,12 +1391,12 @@
             document.getElementById(hedefSekme).classList.remove('hidden');
 
             // 3. Menü buton renklerini temizle ve aktifi parlat
-            const navIds = ['nav-ozet', 'nav-dukkan-bilgileri', 'nav-oge-yonetimi', 'nav-rezervasyon', 'nav-urunler', 'nav-personel', 'nav-gelir-gider', 'nav-ambar', 'nav-mesajlar'];
+            const navIds = ['nav-ozet', 'nav-dukkan-bilgileri', 'nav-oge-yonetimi', 'nav-rezervasyon', 'nav-saatli-randevu', 'nav-urunler', 'nav-personel', 'nav-gelir-gider', 'nav-ambar', 'nav-mesajlar'];
             navIds.forEach(id => {
                 const navEl = document.getElementById(id);
                 if (navEl) {
                     navEl.className = "flex items-center space-x-3 px-4 py-3 rounded-xl hover:bg-slate-800 transition font-medium text-sm text-slate-400 hover:text-white";
-                    if ((restoranIsletmesi && id === 'nav-rezervasyon') || (!restoranIsletmesi && (id === 'nav-urunler' || id === 'nav-ambar'))) {
+                    if (((restoranIsletmesi || saatliRandevuTuruMu(dukkanBilgisi?.tur)) && id === 'nav-rezervasyon') || (!saatliRandevuTuruMu(dukkanBilgisi?.tur) && id === 'nav-saatli-randevu') || (!restoranIsletmesi && (id === 'nav-urunler' || id === 'nav-ambar'))) {
                         navEl.classList.add('hidden');
                     }
                 }
@@ -1364,6 +1412,7 @@
             if (sekmeId === 'dukkan-bilgileri') dukkanBilgileriniYukle();
             if (sekmeId === 'oge-yonetimi') verileriSunucudanCek();
             if (sekmeId === 'rezervasyon') rezervasyonVerileriniCek();
+            if (sekmeId === 'saatli-randevu') saatliRandevulariYukle();
             if (sekmeId === 'urunler') urunleriSunucudanCek();
             if (sekmeId === 'personel') personelleriSunucudanCek();
             if (sekmeId === 'gelir-gider') gelirGiderYukle();
@@ -1393,6 +1442,104 @@
             }
         }
 
+
+        function saatliRandevuTarihYaz(tarih, saat) {
+            if (!tarih) return '-';
+            return new Date(tarih + 'T00:00:00').toLocaleDateString('tr-TR') + (saat ? ' • ' + String(saat).slice(0, 5) : '');
+        }
+
+        function saatliRandevuDurumSinifi(durum) {
+            const d = String(durum || '').toLocaleLowerCase('tr-TR');
+            if (d === 'onaylandi') return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+            if (d === 'reddedildi' || d === 'iptal') return 'bg-red-50 text-red-700 border-red-100';
+            return 'bg-amber-50 text-amber-700 border-amber-100';
+        }
+
+        async function saatliRandevulariYukle() {
+            try {
+                const response = await fetch(`/api/${dukkanSlug}/randevular-yonetim`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Randevular alinamadi.');
+
+                saatliRandevular = data.randevular || [];
+                saatliRandevuHizmetleri = data.hizmetler || [];
+                saatliRandevulariBas();
+            } catch (err) {
+                console.error('Saatli randevu yukleme hatasi:', err);
+                bildirimGoster(err.message || 'Saatli randevular yuklenemedi.', 'hata');
+            }
+        }
+
+        function saatliRandevulariBas() {
+            const alan = document.getElementById('saatliRandevuListesi');
+            const sayac = document.getElementById('saatliRandevuSayac');
+            if (!alan) return;
+
+            const filtre = document.getElementById('saatliRandevuDurumFiltre')?.value || 'tum';
+            const hizmetMap = new Map(saatliRandevuHizmetleri.map(h => [Number(h.id), h]));
+            const liste = saatliRandevular
+                .filter(r => filtre === 'tum' || String(r.durum || '') === filtre)
+                .sort((a, b) => String(a.tarih || '').localeCompare(String(b.tarih || '')) || String(a.saat || '').localeCompare(String(b.saat || '')));
+
+            if (sayac) sayac.textContent = `${liste.length} Kayit`;
+            if (!liste.length) {
+                alan.innerHTML = '<div class="p-6 text-sm text-slate-400">Randevu talebi yok.</div>';
+                return;
+            }
+
+            alan.innerHTML = liste.map(r => {
+                const hizmet = hizmetMap.get(Number(r.oge_id));
+                const durum = String(r.durum || 'beklemede');
+                return `
+                    <article class="p-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div class="min-w-0">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="font-black text-slate-900">${r.musteri_ad || 'Musteri'}</span>
+                                <span class="rounded-full border px-2 py-0.5 text-[11px] font-black ${saatliRandevuDurumSinifi(durum)}">${durum}</span>
+                            </div>
+                            <div class="mt-1 text-sm font-semibold text-slate-600">${hizmet?.ad || 'Hizmet'} • ${saatliRandevuTarihYaz(r.tarih, r.saat)}</div>
+                            <div class="mt-1 text-xs text-slate-400">${r.musteri_telefon || 'Telefon yok'} ${r.notlar ? '• ' + r.notlar : ''}</div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 lg:justify-end">
+                            <button onclick="saatliRandevuDurumGuncelle(${r.id}, 'onaylandi')" class="${durum === 'onaylandi' ? 'hidden' : ''} rounded-lg bg-emerald-50 px-3 py-2 text-xs font-black text-emerald-700 transition hover:bg-emerald-100">Onayla</button>
+                            <button onclick="saatliRandevuDurumGuncelle(${r.id}, 'reddedildi')" class="${durum === 'reddedildi' ? 'hidden' : ''} rounded-lg bg-amber-50 px-3 py-2 text-xs font-black text-amber-700 transition hover:bg-amber-100">Reddet</button>
+                            <button onclick="saatliRandevuSil(${r.id})" class="rounded-lg bg-red-50 px-3 py-2 text-xs font-black text-red-600 transition hover:bg-red-100">Sil</button>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        async function saatliRandevuDurumGuncelle(id, durum) {
+            try {
+                const response = await fetch(`/api/${dukkanSlug}/randevular/${id}/durum`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ durum })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Randevu guncellenemedi.');
+                bildirimGoster('Randevu durumu guncellendi.', 'basari');
+                saatliRandevulariYukle();
+            } catch (err) {
+                bildirimGoster(err.message || 'Randevu guncellenemedi.', 'hata');
+            }
+        }
+
+        async function saatliRandevuSil(id) {
+            const onay = await onayIste('Bu randevu talebini silmek istiyor musun?', 'Randevu talebini sil');
+            if (!onay) return;
+
+            try {
+                const response = await fetch(`/api/${dukkanSlug}/randevular/${id}`, { method: 'DELETE' });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Randevu silinemedi.');
+                bildirimGoster('Randevu silindi.', 'basari');
+                saatliRandevulariYukle();
+            } catch (err) {
+                bildirimGoster(err.message || 'Randevu silinemedi.', 'hata');
+            }
+        }
         // ==========================================
         // TAKVIM MODULU: REZERVASYON YONETIMI
         // ==========================================

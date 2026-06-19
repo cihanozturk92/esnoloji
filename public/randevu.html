@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Randevu Al</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        html, body { max-width: 100%; overflow-x: hidden; }
+        @media (max-width: 480px) {
+            #dukkanAdi { font-size: 2.15rem !important; line-height: 2.4rem !important; }
+            #saatListesi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            #panelKisayollari { left: 10px; right: 10px; bottom: 10px; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-950 antialiased">
+    <header class="relative overflow-hidden bg-slate-950 text-white">
+        <div id="sayfaArkaplan" class="absolute inset-0 opacity-30 bg-[url('https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=1600&q=80')] bg-cover bg-center"></div>
+        <div class="absolute inset-0 bg-slate-950/75"></div>
+        <div class="relative mx-auto max-w-6xl px-5 py-8 sm:py-12">
+            <div class="flex items-center justify-between gap-3">
+                <span id="dukkanTur" class="inline-flex rounded-full bg-white/10 px-3 py-1.5 text-xs font-black uppercase tracking-wide text-slate-100 backdrop-blur">Randevu</span>
+                <div id="personelKartvizit" class="hidden rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-right text-xs backdrop-blur">
+                    <div id="personelAd" class="font-black text-white"></div>
+                    <div id="personelGorev" class="text-[10px] font-bold text-amber-200"></div>
+                </div>
+            </div>
+            <div class="mt-12 grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] lg:items-end">
+                <div>
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/10 ring-1 ring-white/10">
+                            <img id="dukkanLogo" class="hidden h-full w-full object-cover" alt="Dukkan logosu">
+                            <i id="dukkanLogoIkon" class="fa-solid fa-scissors text-2xl text-white"></i>
+                        </div>
+                        <div>
+                            <h1 id="dukkanAdi" class="text-4xl font-black tracking-tight sm:text-6xl">Yukleniyor...</h1>
+                            <p id="dukkanAciklama" class="mt-3 max-w-2xl text-base leading-7 text-slate-200">Hizmetinizi ve uygun saati secerek randevu talebi olusturun.</p>
+                        </div>
+                    </div>
+                </div>
+                <aside class="rounded-3xl border border-white/10 bg-white/10 p-5 shadow-2xl backdrop-blur">
+                    <div class="text-[11px] font-black uppercase tracking-[0.24em] text-amber-200">Iletisim</div>
+                    <div id="dukkanIletisim" class="mt-5 flex flex-wrap gap-3"></div>
+                    <p class="mt-4 text-xs leading-5 text-slate-300">Randevu talebiniz isletme tarafindan onaylandiginda saat dolu gorunur.</p>
+                </aside>
+            </div>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-5 py-8">
+        <section class="grid gap-6 lg:grid-cols-[420px_1fr]">
+            <form id="randevuFormu" class="rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-sm backdrop-blur">
+                <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Randevu Talebi</div>
+                <h2 class="mt-2 text-2xl font-black text-slate-900">Uygun saati secin</h2>
+
+                <div class="mt-5 space-y-4">
+                    <div>
+                        <label class="mb-2 block text-xs font-black uppercase text-slate-500">Hizmet</label>
+                        <select id="hizmetSelect" class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:border-slate-950"></select>
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-xs font-black uppercase text-slate-500">Gun</label>
+                        <input id="tarihInput" type="date" class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:border-slate-950">
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-xs font-black uppercase text-slate-500">Secilen Saat</label>
+                        <input id="saatInput" type="text" readonly placeholder="Asagidan saat secin" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-700 outline-none">
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-xs font-black uppercase text-slate-500">Ad Soyad</label>
+                        <input id="musteriAdInput" type="text" placeholder="Orn: Ahmet Yilmaz" class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-950">
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-xs font-black uppercase text-slate-500">Telefon</label>
+                        <input id="telefonInput" type="text" placeholder="05xx..." class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-950">
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-xs font-black uppercase text-slate-500">Not</label>
+                        <textarea id="notInput" rows="3" placeholder="Varsa ek notunuz" class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-950"></textarea>
+                    </div>
+                    <button type="submit" class="w-full rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-blue-600">Randevu Talebi Gonder</button>
+                </div>
+            </form>
+
+            <section class="rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-sm backdrop-blur">
+                <div class="flex flex-col gap-3 border-b border-slate-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Musait Saatler</div>
+                        <h2 id="saatBaslik" class="mt-2 text-2xl font-black text-slate-900">Saat secin</h2>
+                    </div>
+                    <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">09:00 - 03:00</span>
+                </div>
+                <div id="saatListesi" class="mt-6 grid grid-cols-3 gap-3 sm:grid-cols-4"></div>
+                <div class="mt-6 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+                    <b>Not:</b> Randevunuz once talep olarak iletilir. Isletme onayladiginda secilen saat dolu gorunur.
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <div id="toastAlani" class="fixed bottom-5 left-1/2 z-50 flex w-[min(92vw,420px)] -translate-x-1/2 flex-col gap-3"></div>
+
+    <div id="panelKisayollari" class="fixed bottom-4 left-4 right-4 z-40 mx-auto hidden max-w-md gap-2">
+        <button id="adminPaneliButon" class="hidden flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-black text-slate-950 shadow-lg">
+            <i class="fa-solid fa-gear mr-1"></i> Yonetim Paneli
+        </button>
+    </div>
+
+    <script>
+        const slug = window.location.pathname.split('/').filter(Boolean)[0];
+        let doluSaatler = new Set();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            personelKartiniYukle();
+            randevuSayfasiYukle();
+            document.getElementById('randevuFormu').addEventListener('submit', randevuTalebiGonder);
+            document.getElementById('hizmetSelect').addEventListener('change', musaitlikYukle);
+            document.getElementById('tarihInput').addEventListener('change', musaitlikYukle);
+        });
+
+        function guvenliMetin(deger) {
+            return String(deger || '').replace(/[&<>"']/g, (karakter) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[karakter]));
+        }
+
+        function bugunIso() {
+            const d = new Date();
+            d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+            return d.toISOString().slice(0, 10);
+        }
+
+        function bildirimGoster(mesaj, tip = 'basari') {
+            const alan = document.getElementById('toastAlani');
+            const renk = tip === 'hata' ? 'border-red-200 bg-red-50 text-red-700' : tip === 'uyari' ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700';
+            const kutu = document.createElement('div');
+            kutu.className = `rounded-2xl border px-4 py-3 text-sm font-bold shadow-xl ${renk}`;
+            kutu.textContent = mesaj;
+            alan.appendChild(kutu);
+            setTimeout(() => kutu.remove(), 3600);
+        }
+
+        function iletisimHtml(dukkan) {
+            const telefon = dukkan.telefon ? String(dukkan.telefon).replace(/[^0-9+]/g, '') : '';
+            return `
+                ${dukkan.telefon ? `<a href="tel:${telefon}" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-black text-white transition hover:bg-white/15"><i class="fa-solid fa-phone"></i> ${guvenliMetin(dukkan.telefon)}</a>` : ''}
+                ${dukkan.adres ? `<span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-black text-white/90"><i class="fa-solid fa-location-dot"></i> ${guvenliMetin(dukkan.adres)}</span>` : ''}
+            `;
+        }
+
+        function sayfaArkaPlaniniAyarla(url) {
+            if (!url) return;
+            const temizUrl = String(url).replace(/'/g, "%27");
+            document.body.style.backgroundImage = `linear-gradient(rgba(248,250,252,0.9), rgba(248,250,252,0.94)), url('${temizUrl}')`;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.style.backgroundAttachment = 'fixed';
+        }
+
+        function saatleriUret() {
+            const saatler = [];
+            const saatAraligi = [...Array.from({ length: 15 }, (_, i) => i + 9), 0, 1, 2, 3];
+            saatAraligi.forEach((saat) => {
+                const saatMetni = String(saat).padStart(2, '0');
+                saatler.push(`${saatMetni}:00`);
+                if (saat !== 3) saatler.push(`${saatMetni}:30`);
+            });
+            return saatler;
+        }
+
+        function saatleriBas() {
+            const alan = document.getElementById('saatListesi');
+            const seciliSaat = document.getElementById('saatInput').value;
+            alan.innerHTML = saatleriUret().map(saat => {
+                const dolu = doluSaatler.has(saat);
+                const aktif = seciliSaat === saat;
+                return `
+                    <button type="button" ${dolu ? 'disabled' : ''} onclick="saatSec('${saat}')" class="rounded-2xl border px-3 py-3 text-sm font-black transition ${dolu ? 'cursor-not-allowed border-red-100 bg-red-50 text-red-300' : aktif ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-500 hover:text-blue-700'}">
+                        ${saat}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function saatSec(saat) {
+            document.getElementById('saatInput').value = saat;
+            saatleriBas();
+        }
+
+        function personelKartiniYukle() {
+            const personelStr = localStorage.getItem('girisYapanPersonel');
+            if (!personelStr) return;
+            try {
+                const personel = JSON.parse(personelStr);
+                const kart = document.getElementById('personelKartvizit');
+                const ad = personel.kullanici_id || personel.ad || personel.isim;
+                if (!ad || !kart) return;
+                document.getElementById('personelAd').textContent = ad;
+                document.getElementById('personelGorev').textContent = personel.rol || 'personel';
+                kart.classList.remove('hidden');
+            } catch (err) {
+                console.error('Personel bilgisi okunamadi:', err);
+            }
+        }
+
+        function panelKisayollariniYukle(dukkanSlug) {
+            const adminBtn = document.getElementById('adminPaneliButon');
+            const kisayollar = document.getElementById('panelKisayollari');
+            const personelRaw = localStorage.getItem('girisYapanPersonel');
+            if (!personelRaw || !kisayollar || !adminBtn) return;
+            try {
+                const personel = JSON.parse(personelRaw);
+                const rol = String(personel.rol || '').toLocaleLowerCase('tr-TR').trim();
+                if (rol === 'admin' || rol === 'superadmin') {
+                    adminBtn.onclick = () => window.open('/' + dukkanSlug + '/admin', '_blank');
+                    adminBtn.classList.remove('hidden');
+                    kisayollar.classList.remove('hidden');
+                    kisayollar.classList.add('flex');
+                }
+            } catch (err) {
+                console.error('Panel kisayollari hazirlanamadi:', err);
+            }
+        }
+
+        async function randevuSayfasiYukle() {
+            const res = await fetch('/api/' + slug + '/randevu-sayfa');
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Randevu sayfasi yuklenemedi.');
+
+            const dukkan = data.dukkan || {};
+            const hizmetler = data.hizmetler || [];
+            document.getElementById('dukkanAdi').textContent = dukkan.ad || 'Randevu';
+            document.getElementById('dukkanTur').textContent = dukkan.tur || 'Randevu';
+            document.getElementById('dukkanAciklama').textContent = dukkan.aciklama || 'Hizmetinizi ve uygun saati secerek randevu talebi olusturun.';
+            document.getElementById('dukkanIletisim').innerHTML = iletisimHtml(dukkan);
+            document.title = (dukkan.ad || 'Randevu') + ' | Randevu Al';
+            panelKisayollariniYukle(dukkan.slug || slug);
+
+            const logo = document.getElementById('dukkanLogo');
+            const logoIkon = document.getElementById('dukkanLogoIkon');
+            if (dukkan.logo_url) {
+                logo.src = dukkan.logo_url;
+                logo.classList.remove('hidden');
+                logoIkon.classList.add('hidden');
+            }
+            const arkaPlanUrl = dukkan.arka_plan_url;
+            if (arkaPlanUrl) document.getElementById('sayfaArkaplan').style.backgroundImage = `url('${String(arkaPlanUrl).replace(/'/g, "%27")}')`;
+            sayfaArkaPlaniniAyarla(arkaPlanUrl);
+
+            const select = document.getElementById('hizmetSelect');
+            select.innerHTML = hizmetler.length
+                ? hizmetler.map(h => `<option value="${h.id}" data-fiyat="${h.fiyat || 0}">${guvenliMetin(h.ad)} ${Number(h.fiyat || 0) > 0 ? '- ' + Number(h.fiyat).toFixed(2) + ' TL' : ''}</option>`).join('')
+                : '<option value="">Hizmet eklenmemis</option>';
+
+            const tarih = document.getElementById('tarihInput');
+            tarih.min = bugunIso();
+            tarih.value = bugunIso();
+            await musaitlikYukle();
+        }
+
+        async function musaitlikYukle() {
+            const ogeId = document.getElementById('hizmetSelect').value;
+            const tarih = document.getElementById('tarihInput').value;
+            document.getElementById('saatInput').value = '';
+            if (!ogeId || !tarih) {
+                doluSaatler = new Set();
+                saatleriBas();
+                return;
+            }
+
+            const res = await fetch(`/api/${slug}/randevu-musaitlik?oge_id=${encodeURIComponent(ogeId)}&tarih=${encodeURIComponent(tarih)}`);
+            const data = await res.json();
+            if (!res.ok) {
+                bildirimGoster(data.error || 'Musaitlik alinamadi.', 'hata');
+                return;
+            }
+            doluSaatler = new Set((data.doluSaatler || []).map(s => String(s).slice(0, 5)));
+            document.getElementById('saatBaslik').textContent = new Date(tarih + 'T00:00:00').toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' });
+            saatleriBas();
+        }
+
+        async function randevuTalebiGonder(event) {
+            event.preventDefault();
+            const hizmetSelect = document.getElementById('hizmetSelect');
+            const payload = {
+                oge_id: hizmetSelect.value ? Number(hizmetSelect.value) : null,
+                musteri_ad: document.getElementById('musteriAdInput').value.trim(),
+                musteri_telefon: document.getElementById('telefonInput').value.trim(),
+                tarih: document.getElementById('tarihInput').value,
+                saat: document.getElementById('saatInput').value,
+                notlar: document.getElementById('notInput').value.trim(),
+                toplam_tutar: Number(hizmetSelect.selectedOptions[0]?.dataset?.fiyat || 0)
+            };
+
+            if (!payload.oge_id || !payload.musteri_ad || !payload.musteri_telefon || !payload.tarih || !payload.saat) {
+                return bildirimGoster('Hizmet, tarih, saat, ad ve telefon zorunlu.', 'uyari');
+            }
+
+            try {
+                const res = await fetch('/api/' + slug + '/randevu-talep', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Randevu talebi gonderilemedi.');
+
+                event.target.reset();
+                document.getElementById('tarihInput').value = bugunIso();
+                bildirimGoster('Randevu talebiniz iletildi. Onay bekliyor.', 'basari');
+                await musaitlikYukle();
+            } catch (err) {
+                bildirimGoster(err.message || 'Randevu talebi gonderilemedi.', 'hata');
+            }
+        }
+    </script>
+</body>
+</html>

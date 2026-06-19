@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profesyonel Hizmet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        html, body { max-width: 100%; overflow-x: hidden; }
+        @media (max-width: 480px) {
+            #dukkanAdi { font-size: 2.2rem !important; line-height: 2.45rem !important; }
+            #panelKisayollari { left: 10px; right: 10px; bottom: 10px; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-950 antialiased">
+    <header class="relative overflow-hidden bg-slate-950 text-white">
+        <div id="sayfaArkaplan" class="absolute inset-0 opacity-30 bg-[url('https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=80')] bg-cover bg-center"></div>
+        <div class="absolute inset-0 bg-slate-950/75"></div>
+        <div class="relative mx-auto max-w-6xl px-5 py-8 sm:py-12">
+            <div class="flex items-center justify-between gap-3">
+                <span id="dukkanTur" class="inline-flex rounded-full bg-white/10 px-3 py-1.5 text-xs font-black uppercase tracking-wide text-slate-100 backdrop-blur">Profesyonel Hizmet</span>
+                <div id="personelKartvizit" class="hidden rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-right text-xs backdrop-blur">
+                    <div id="personelAd" class="font-black text-white"></div>
+                    <div id="personelGorev" class="text-[10px] font-bold text-amber-200"></div>
+                </div>
+            </div>
+
+            <div class="mt-12 grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] lg:items-end">
+                <div>
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/10 ring-1 ring-white/10">
+                            <img id="dukkanLogo" class="hidden h-full w-full object-cover" alt="Dukkan logosu">
+                            <i id="dukkanLogoIkon" class="fa-solid fa-scale-balanced text-2xl text-white"></i>
+                        </div>
+                        <div>
+                            <h1 id="dukkanAdi" class="text-4xl font-black tracking-tight sm:text-6xl">Yukleniyor...</h1>
+                            <p id="dukkanAltBaslik" class="mt-3 max-w-2xl text-base leading-7 text-slate-200">Randevu, danismanlik ve profesyonel hizmet talepleriniz icin guvenilir iletisim noktasi.</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex flex-wrap gap-3">
+                        <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur"><i class="fa-solid fa-shield-halved text-emerald-300"></i> Gizlilik odakli</span>
+                        <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur"><i class="fa-solid fa-calendar-check text-blue-300"></i> Randevulu gorusme</span>
+                        <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur"><i class="fa-solid fa-file-signature text-amber-300"></i> Net hizmet alanlari</span>
+                    </div>
+                </div>
+
+                <aside class="rounded-3xl border border-white/10 bg-white/10 p-5 shadow-2xl backdrop-blur">
+                    <div class="text-[11px] font-black uppercase tracking-[0.24em] text-amber-200">Iletisim</div>
+                    <p id="dukkanAciklama" class="mt-3 text-sm leading-7 text-slate-100/95">Size en uygun hizmet icin kisaca iletisime gecin.</p>
+                    <div id="dukkanIletisim" class="mt-5 flex flex-wrap gap-3"></div>
+                </aside>
+            </div>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-5 py-8">
+        <section class="mb-8 grid gap-4 md:grid-cols-3">
+            <article class="rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
+                <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Surec</div>
+                <h2 class="mt-2 text-lg font-black text-slate-900">Once ihtiyac netlesir</h2>
+                <p class="mt-2 text-sm leading-6 text-slate-600">Talebiniz dinlenir, kapsam ve izlenecek yol sade sekilde paylasilir.</p>
+            </article>
+            <article class="rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
+                <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Takip</div>
+                <h2 class="mt-2 text-lg font-black text-slate-900">Evrak ve gorusme duzenli ilerler</h2>
+                <p class="mt-2 text-sm leading-6 text-slate-600">Randevu, belge ve bilgilendirme adimlari tek kanaldan toparlanir.</p>
+            </article>
+            <article class="rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
+                <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Guven</div>
+                <h2 class="mt-2 text-lg font-black text-slate-900">Ciddi ve anlasilir sunum</h2>
+                <p class="mt-2 text-sm leading-6 text-slate-600">Musteri ilk bakista hangi konuda destek alabilecegini gorur.</p>
+            </article>
+        </section>
+
+        <section class="rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur sm:p-6">
+            <div class="flex flex-col gap-3 border-b border-slate-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Hizmet Alanlari</div>
+                    <h2 id="hizmetBaslik" class="mt-2 text-2xl font-black text-slate-900">Size nasil yardimci olabiliriz?</h2>
+                </div>
+                <a id="ustCta" href="#iletisimCta" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800">Iletisime gec</a>
+            </div>
+            <div id="hizmetListesi" class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3"></div>
+        </section>
+
+        <section id="iletisimCta" class="mt-8 rounded-3xl border border-slate-200 bg-slate-950 p-6 text-white shadow-xl sm:p-8">
+            <div class="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+                <div>
+                    <div class="text-xs font-black uppercase tracking-[0.22em] text-amber-200">Randevu / On Degerlendirme</div>
+                    <h2 class="mt-2 text-2xl font-black">Kisa bir gorusmeyle dogru hizmeti netlestirelim.</h2>
+                    <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-300">Telefonla arayin, konum bilgisine bakin veya notunuzu hazirlayip iletisime gecin.</p>
+                </div>
+                <div id="altIletisim" class="flex flex-wrap gap-3 lg:justify-end"></div>
+            </div>
+        </section>
+    </main>
+
+    <div id="panelKisayollari" class="fixed bottom-4 left-4 right-4 z-50 mx-auto hidden max-w-md gap-2">
+        <button id="adminPaneliButon" class="hidden flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs font-black text-slate-950 shadow-lg">
+            <i class="fa-solid fa-gear mr-1"></i> Yonetim Paneli
+        </button>
+    </div>
+
+    <script>
+        const slug = window.location.pathname.split('/').filter(Boolean)[0];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            personelKartiniYukle();
+            profesyonelSayfaYukle();
+        });
+
+        function guvenliMetin(deger) {
+            return String(deger || '').replace(/[&<>"']/g, (karakter) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[karakter]));
+        }
+
+        function fiyatYaz(deger) {
+            const fiyat = Number(deger || 0);
+            return fiyat > 0 ? fiyat.toFixed(2) + ' TL' : 'Gorusmede netlesir';
+        }
+
+        function sayfaArkaPlaniniAyarla(url) {
+            if (!url) return;
+            const temizUrl = String(url).replace(/'/g, "%27");
+            document.body.style.backgroundImage = `linear-gradient(rgba(248,250,252,0.88), rgba(248,250,252,0.94)), url('${temizUrl}')`;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.style.backgroundAttachment = 'fixed';
+        }
+
+        function ikon(tur, ad) {
+            const metin = String((tur || '') + ' ' + (ad || '')).toLocaleLowerCase('tr-TR');
+            if (metin.includes('hukuk') || metin.includes('dava') || metin.includes('avukat')) return 'fa-scale-balanced';
+            if (metin.includes('vergi') || metin.includes('mali') || metin.includes('muhasebe')) return 'fa-file-invoice-dollar';
+            if (metin.includes('danisman') || metin.includes('danışman')) return 'fa-comments';
+            if (metin.includes('sirket') || metin.includes('şirket')) return 'fa-building';
+            return 'fa-briefcase';
+        }
+
+        function personelKartiniYukle() {
+            const personelStr = localStorage.getItem('girisYapanPersonel');
+            if (!personelStr) return;
+
+            try {
+                const personel = JSON.parse(personelStr);
+                const kart = document.getElementById('personelKartvizit');
+                const ad = personel.kullanici_id || personel.ad || personel.isim;
+                if (!ad || !kart) return;
+                document.getElementById('personelAd').textContent = ad;
+                document.getElementById('personelGorev').textContent = personel.rol || 'personel';
+                kart.classList.remove('hidden');
+            } catch (err) {
+                console.error('Personel bilgisi okunamadi:', err);
+            }
+        }
+
+        function panelKisayollariniYukle(dukkanSlug) {
+            const adminBtn = document.getElementById('adminPaneliButon');
+            const kisayollar = document.getElementById('panelKisayollari');
+            const personelRaw = localStorage.getItem('girisYapanPersonel');
+            if (!personelRaw || !kisayollar || !adminBtn) return;
+
+            try {
+                const personel = JSON.parse(personelRaw);
+                const rol = String(personel.rol || '').toLocaleLowerCase('tr-TR').trim();
+                if (rol === 'admin' || rol === 'superadmin') {
+                    adminBtn.onclick = () => window.open('/' + dukkanSlug + '/admin', '_blank');
+                    adminBtn.classList.remove('hidden');
+                    kisayollar.classList.remove('hidden');
+                    kisayollar.classList.add('flex');
+                }
+            } catch (err) {
+                console.error('Panel kisayollari hazirlanamadi:', err);
+            }
+        }
+
+        function iletisimHtml(dukkan, koyu = false) {
+            const taban = koyu ? 'bg-white text-slate-950 hover:bg-slate-100' : 'bg-white/10 text-white hover:bg-white/15';
+            const telefon = dukkan.telefon ? String(dukkan.telefon).replace(/[^0-9+]/g, '') : '';
+            return `
+                ${dukkan.telefon ? `<a href="tel:${telefon}" class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-black transition ${taban}"><i class="fa-solid fa-phone"></i> ${guvenliMetin(dukkan.telefon)}</a>` : ''}
+                ${dukkan.telefon ? `<a href="https://wa.me/${telefon.replace(/^0/, '90')}" target="_blank" class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-black transition ${taban}"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>` : ''}
+                ${dukkan.adres ? `<span class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-black ${taban}"><i class="fa-solid fa-location-dot"></i> ${guvenliMetin(dukkan.adres)}</span>` : ''}
+            `;
+        }
+
+        async function profesyonelSayfaYukle() {
+            const res = await fetch('/api/' + slug + '/vitrin');
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Sayfa yuklenemedi.');
+
+            const dukkan = data.dukkan || {};
+            const hizmetler = data.ogeler || [];
+            const arkaPlanUrl = dukkan.arka_plan_url;
+            const heroArka = document.getElementById('sayfaArkaplan');
+            if (heroArka && arkaPlanUrl) heroArka.style.backgroundImage = `url('${String(arkaPlanUrl).replace(/'/g, "%27")}')`;
+            sayfaArkaPlaniniAyarla(arkaPlanUrl);
+
+            const logo = document.getElementById('dukkanLogo');
+            const logoIkon = document.getElementById('dukkanLogoIkon');
+            if (logo) {
+                if (dukkan.logo_url) {
+                    logo.src = dukkan.logo_url;
+                    logo.classList.remove('hidden');
+                    logoIkon.classList.add('hidden');
+                } else {
+                    logo.classList.add('hidden');
+                    logoIkon.classList.remove('hidden');
+                }
+            }
+
+            const sektor = dukkan.tur || 'Profesyonel Hizmet';
+            const aciklama = dukkan.aciklama || 'Randevu, danismanlik ve profesyonel hizmet talepleriniz icin guvenilir iletisim noktasi.';
+            document.getElementById('dukkanAdi').textContent = dukkan.ad || 'Profesyonel Hizmet';
+            document.getElementById('dukkanTur').textContent = sektor;
+            document.getElementById('dukkanAltBaslik').textContent = aciklama;
+            document.getElementById('dukkanAciklama').textContent = aciklama;
+            document.getElementById('dukkanIletisim').innerHTML = iletisimHtml(dukkan);
+            document.getElementById('altIletisim').innerHTML = iletisimHtml(dukkan, true);
+            document.title = (dukkan.ad || 'Profesyonel Hizmet') + ' | Hizmetler';
+            panelKisayollariniYukle(dukkan.slug || slug);
+
+            const alan = document.getElementById('hizmetListesi');
+            if (!hizmetler.length) {
+                alan.innerHTML = '<div class="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white/80 p-10 text-center text-slate-500">Hizmet alanlari eklendiginde burada gorunecek.</div>';
+                return;
+            }
+
+            alan.innerHTML = hizmetler.map((hizmet) => `
+                <article class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-xl text-white">
+                        <i class="fa-solid ${ikon(hizmet.tur, hizmet.ad)}"></i>
+                    </div>
+                    <div class="mt-5">
+                        <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">${guvenliMetin(hizmet.tur || 'Hizmet')}</div>
+                        <h3 class="mt-2 text-xl font-black text-slate-950">${guvenliMetin(hizmet.ad || 'Hizmet')}</h3>
+                        <p class="mt-3 min-h-[48px] text-sm leading-6 text-slate-600">${guvenliMetin(hizmet.detay || 'Detayli bilgi ve randevu icin iletisime gecin.')}</p>
+                    </div>
+                    <div class="mt-5 flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+                        <span class="text-sm font-black text-slate-900">${fiyatYaz(hizmet.fiyat)}</span>
+                        <a href="#iletisimCta" class="rounded-xl bg-slate-950 px-4 py-2 text-sm font-black text-white transition group-hover:bg-blue-600">Bilgi al</a>
+                    </div>
+                </article>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

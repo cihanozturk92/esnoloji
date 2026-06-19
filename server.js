@@ -65,6 +65,27 @@ function restoranTuruMu(tur) {
     return temizTur.includes('restoran') || temizTur.includes('cafe') || temizTur.includes('kafe');
 }
 
+function profesyonelTuruMu(tur) {
+    const temizTur = String(tur || '').toLocaleLowerCase('tr-TR');
+    return temizTur.includes('avukat') ||
+        temizTur.includes('hukuk') ||
+        temizTur.includes('mali') ||
+        temizTur.includes('musavir') ||
+        temizTur.includes('müşavir') ||
+        temizTur.includes('muhasebe') ||
+        temizTur.includes('danisman') ||
+        temizTur.includes('danışman');
+}
+
+function saatliRandevuTuruMu(tur) {
+    const temizTur = String(tur || '').toLocaleLowerCase('tr-TR');
+    return temizTur.includes('kuafor') ||
+        temizTur.includes('kuaför') ||
+        temizTur.includes('berber') ||
+        temizTur.includes('guzellik') ||
+        temizTur.includes('güzellik');
+}
+
 function siteBaseUrl(req) {
     const envUrl = String(process.env.PUBLIC_BASE_URL || '').trim();
     if (envUrl) return envUrl.replace(/\/+$/, '');
@@ -678,7 +699,7 @@ app.delete('/api/superadmin/dukkan/:id', apiYetkiGerekli(['superadmin', 'süpera
             if (error) throw error;
         }
 
-        for (const tablo of ['rezervasyonlar', 'stok_hareketleri', 'giderler', 'siparisler', 'urunler', 'ogeler', 'mesajlar', 'personel']) {
+        for (const tablo of ['randevular', 'rezervasyonlar', 'stok_hareketleri', 'giderler', 'siparisler', 'urunler', 'ogeler', 'mesajlar', 'personel']) {
             const { error } = await supabase.from(tablo).delete().eq('dukkan_id', dukkanId);
             if (error && error.code !== '42P01') throw error;
         }
@@ -1397,7 +1418,11 @@ app.get('/:dukkan_adi', async (req, res, next) => {
 
         const hedefDosya = restoranTuruMu(dukkan.tur)
             ? path.join(__dirname, 'public', 'menu.html')
-            : path.join(__dirname, 'public', 'vitrin.html');
+            : (saatliRandevuTuruMu(dukkan.tur)
+                ? path.join(__dirname, 'public', 'randevu.html')
+                : (profesyonelTuruMu(dukkan.tur)
+                    ? path.join(__dirname, 'public', 'profesyonel.html')
+                    : path.join(__dirname, 'public', 'vitrin.html')));
 
         htmlCacheKapat(res);
         res.sendFile(hedefDosya);
@@ -1407,6 +1432,191 @@ app.get('/:dukkan_adi', async (req, res, next) => {
     }
 });
 
+
+
+app.get('/api/:dukkan_adi/randevu-sayfa', async (req, res) => {
+    try {
+        const dukkan = await dukkanBilgisiBulBySlug(req.params.dukkan_adi);
+        if (!dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi.' });
+
+        const { data: hizmetler, error } = await supabase
+            .from('ogeler')
+            .select('id, dukkan_id, ad, detay, fiyat, tur')
+            .eq('dukkan_id', dukkan.id)
+            .order('id', { ascending: true });
+
+        if (error) throw error;
+        res.json({ dukkan, hizmetler: hizmetler || [] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/:dukkan_adi/randevu-musaitlik', async (req, res) => {
+    try {
+        const dukkan = await dukkanBilgisiBulBySlug(req.params.dukkan_adi);
+        if (!dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi.' });
+
+        const ogeId = Number(req.query?.oge_id || 0);
+        const tarih = String(req.query?.tarih || '').trim();
+        if (!ogeId || !/^\d{4}-\d{2}-\d{2}$/.test(tarih)) return res.status(400).json({ error: 'Hizmet ve tarih zorunlu.' });
+
+        const { data, error } = await supabase
+            .from('randevular')
+            .select('saat')
+            .eq('dukkan_id', dukkan.id)
+            .eq('oge_id', ogeId)
+            .eq('tarih', tarih)
+            .eq('durum', 'onaylandi');
+
+        if (error) throw error;
+        res.json({ doluSaatler: (data || []).map(r => String(r.saat || '').slice(0, 5)).filter(Boolean) });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/:dukkan_adi/randevu-talep', async (req, res) => {
+    const ogeId = Number(req.body?.oge_id || 0);
+    const musteri_ad = String(req.body?.musteri_ad || '').trim();
+    const musteri_telefon = String(req.body?.musteri_telefon || '').trim();
+    const tarih = String(req.body?.tarih || '').trim();
+    const saat = String(req.body?.saat || '').slice(0, 5);
+    const notlar = String(req.body?.notlar || '').trim();
+    const toplam_tutar = Number(req.body?.toplam_tutar || 0);
+
+    try {
+        const dukkan = await dukkanBilgisiBulBySlug(req.params.dukkan_adi);
+        if (!dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi.' });
+        if (!ogeId || !musteri_ad || !musteri_telefon || !/^\d{4}-\d{2}-\d{2}$/.test(tarih) || !/^\d{2}:\d{2}$/.test(saat)) {
+            return res.status(400).json({ error: 'Hizmet, tarih, saat, ad ve telefon zorunlu.' });
+        }
+
+        const { data: hizmet, error: hizmetErr } = await supabase
+            .from('ogeler')
+            .select('id')
+            .eq('id', ogeId)
+            .eq('dukkan_id', dukkan.id)
+            .maybeSingle();
+
+        if (hizmetErr) throw hizmetErr;
+        if (!hizmet) return res.status(404).json({ error: 'Hizmet bulunamadi.' });
+
+        const { data, error } = await supabase
+            .from('randevular')
+            .insert([{
+                dukkan_id: dukkan.id,
+                oge_id: ogeId,
+                musteri_ad,
+                musteri_telefon,
+                tarih,
+                saat,
+                sure_dakika: 30,
+                durum: 'beklemede',
+                notlar: notlar || null,
+                toplam_tutar
+            }])
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.json({ status: 'success', randevu: data });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/:dukkan_adi/randevular-yonetim', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
+    try {
+        const dukkan = await dukkanBilgisiBulBySlug(req.params.dukkan_adi);
+        if (!dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi.' });
+
+        const { data: hizmetler, error: hizmetErr } = await supabase
+            .from('ogeler')
+            .select('id, ad, tur, fiyat')
+            .eq('dukkan_id', dukkan.id)
+            .order('id', { ascending: true });
+        if (hizmetErr) throw hizmetErr;
+
+        const { data: randevular, error } = await supabase
+            .from('randevular')
+            .select('*')
+            .eq('dukkan_id', dukkan.id)
+            .order('tarih', { ascending: false })
+            .order('saat', { ascending: true });
+        if (error) throw error;
+
+        res.json({ hizmetler: hizmetler || [], randevular: randevular || [] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.patch('/api/:dukkan_adi/randevular/:id/durum', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
+    const durum = String(req.body?.durum || '').trim();
+    const izinliDurumlar = ['beklemede', 'onaylandi', 'reddedildi', 'iptal'];
+
+    try {
+        const dukkan = await dukkanBilgisiBulBySlug(req.params.dukkan_adi);
+        if (!dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi.' });
+        if (!izinliDurumlar.includes(durum)) return res.status(400).json({ error: 'Gecersiz randevu durumu.' });
+
+        const { data: randevu, error: randevuErr } = await supabase
+            .from('randevular')
+            .select('id, dukkan_id, oge_id, tarih, saat')
+            .eq('id', req.params.id)
+            .eq('dukkan_id', dukkan.id)
+            .single();
+
+        if (randevuErr || !randevu) return res.status(404).json({ error: 'Randevu bulunamadi.' });
+
+        if (durum === 'onaylandi') {
+            const { data: cakisan, error: cakismaErr } = await supabase
+                .from('randevular')
+                .select('id')
+                .eq('dukkan_id', dukkan.id)
+                .eq('oge_id', randevu.oge_id)
+                .eq('tarih', randevu.tarih)
+                .eq('saat', randevu.saat)
+                .eq('durum', 'onaylandi')
+                .neq('id', randevu.id)
+                .limit(1);
+            if (cakismaErr) throw cakismaErr;
+            if ((cakisan || []).length) return res.status(409).json({ error: 'Bu saat icin onayli baska bir randevu var.' });
+        }
+
+        const { data, error } = await supabase
+            .from('randevular')
+            .update({ durum })
+            .eq('id', randevu.id)
+            .eq('dukkan_id', dukkan.id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.json({ status: 'success', randevu: data });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/:dukkan_adi/randevular/:id', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
+    try {
+        const dukkan = await dukkanBilgisiBulBySlug(req.params.dukkan_adi);
+        if (!dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi.' });
+
+        const { error } = await supabase
+            .from('randevular')
+            .delete()
+            .eq('id', req.params.id)
+            .eq('dukkan_id', dukkan.id);
+
+        if (error) throw error;
+        res.json({ status: 'success' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 app.get('/api/:dukkan_adi/ozet', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
     try {
