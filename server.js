@@ -3,6 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
 const QRCode = require('qrcode');
+const telegramMesajGonder = require("./utils/telegram");
 
 function envDosyasiniYukle() {
     const envYolu = path.join(__dirname, '.env');
@@ -2944,6 +2945,15 @@ app.post('/api/siparis/kapat/:siparisId', apiYetkiGerekli(['garson', 'admin', 's
     } catch (error) {
         res.status(500).json({ error: "Sunucu hatasÄ±" });
     }
+});
+app.get("/test-telegram", async (req, res) => {
+
+    await telegramMesajGonder(
+        1354099152,
+        "Esnoloji Telegram testi başarılı!"
+    );
+
+    res.send("Mesaj gönderildi.");
 });
 app.listen(PORT, () => console.log(`ğŸš€ Esnoloji Aktif: http://localhost:${PORT}`));
 
