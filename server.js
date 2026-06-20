@@ -44,7 +44,15 @@ const PORT = Number(process.env.PORT || 3000);
 
 app.set('trust proxy', 1);
 app.use(express.json());
+app.get("/test-telegram", async (req, res) => {
 
+    await telegramMesajGonder(
+        1354099152,
+        "Esnoloji Telegram testi başarılı!"
+    );
+
+    res.send("Mesaj gönderildi.");
+});
 app.get('/health', (req, res) => {
     res.set('Cache-Control', 'no-store, max-age=0');
     res.json({ status: 'ok', service: 'esnoloji', time: new Date().toISOString() });
@@ -2946,15 +2954,7 @@ app.post('/api/siparis/kapat/:siparisId', apiYetkiGerekli(['garson', 'admin', 's
         res.status(500).json({ error: "Sunucu hatasÄ±" });
     }
 });
-app.get("/test-telegram", async (req, res) => {
 
-    await telegramMesajGonder(
-        1354099152,
-        "Esnoloji Telegram testi başarılı!"
-    );
-
-    res.send("Mesaj gönderildi.");
-});
 app.listen(PORT, () => console.log(`ğŸš€ Esnoloji Aktif: http://localhost:${PORT}`));
 
 
