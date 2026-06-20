@@ -44,6 +44,12 @@ const PORT = Number(process.env.PORT || 3000);
 app.set('trust proxy', 1);
 app.use(express.json());
 
+app.get('/health', (req, res) => {
+    res.set('Cache-Control', 'no-store, max-age=0');
+    res.json({ status: 'ok', service: 'esnoloji', time: new Date().toISOString() });
+});
+
+
 // Supabase BaÄŸlantÄ±sÄ±
 const { createClient } = require('@supabase/supabase-js');
 
@@ -1305,18 +1311,19 @@ app.get('/api/:dukkan_adi/admin-bilgi', apiYetkiGerekli(['admin', 'superadmin', 
     }
 });
 
-app.get('/api/:dukkan_adi/dukkan-bilgileri', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
+app.get('/api/:dukkan_adi/dukkan-bilgileri', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin', 'süperadmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
     try {
         const dukkan = await dukkanBilgisiBulBySlug(req.params.dukkan_adi);
         if (!dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi.' });
 
-        res.json({ dukkan });
+        const telegram = await telegramAyarlariPublicGetir(dukkan.id);
+        res.json({ dukkan: { ...dukkan, ...telegram } });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-app.put('/api/:dukkan_adi/dukkan-bilgileri', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
+app.put('/api/:dukkan_adi/dukkan-bilgileri', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin', 'süperadmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
     try {
         const dukkan = await dukkanBilgisiBulBySlug(req.params.dukkan_adi);
         if (!dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi.' });
@@ -1327,9 +1334,7 @@ app.put('/api/:dukkan_adi/dukkan-bilgileri', apiYetkiGerekli(['admin', 'superadm
             adres: opsiyonelMetin(req.body?.adres),
             aciklama: opsiyonelMetin(req.body?.aciklama),
             logo_url: null,
-            arka_plan_url: null,
-            il: null,
-            il_slug: null
+            arka_plan_url: null
         };
 
         if (!payload.ad) return res.status(400).json({ error: 'Dukkan adi zorunlu.' });
@@ -1348,9 +1353,31 @@ app.put('/api/:dukkan_adi/dukkan-bilgileri', apiYetkiGerekli(['admin', 'superadm
             throw error;
         }
 
+        const telegramPayload = {
+            telegram_chat_id: opsiyonelMetin(req.body?.telegram_chat_id),
+            telegram_bildirim_aktif: Boolean(req.body?.telegram_bildirim_aktif)
+        };
+
+        let telegramKolonlariEksik = false;
+        const { error: telegramErr } = await supabase
+            .from('dukkanlar')
+            .update(telegramPayload)
+            .eq('id', dukkan.id);
+
+        if (telegramErr) {
+            if (telegramKolonuEksikMi(telegramErr)) {
+                telegramKolonlariEksik = true;
+                console.warn('Telegram ayarlari kaydedilemedi: telegram kolonlari eksik.');
+            } else {
+                throw telegramErr;
+            }
+        }
+
+        const telegram = await telegramAyarlariPublicGetir(dukkan.id);
         res.json({
             status: 'success',
-            dukkan: dukkanGorselleriniNormalle(data)
+            telegramKolonlariEksik,
+            dukkan: { ...dukkanGorselleriniNormalle(data), ...telegram }
         });
     } catch (err) {
         res.status(500).json({ error: err.message });

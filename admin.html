@@ -193,9 +193,14 @@
     <main class="flex-grow p-6 md:p-10 overflow-y-auto">
         
         <section id="ozetSekmesi">
-            <div class="border-b border-slate-200 pb-5 mb-6">
-                <h2 class="text-2xl font-black text-slate-800 tracking-tight">Genel Özet</h2>
-                <p class="text-sm text-slate-500 mt-1">İşletmenizin anlık durumu ve hızlı performans göstergeleri.</p>
+            <div class="border-b border-slate-200 pb-5 mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Genel Özet</h2>
+                    <p class="text-sm text-slate-500 mt-1">İşletmenizin anlık durumu ve hızlı performans göstergeleri.</p>
+                </div>
+                <button id="ozetYenileButon" onclick="genelOzetiYukle()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">
+                    Özeti Güncelle
+                </button>
             </div>
             
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -674,9 +679,14 @@
                     <h2 class="text-2xl font-black text-slate-800 tracking-tight">Gelir - Gider Takibi</h2>
                     <p class="text-sm text-slate-500 mt-1">İşletmenizin kasa hareketleri, günlük cirolar ve dükkan masrafları.</p>
                 </div>
-                <div class="w-full sm:w-56">
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Rapor Ayi</label>
-                    <input type="month" id="gelirGiderAyInput" onchange="gelirGiderYukle()" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-700 bg-white">
+                <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-end">
+                    <div class="w-full sm:w-56">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Rapor Ayi</label>
+                        <input type="month" id="gelirGiderAyInput" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-700 bg-white">
+                    </div>
+                    <button id="gelirGiderYenileButon" onclick="gelirGiderYukle()" class="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-slate-800 active:scale-[0.98]">
+                        Raporu Güncelle
+                    </button>
                 </div>
             </div>
             <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
@@ -1624,27 +1634,24 @@
                 aktifNav.className = "flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-600 text-white transition font-medium text-sm";
             }
 
-            // 4. İlgili veriyi veritabanından tetikle
-            if (sekmeId === 'ozet') genelOzetiYukle();
+            // 4. Veri cekme sadece ilgili sekmelerde ve gerekli yerlerde tetiklenir.
+            // Ozet ve gelir-gider kotalari korumak icin manuel yenileme dugmeleriyle calisir.
+            if (sekmeId === 'ozet') telegramCiroButonunuAyarla();
             if (sekmeId === 'dukkan-bilgileri') dukkanBilgileriniYukle();
             if (sekmeId === 'oge-yonetimi') verileriSunucudanCek();
             if (sekmeId === 'rezervasyon') rezervasyonVerileriniCek();
             if (sekmeId === 'saatli-randevu') saatliRandevulariYukle();
             if (sekmeId === 'urunler') urunleriSunucudanCek();
             if (sekmeId === 'personel') personelleriSunucudanCek();
-            if (sekmeId === 'gelir-gider') gelirGiderYukle();
+            if (sekmeId === 'gelir-gider') gelirGiderBirimSeciminiDoldur();
             if (sekmeId === 'ambar') ambarVerileriniCek();
             if (sekmeId === 'mesajlar') mesajlarVerisiniCek();
         }
 
         // 🛠️ PANEL FORM AÇMA / KAPATMA YARDIMCISI
         function canliOzetleriBaslat() {
-            genelOzetiYukle();
-            gelirGiderYukle();
-            setInterval(() => {
-                genelOzetiYukle();
-                gelirGiderYukle();
-            }, 15000);
+            // Supabase kotasini korumak icin otomatik periyodik yenileme kapali.
+            telegramCiroButonunuAyarla();
         }
 
         function formuKapatAc(formId, butonId, varsayilanMetin) {

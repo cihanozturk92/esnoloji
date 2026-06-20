@@ -52,6 +52,23 @@
             border-bottom: 1px solid rgba(148, 163, 184, 0.12);
         }
 
+        @media (max-width: 767px) {
+            .site-header {
+                transition: transform 220ms ease, background 180ms ease, border-color 180ms ease;
+                will-change: transform;
+            }
+
+            .site-header.mobile-header-hidden {
+                transform: translateY(-110%);
+            }
+        }
+
+        @media (min-width: 768px) {
+            .site-header.mobile-header-hidden {
+                transform: none;
+            }
+        }
+
         .header-row {
             display: flex;
             align-items: center;
@@ -980,7 +997,7 @@
             <div class="hero-grid">
                 <div class="hero-copy">
                     <h1>Menü değil, Vitrin değil, Panel değil. Hepsini aynı anda yapan bir sistem.</h1>
-                    <p>Esnoloji; restoran, kafe, araba kiralama, oda kiralama, galeri ve hizmet işletmelerine tek merkezden satış, rezervasyon, personel, stok, QR ve görünürlük kazandırır. Müşteriye şık görünür, personele hız verir, patrona kontrol verir.</p>
+                    <p>Esnoloji; restoran, kafe, araba kiralama, oda kiralama, galeri, berber ve profesyonel hizmet işletmelerine tek merkezden satış, rezervasyon, randevu, personel, stok, finans, QR ve anlık bildirim akışı kazandırır. Müşteriye şık görünür, personele hız verir, patrona kontrol verir.</p>
                     <div class="hero-actions">
                         <button class="cta-btn" type="button" onclick="toggleModal(true)">İşletme girişini aç</button>
                         <a class="ghost-btn" href="#neler-yapiyoruz">Neler yapıyoruz, göster</a>
@@ -988,7 +1005,7 @@
                     <div class="hero-points">
                         <span class="point-chip">QR ile açılan dijital menü ve vitrin</span>
                         <span class="point-chip">Garson, admin ve süper admin panelleri</span>
-                        <span class="point-chip">Rezervasyon, stok, gelir-gider, satış raporu</span>
+                        <span class="point-chip">Rezervasyon, randevu, stok, gelir-gider, anlık bildirim</span>
                     </div>
                     <div class="coztech-stamp" aria-label="COZTech marka imzasi">
                         <img src="/WhatsApp%20Image%202026-06-17%20at%2021.04.20.jpeg" alt="COZTech logosu">
@@ -1040,8 +1057,8 @@
                                 <div class="line-price">Anlık</div>
                             </div>
                             <div class="line-item">
-                                <div><small>İşletme</small><strong>Tek panelden yönetim</strong></div>
-                                <div class="line-price">7/24</div>
+                                <div><small>Bildirim</small><strong>Yeni rezervasyon düştü</strong></div>
+                                <div class="line-price">Anında</div>
                             </div>
                         </div>
                     </div>
@@ -1054,17 +1071,17 @@
                 <article class="band-card">
                     <span>Satış gücü</span>
                     <strong>Masada da satar, vitrinde de satar</strong>
-                    <p>QR ile sipariş alan restoran akışı ve takvimli kiralama vitrini tek yapıda birleşir.</p>
+                    <p>QR ile sipariş alan restoran akışı, randevulu hizmet ekranı ve takvimli kiralama vitrini tek yapıda birleşir.</p>
                 </article>
                 <article class="band-card">
                     <span>Operasyon</span>
                     <strong>Garson, admin, patron aynı fotoğrafı görür</strong>
-                    <p>Kim ne satmış, hangi masa açık, hangi araç dolu, tek ekranda net görünür.</p>
+                    <p>Kim ne satmış, hangi masa açık, hangi araç dolu, hangi randevu bekliyor; tek ekranda net görünür.</p>
                 </article>
                 <article class="band-card">
                     <span>Kontrol</span>
                     <strong>Stok, gelir, gider, kâr, hareket</strong>
-                    <p>Sadece sipariş değil; işletmenin nabzını tutan asıl katman arka tarafta çalışır.</p>
+                    <p>Sadece sipariş değil; ciro özeti, stok hareketi, rezervasyon ve anlık bildirim katmanı arka tarafta çalışır.</p>
                 </article>
                 <article class="band-card">
                     <span>Sunum</span>
@@ -1091,22 +1108,22 @@
                     <div class="showcase-content">
                         <div class="eyebrow" style="width:max-content;">Müşteri tarafı</div>
                         <h3>İşletmeni daha açılmadan ikna eden bir vitrine çevir.</h3>
-                        <p>Menüde iletişim, marka, arka plan, ürün akışı; vitrinde araç, oda, ekipman, uygunluk takvimi ve rezervasyon mantığıyla “bu iş profesyonel” hissi ver.</p>
+                        <p>Menüde iletişim, marka, arka plan, ürün akışı; vitrinde araç, oda, ekipman, uygunluk takvimi; hizmet sayfalarında randevu ve bilgi alma akışıyla “bu iş profesyonel” hissi ver.</p>
                     </div>
                 </article>
 
                 <div class="use-grid">
                     <article class="use-card">
                         <strong>Restoran modu</strong>
-                        <p>Masa yönetimi, garson siparişi, açık/kapalı siparişler, günlük ve aylık ciro, stok düşümü ve ürün raporları aynı zincirde çalışır.</p>
+                        <p>Masa yönetimi, garson siparişi, açık/kapalı siparişler, günlük ve aylık ciro, stok düşümü, ürün raporları ve anlık işletme bildirimleri aynı zincirde çalışır.</p>
                     </article>
                     <article class="use-card">
                         <strong>Kiralama modu</strong>
-                        <p>Araba, vinç, oda, günlük ev veya ekipman fark etmez. Varlıklar vitrine çıkar, boş günler görünür, rezervasyon takvimi arkada işler.</p>
+                        <p>Araba, vinç, oda, günlük ev veya ekipman fark etmez. Varlıklar vitrine çıkar, boş günler görünür, rezervasyon talebi işletmeye anında düşer.</p>
                     </article>
                     <article class="use-card">
                         <strong>Patron modu</strong>
-                        <p>Gelir-gider, QR dağıtımı, dükkan yönetimi, personel yönetimi ve sektör bazlı yapılandırma ile “excel peşinde koşma” devri kapanır.</p>
+                        <p>Gelir-gider, QR dağıtımı, dükkan yönetimi, personel yönetimi, anlık bildirim ayarları ve sektör bazlı yapılandırma ile “excel peşinde koşma” devri kapanır.</p>
                     </article>
                 </div>
             </div>
@@ -1126,12 +1143,12 @@
                 <article class="advantage-card">
                     <span>01</span>
                     <h3>Aynı çekirdekte çok sektör</h3>
-                    <p>Restoran için menü ve garson ekranı, kiralama için vitrin ve doluluk takvimi, her ikisi için de sağlam yönetim paneli.</p>
+                    <p>Restoran için menü ve garson ekranı, kiralama için vitrin ve doluluk takvimi, hizmet işletmeleri için randevu akışı; hepsi için sağlam yönetim paneli.</p>
                 </article>
                 <article class="advantage-card">
                     <span>02</span>
                     <h3>Satışı ölçen gerçek yönetim</h3>
-                    <p>Kim hangi ürünü sattı, hangi garson tatlıyı daha iyi pazarladı, ne kadar ciro geldi, ne kadar stok eridi; boş laf değil, ölçülebilir veri.</p>
+                    <p>Kim hangi ürünü sattı, hangi garson tatlıyı daha iyi pazarladı, hangi rezervasyon geldi, ne kadar ciro oluştu; boş laf değil, ölçülebilir veri.</p>
                 </article>
                 <article class="advantage-card">
                     <span>03</span>
@@ -1165,12 +1182,12 @@
                 <article class="step-card">
                     <div class="step-index">3</div>
                     <h3>QR veya vitrinini yayınla</h3>
-                    <p>Müşteri doğrudan senin sayfana gelir. Menü görür, vitrin görür, markanı görür; arada aracı platform hissi olmaz.</p>
+                    <p>Müşteri doğrudan senin sayfana gelir. Menü görür, vitrin görür, randevu talebi bırakır, markanı görür; arada aracı platform hissi olmaz.</p>
                 </article>
                 <article class="step-card">
                     <div class="step-index">4</div>
                     <h3>Yönetmeye başla</h3>
-                    <p>Sipariş, doluluk, personel, satış, stok ve finans takibi arka tarafta işlemeye başlar.</p>
+                    <p>Sipariş, doluluk, randevu, personel, satış, stok, finans ve anlık bildirim akışı arka tarafta işlemeye başlar.</p>
                 </article>
             </div>
         </div>
@@ -1194,7 +1211,7 @@
         <div class="container closing-wrap">
             <div class="eyebrow">Son söz</div>
             <h2>İşletmeni internette “var” etmek değil, etkileyici hale getirmek istiyorsan doğru yerdesin.</h2>
-            <p>Esnoloji, gösterilecek kadar şık; günlük operasyonu taşıyacak kadar ciddi; yarın yeni sektör eklenince bozulmayacak kadar esnek bir omurga sunar.</p>
+            <p>Esnoloji, gösterilecek kadar şık; günlük operasyonu taşıyacak kadar ciddi; rezervasyon, randevu ve anlık bildirimlerle yarın yeni sektör eklenince bozulmayacak kadar esnek bir omurga sunar.</p>
             <div class="hero-actions">
                 <button class="cta-btn" type="button" onclick="toggleModal(true)">Panele bağlan</button>
                 <a class="ghost-btn" href="#dukkan-listesi">Aktif işletmelere bak</a>
@@ -1208,7 +1225,7 @@
                 <img src="/WhatsApp%20Image%202026-06-17%20at%2021.04.20.jpeg" alt="COZTech logosu">
                 <div>
                     <strong>Esnoloji.TR by COZTech</strong>
-                    <span>Dijital menü, vitrin, rezervasyon ve yönetim sistemleri</span>
+                    <span>Dijital menü, vitrin, randevu, rezervasyon ve yönetim sistemleri</span>
                 </div>
             </div>
             <div class="footer-copy">
@@ -1373,6 +1390,48 @@
             }
         }
 
+        function mobilHeaderDavranisiniBaslat() {
+            const header = document.querySelector('.site-header');
+            if (!header) return;
+
+            let sonScroll = window.scrollY;
+            let ticking = false;
+            const esik = 12;
+            const mobilSorgu = window.matchMedia('(max-width: 767px)');
+
+            function headerDurumunuGuncelle() {
+                const simdikiScroll = window.scrollY;
+
+                if (!mobilSorgu.matches) {
+                    header.classList.remove('mobile-header-hidden');
+                    sonScroll = simdikiScroll;
+                    ticking = false;
+                    return;
+                }
+
+                if (simdikiScroll <= 20) {
+                    header.classList.remove('mobile-header-hidden');
+                } else if (simdikiScroll > sonScroll + esik) {
+                    header.classList.add('mobile-header-hidden');
+                } else if (simdikiScroll < sonScroll - esik) {
+                    header.classList.remove('mobile-header-hidden');
+                }
+
+                sonScroll = simdikiScroll;
+                ticking = false;
+            }
+
+            window.addEventListener('scroll', () => {
+                if (!ticking) {
+                    window.requestAnimationFrame(headerDurumunuGuncelle);
+                    ticking = true;
+                }
+            }, { passive: true });
+
+            window.addEventListener('resize', headerDurumunuGuncelle);
+            headerDurumunuGuncelle();
+        }
+
         window.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') toggleModal(false);
         });
@@ -1381,6 +1440,7 @@
             if (event.target.id === 'loginModal') toggleModal(false);
         });
 
+        mobilHeaderDavranisiniBaslat();
         oturumDurumunuGuncelle();
         dukkanlariYukle();
     </script>
