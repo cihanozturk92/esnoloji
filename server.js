@@ -1914,7 +1914,16 @@ app.post('/api/:dukkan_adi/randevu-talep', async (req, res) => {
             .single();
 
         if (error) throw error;
-        res.json({ status: 'success', randevu: data });
+
+await sendTelegramNotification(dukkan.id, 'rezervasyon', {
+    musteri_ad,
+    musteri_telefon,
+    tarih,
+    saat,
+    notlar
+});
+
+res.json({ status: 'success', randevu: data });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
