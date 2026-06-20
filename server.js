@@ -256,14 +256,19 @@ function telegramMesajMetni(type, payload = {}) {
         const saatMetni = payload.saat || payload.baslangic_saati || payload.saat_araligi || '-';
         const detay = payload.notlar || payload.detay || '-';
         return [
-            '🔔 Yeni Rezervasyon',
-            '',
-            'İşletme: ' + (payload.isletme || '-'),
-            'Müşteri: ' + (payload.musteri_ad || payload.musteri || '-'),
-            'Tarih: ' + tarihMetni,
-            'Saat: ' + saatMetni,
-            'Detay: ' + detay
-        ].join('\n');
+    '🔔 Yeni Rezervasyon',
+    '',
+    '🏪 İşletme: ' + (payload.isletme || '-'),
+    '👤 Müşteri: ' + (payload.musteri_ad || payload.musteri || '-'),
+    '📞 Telefon: ' + (payload.musteri_telefon || '-'),
+    '📅 Tarih: ' + tarihMetni,
+    '🕒 Saat: ' + saatMetni,
+    '📝 Detay: ' + detay,
+    '',
+    'ℹ️ Randevu onay veya red işlemini Esnoloji panelinden yapabilirsiniz.',
+    '',
+    '🌐 Esnoloji.tr'
+].join('\n');
     }
 
     if (type === 'gunluk-ciro') {
