@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Randevu Al</title>
+    <title>Esnoloji.TR</title>
+<meta name="description" content="Esnoloji.TR işletme vitrini">
+<link id="dinamikFavicon" rel="icon" href="/favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -179,12 +181,13 @@
             const sektor = dukkan?.tur || dukkan?.kategori || 'İşletme';
             const il = dukkan?.il || '';
             const ilSektor = [il, sektor].filter(Boolean).join(' ');
-            const baslik = ad + ' | ' + (ilSektor || sektor) + ' | Esnoloji';
+            const baslik = `${ad} | ${il} ${sektor.replace('-', ' ')} | Esnoloji.TR`;
             const aciklama = dukkan?.aciklama || (ad + ', ' + (il || 'bulunduğu') + ' bölgesinde ' + sektor + ' hizmeti vermektedir. Esnoloji üzerinden iletişim, menü ve hizmet bilgilerine ulaşabilirsiniz.');
             const canonicalUrl = 'https://esnoloji.tr/' + encodeURIComponent(dukkan?.slug || slug);
 
             document.title = baslik;
             metaEtiketiYaz('meta[name="description"]', { name: 'description', content: aciklama });
+            faviconYaz(dukkan?.logo_url || dukkan?.logo || dukkan?.logoUrl);
             canonicalYaz(canonicalUrl);
             metaEtiketiYaz('meta[property="og:title"]', { property: 'og:title', content: baslik });
             metaEtiketiYaz('meta[property="og:description"]', { property: 'og:description', content: aciklama });
@@ -200,7 +203,19 @@
             }
             Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
         }
+function faviconYaz(logoUrl) {
+    if (!logoUrl) return;
 
+    let el = document.head.querySelector('link[rel="icon"]');
+
+    if (!el) {
+        el = document.createElement('link');
+        el.setAttribute('rel', 'icon');
+        document.head.appendChild(el);
+    }
+
+    el.setAttribute('href', logoUrl);
+}
         function canonicalYaz(url) {
             let el = document.head.querySelector('link[rel="canonical"]');
             if (!el) {

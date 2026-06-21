@@ -177,7 +177,7 @@
             const sektor = dukkan?.tur || dukkan?.kategori || 'İşletme';
             const il = dukkan?.il || '';
             const ilSektor = [il, sektor].filter(Boolean).join(' ');
-            const baslik = ad + ' | ' + (ilSektor || sektor) + ' | Esnoloji';
+            const baslik = `${ad} | ${il} ${sektor.replace('-', ' ')} | Esnoloji.TR`;
             const aciklama = dukkan?.aciklama || (ad + ', ' + (il || 'bulunduğu') + ' bölgesinde ' + sektor + ' hizmeti vermektedir. Esnoloji üzerinden iletişim, menü ve hizmet bilgilerine ulaşabilirsiniz.');
             const canonicalUrl = 'https://esnoloji.tr/' + encodeURIComponent(dukkan?.slug || slug);
 
