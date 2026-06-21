@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <title>Esnoloji.TR | İşletmeni iz bırakacak seviyeye taşı</title>
     <style>
         :root {
@@ -969,6 +971,51 @@
                 border-radius: 22px;
             }
         }
+        .iletisim-kutusu{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.iletisim-baslik{
+    margin-bottom:12px;
+    color:#94a3b8;
+    font-size:14px;
+}
+
+.iletisim-alani{
+    display:flex;
+    align-items:center;
+    gap:16px;
+}
+
+.whatsapp-btn,
+.telefon-btn{
+    width:58px;
+    height:58px;
+    border-radius:35%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-decoration:none;
+    font-size:28px;
+    transition:.2s;
+}
+
+.whatsapp-btn{
+    background:#25D366;
+    color:white;
+}
+
+.telefon-btn{
+    background:#38bdf8;
+    color:white;
+}
+
+.whatsapp-btn:hover,
+.telefon-btn:hover{
+    transform:scale(1.08);
+}
     </style>
 </head>
 <body>
@@ -983,9 +1030,33 @@
                         <strong>Esnoloji.TR</strong>
                         <span>COZTech altyapısıyla geliştirilen yeni nesil işletme sistemi</span>
                     </span>
+                    <div class="iletisim-kutusu">
+
+    <div class="iletisim-baslik">
+        Bize Ulaşın
+    </div>
+
+    <div class="iletisim-alani">
+
+        <a class="whatsapp-btn"
+   href="https://wa.me/905436307589?text=Merhaba,%20Esnoloji.TR%20hakkında%20bilgi%20almak%20istiyorum."
+   target="_blank">
+    <i class="fa-brands fa-whatsapp"></i>
+</a>
+
+        <a class="telefon-btn"
+           href="tel:05436307589">
+
+            <i class="fa-solid fa-phone"></i>
+        </a>
+
+    </div>
+
+</div>
                 </a>
                 <div id="authArea" class="auth-area">
                     <button class="login-btn" onclick="toggleModal(true)">Üye İşyeri Girişi</button>
+                    
                 </div>
             </div>
         </div>
@@ -1096,7 +1167,7 @@
         <div class="container">
             <div class="section-head">
                 <div>
-                    <h2>İnsanlar size “siz bunu tek sistemle mi yapıyorsunuz?” diye sorsun diye kuruldu.</h2>
+                    <h2>İnsanların size “siz bunu tek sistemle mi yapıyorsunuz?” diye sorması için kuruldu.</h2>
                 </div>
                 <p>Burada mesele sadece panel açmak değil. İşletmenin görünen yüzünü, satış akışını ve arka plan operasyonunu tek bir omurgada topluyoruz.</p>
             </div>
