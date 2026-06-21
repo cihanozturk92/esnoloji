@@ -265,7 +265,7 @@ function telegramMesajMetni(type, payload = {}) {
     '🕒 Saat: ' + saatMetni,
     '📝 Detay: ' + detay,
     '',
-    'ℹ️ Randevu onay veya red işlemini Esnoloji panelinden yapabilirsiniz.',
+    '🌐 Panel: https://esnoloji.tr/' + (payload.slug || '') + '/admin',
     '',
     '🌐 Esnoloji.tr'
 ].join('\n');
@@ -1921,6 +1921,7 @@ app.post('/api/:dukkan_adi/randevu-talep', async (req, res) => {
         if (error) throw error;
 
 await sendTelegramNotification(dukkan.id, 'rezervasyon', {
+    slug: req.params.dukkan_adi,
     musteri_ad,
     musteri_telefon,
     tarih,
