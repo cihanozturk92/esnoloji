@@ -13,6 +13,43 @@
             #saatListesi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             #panelKisayollari { left: 10px; right: 10px; bottom: 10px; }
         }
+        .randevu-sorgula-kutusu {
+    margin-top: 30px;
+    padding: 20px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.08);
+}
+
+.randevu-sorgula-kutusu input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+}
+
+.randevu-sorgula-kutusu button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.randevu-sonuc-karti {
+    margin-top: 12px;
+    padding: 14px;
+    border-radius: 12px;
+    background: rgba(0,0,0,0.08);
+}
+
+.uyari {
+    color: orange;
+}
+
+.hata {
+    color: red;
+}
     </style>
 </head>
 <body class="bg-slate-50 text-slate-950 antialiased">
@@ -83,7 +120,22 @@
                     <button type="submit" class="w-full rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-blue-600">Randevu Talebi Gonder</button>
                 </div>
             </form>
+<div class="randevu-sorgula-kutusu">
+    <h2>🔎 Randevu Sorgula</h2>
+    <p>Telefon numaranızı girerek randevu durumunuzu kontrol edebilirsiniz.</p>
 
+    <input 
+        type="tel" 
+        id="sorguTelefonInput" 
+        placeholder="05XXXXXXXXX"
+    >
+
+    <button type="button" onclick="randevuSorgula()">
+        Randevularımı Göster
+    </button>
+
+    <div id="randevuSorguSonuc"></div>
+</div>
             <section class="rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-sm backdrop-blur">
                 <div class="flex flex-col gap-3 border-b border-slate-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
                     <div>
@@ -365,6 +417,60 @@
                 bildirimGoster(err.message || 'Randevu talebi gonderilemedi.', 'hata');
             }
         }
-    </script>
+   async function randevuSorgula() {
+    const telefon = document.getElementById('sorguTelefonInput').value.trim();
+    const sonucAlani = document.getElementById('randevuSorguSonuc');
+
+    if (!telefon) {
+        sonucAlani.innerHTML = '<p class="uyari">Telefon numarası giriniz.</p>';
+        return;
+    }
+
+    sonucAlani.innerHTML = '<p>Randevular getiriliyor...</p>';
+
+    try {
+        const res = await fetch('/api/' + slug + '/randevu-sorgula', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ musteri_telefon: telefon })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Randevular getirilemedi.');
+
+        if (!data.randevular || data.randevular.length === 0) {
+            sonucAlani.innerHTML = '<p class="uyari">Bu telefon numarasına ait randevu bulunamadı.</p>';
+            return;
+        }
+
+        sonucAlani.innerHTML = data.randevular.map(r => {
+            let durumText = '🟡 Beklemede';
+
+            if (r.durum === 'onaylandi' || r.durum === 'onaylandı') {
+                durumText = '🟢 Onaylandı';
+            }
+
+            if (r.durum === 'reddedildi' || r.durum === 'red') {
+                durumText = '🔴 Reddedildi';
+            }
+
+            const hizmetAdi = r.ogeler?.ad || 'Hizmet';
+
+            return `
+                <div class="randevu-sonuc-karti">
+                    <strong>${hizmetAdi}</strong><br>
+                    👤 ${r.musteri_ad || '-'}<br>
+                    📅 ${r.tarih || '-'}<br>
+                    🕒 ${r.saat || '-'}<br>
+                    Durum: <strong>${durumText}</strong>
+                </div>
+            `;
+        }).join('');
+
+    } catch (err) {
+        sonucAlani.innerHTML = '<p class="hata">' + (err.message || 'Randevu sorgulanamadı.') + '</p>';
+    }
+}
+   </script>
 </body>
 </html>

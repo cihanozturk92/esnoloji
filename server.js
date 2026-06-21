@@ -1933,6 +1933,49 @@ res.json({ status: 'success', randevu: data });
         res.status(500).json({ error: err.message });
     }
 });
+app.post('/api/:dukkan_adi/randevu-sorgula', async (req, res) => {
+    const musteri_telefon = String(req.body?.musteri_telefon || '').trim();
+
+    try {
+        const dukkan = await dukkanBilgisiBulBySlug(req.params.dukkan_adi);
+        if (!dukkan) return res.status(404).json({ error: 'Dukkan bulunamadi.' });
+
+        if (!musteri_telefon) {
+            return res.status(400).json({ error: 'Telefon numarası zorunlu.' });
+        }
+
+        const { data, error } = await supabase
+            .from('randevular')
+            .select(`
+                id,
+                musteri_ad,
+                musteri_telefon,
+                tarih,
+                saat,
+                durum,
+                notlar,
+                toplam_tutar,
+                ogeler (
+                    ad
+                )
+            `)
+            .eq('dukkan_id', dukkan.id)
+            .eq('musteri_telefon', musteri_telefon)
+            .order('tarih', { ascending: false })
+            .order('saat', { ascending: false })
+            .limit(20);
+
+        if (error) throw error;
+
+        res.json({
+            status: 'success',
+            randevular: data || []
+        });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 app.get('/api/:dukkan_adi/randevular-yonetim', apiYetkiGerekli(['admin', 'superadmin', 'sÃ¼peradmin'], { dukkanSlugEslesmeli: true }), async (req, res) => {
     try {
