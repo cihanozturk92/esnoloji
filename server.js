@@ -267,7 +267,6 @@ function telegramMesajMetni(type, payload = {}) {
     '',
     '🌐 Panel: https://esnoloji.tr/' + (payload.slug || '') + '/admin',
     '',
-    '🌐 Esnoloji.tr'
 ].join('\n');
     }
 
@@ -1921,7 +1920,7 @@ app.post('/api/:dukkan_adi/randevu-talep', async (req, res) => {
         if (error) throw error;
 
 await sendTelegramNotification(dukkan.id, 'rezervasyon', {
-    slug: req.params.dukkan_adi,
+    slug: dukkan.slug || req.params.dukkan_adi,
     musteri_ad,
     musteri_telefon,
     tarih,
