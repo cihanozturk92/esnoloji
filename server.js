@@ -44,6 +44,43 @@ const PORT = Number(process.env.PORT || 3000);
 
 app.set('trust proxy', 1);
 app.use(express.json());
+app.get('/sitemap.xml', async (req, res) => {
+    try {
+        const { data: dukkanlar, error } = await supabase
+            .from('dukkanlar')
+            .select('slug');
+
+        if (error) throw error;
+
+        const baseUrl = 'https://esnoloji.tr';
+
+        const urls = [
+            baseUrl + '/',
+            ...(dukkanlar || [])
+                .filter(d => d.slug)
+                .map(d => baseUrl + '/' + d.slug)
+        ];
+
+        const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(url => `<url><loc>${url}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>`).join('\n')}
+</urlset>`;
+
+        res.set('Content-Type', 'application/xml');
+        res.send(xml);
+    } catch (err) {
+        console.error('Sitemap hatası:', err.message);
+        res.status(500).send('Sitemap oluşturulamadı.');
+    }
+});
+
+app.get('/robots.txt', (req, res) => {
+    res.type('text/plain');
+    res.send(`User-agent: *
+Allow: /
+
+Sitemap: https://esnoloji.tr/sitemap.xml`);
+});
 app.get("/test-telegram", async (req, res) => {
 
     await telegramMesajGonder(
