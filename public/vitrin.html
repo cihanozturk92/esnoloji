@@ -2,8 +2,9 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vitrin</title>
+   <title>Esnoloji.TR</title>
+<meta name="description" content="Esnoloji.TR işletme vitrini">
+<link id="dinamikFavicon" rel="icon" href="/favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -182,6 +183,7 @@
 
             document.title = baslik;
             metaEtiketiYaz('meta[name="description"]', { name: 'description', content: aciklama });
+            faviconYaz(dukkan?.logo_url || dukkan?.logo || dukkan?.logoUrl);
             canonicalYaz(canonicalUrl);
             metaEtiketiYaz('meta[property="og:title"]', { property: 'og:title', content: baslik });
             metaEtiketiYaz('meta[property="og:description"]', { property: 'og:description', content: aciklama });
@@ -197,7 +199,19 @@
             }
             Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
         }
+function faviconYaz(logoUrl) {
+    if (!logoUrl) return;
 
+    let el = document.head.querySelector('link[rel="icon"]');
+
+    if (!el) {
+        el = document.createElement('link');
+        el.setAttribute('rel', 'icon');
+        document.head.appendChild(el);
+    }
+
+    el.setAttribute('href', logoUrl);
+}
         function canonicalYaz(url) {
             let el = document.head.querySelector('link[rel="canonical"]');
             if (!el) {
