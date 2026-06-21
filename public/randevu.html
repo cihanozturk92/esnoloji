@@ -80,7 +80,7 @@
                 <aside class="rounded-3xl border border-white/10 bg-white/10 p-5 shadow-2xl backdrop-blur">
                     <div class="text-[11px] font-black uppercase tracking-[0.24em] text-amber-200">Iletisim</div>
                     <div id="dukkanIletisim" class="mt-5 flex flex-wrap gap-3"></div>
-                    <p class="mt-4 text-xs leading-5 text-slate-300">Randevu talebiniz isletme tarafindan onaylandiginda saat dolu gorunur.</p>
+                    <p class="mt-4 text-xs leading-5 text-slate-300">Randevu talebiniz isletme tarafindan onaylandiginda saat dolu görünür.</p>
                 </aside>
             </div>
         </div>
@@ -94,15 +94,15 @@
 
                 <div class="mt-5 space-y-4">
                     <div>
-                        <label class="mb-2 block text-xs font-black uppercase text-slate-500">Hizmet</label>
+                        <label class="mb-2 block text-xs font-black uppercase text-slate-500">Berber Seçimi</label>
                         <select id="hizmetSelect" class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:border-slate-950"></select>
                     </div>
                     <div>
-                        <label class="mb-2 block text-xs font-black uppercase text-slate-500">Gun</label>
+                        <label class="mb-2 block text-xs font-black uppercase text-slate-500">Gün</label>
                         <input id="tarihInput" type="date" class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 outline-none focus:border-slate-950">
                     </div>
                     <div>
-                        <label class="mb-2 block text-xs font-black uppercase text-slate-500">Secilen Saat</label>
+                        <label class="mb-2 block text-xs font-black uppercase text-slate-500">Seçilen Saat</label>
                         <input id="saatInput" type="text" readonly placeholder="Asagidan saat secin" class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-700 outline-none">
                     </div>
                     <div>
@@ -110,7 +110,7 @@
                         <input id="musteriAdInput" type="text" placeholder="Orn: Ahmet Yilmaz" class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-950">
                     </div>
                     <div>
-                        <label class="mb-2 block text-xs font-black uppercase text-slate-500">Telefon</label>
+                        <label class="mb-2 block text-xs font-black uppercase text-slate-500">Telefon(Bu numara ile daha sonra randevu talebinizi sorgulayabilirsiniz.)</label>
                         <input id="telefonInput" type="text" placeholder="05xx..." class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-950">
                     </div>
                     <div>
@@ -120,7 +120,20 @@
                     <button type="submit" class="w-full rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-950/15 transition hover:bg-blue-600">Randevu Talebi Gonder</button>
                 </div>
             </form>
-<div class="randevu-sorgula-kutusu">
+
+            <section class="rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-sm backdrop-blur">
+                <div class="flex flex-col gap-3 border-b border-slate-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Musait Saatler</div>
+                        <h2 id="saatBaslik" class="mt-2 text-2xl font-black text-slate-900">Saat secin</h2>
+                    </div>
+                    <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">09:00 - 03:00</span>
+                </div>
+                <div id="saatListesi" class="mt-6 grid grid-cols-3 gap-3 sm:grid-cols-4"></div>
+                <div class="mt-6 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+                    <b>Not:</b> Randevunuz once talep olarak iletilir. Isletme onayladiginda secilen saat dolu gorunur.
+                </div>
+                <div class="randevu-sorgula-kutusu">
     <h2>🔎 Randevu Sorgula</h2>
     <p>Telefon numaranızı girerek randevu durumunuzu kontrol edebilirsiniz.</p>
 
@@ -136,18 +149,6 @@
 
     <div id="randevuSorguSonuc"></div>
 </div>
-            <section class="rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-sm backdrop-blur">
-                <div class="flex flex-col gap-3 border-b border-slate-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                        <div class="text-xs font-black uppercase tracking-[0.18em] text-slate-400">Musait Saatler</div>
-                        <h2 id="saatBaslik" class="mt-2 text-2xl font-black text-slate-900">Saat secin</h2>
-                    </div>
-                    <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">09:00 - 03:00</span>
-                </div>
-                <div id="saatListesi" class="mt-6 grid grid-cols-3 gap-3 sm:grid-cols-4"></div>
-                <div class="mt-6 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
-                    <b>Not:</b> Randevunuz once talep olarak iletilir. Isletme onayladiginda secilen saat dolu gorunur.
-                </div>
             </section>
         </section>
     </main>
