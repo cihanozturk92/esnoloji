@@ -2765,7 +2765,7 @@ app.post('/api/siparis/kaydet', apiYetkiGerekli(['garson', 'admin', 'superadmin'
             // 1. Ana sipariÅŸin tutarÄ±nÄ± gÃ¼ncelle
             const { error: anaGuncelleHata } = await supabase
                 .from('siparisler')
-                .update({ toplam_tutar: Number(toplam_tutar), durum: durum || 'aÃ§Ä±k' })
+                .update({ toplam_tutar: Number(toplam_tutar), durum: durum || 'açık' })
                 .eq('id', siparis_id);
 
             if (anaGuncelleHata) throw anaGuncelleHata;
@@ -2794,14 +2794,14 @@ app.post('/api/siparis/kaydet', apiYetkiGerekli(['garson', 'admin', 'superadmin'
                 return res.status(400).json({ error: "Siparis icin en az bir urun gerekli." });
             }
 
-            // 1. Ana sipariÅŸi ekle ve ID'sini al
+            // 1. Ana siparişi ekle ve ID'sini al
             const { data: yeniSiparis, error: anaEkleHata } = await supabase
                 .from('siparisler')
                 .insert([{
                     dukkan_id: dukkan_id,
                     oge_id: Number(oge_id),
                     toplam_tutar: Number(toplam_tutar),
-                    durum: durum || 'aÃ§Ä±k'
+                    durum: durum || 'açık'
                 }])
                 .select()
                 .single();
@@ -2939,7 +2939,7 @@ app.get('/api/aktif-siparisler/:dukkanId', apiYetkiGerekli(['garson', 'admin', '
             .from('siparisler')
             .select('*')
             .eq('dukkan_id', dukkanId)
-            .eq('durum', 'aÃ§Ä±k');
+            .eq('durum', 'açık');
 
         if (error) throw error;
         return res.json(data || []);
@@ -2950,7 +2950,7 @@ app.get('/api/aktif-siparisler/:dukkanId', apiYetkiGerekli(['garson', 'admin', '
 
 // 2. SEÃ‡Ä°LEN MASANIN SÄ°PARÄ°Å DETAYLARINI (YENENLERÄ°) GETÄ°R
 // Frontend: fetch(`/api/siparis-detay/${aktifSiparis.id}`)
-app.get('/api/siparis-detay/:siparisId', apiYetkiGerekli(['garson', 'admin', 'superadmin', 'sÃ¼peradmin']), async (req, res) => {
+app.get('/api/siparis-detay/:siparisId', apiYetkiGerekli(['garson', 'admin', 'superadmin', 'süperadmin']), async (req, res) => {
     const { siparisId } = req.params;
     try {
         const { data: siparis, error: siparisErr } = await supabase
@@ -3002,7 +3002,7 @@ app.post('/api/siparis/kapat/:siparisId', apiYetkiGerekli(['garson', 'admin', 's
         if (rol !== 'superadmin' && rol !== 'sÃ¼peradmin' && Number(req.session?.dukkan_id) !== Number(siparis.dukkan_id)) {
             return res.status(403).json({ error: "Bu siparis icin yetkiniz yok." });
         }
-        if (String(siparis.durum || '').toLocaleLowerCase('tr-TR').trim() === 'kapalÄ±') {
+        if (String(siparis.durum || '').toLocaleLowerCase('tr-TR').trim() === 'kapali') {
             return res.json({ success: true, message: "Hesap zaten kapali." });
         }
 
@@ -3015,7 +3015,7 @@ app.post('/api/siparis/kapat/:siparisId', apiYetkiGerekli(['garson', 'admin', 's
 
         const { error } = await supabase
             .from('siparisler')
-            .update({ durum: 'kapalÄ±' })
+            .update({ durum: 'kapali' })
             .eq('id', siparisId);
 
         if (error) throw error;

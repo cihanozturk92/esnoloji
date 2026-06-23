@@ -2219,6 +2219,11 @@
                             <div class="text-[10px] text-slate-400">KDV: ${urun.kdv_orani || 0}%</div>
                             <div class="text-[10px] ${urun.stok_takibi ? 'text-emerald-600' : 'text-slate-400'}">${urun.stok_takibi ? `Stok: ${urun.stok_miktar || 0}` : 'Stok takibi yok'}</div>
                         </td>
+                     <td>
+                        <label>
+  <input type="checkbox" ${urun.menude_goster ? 'checked' : ''}>
+  Menüde Göster
+</label></td>
                         <td class="p-4 text-right flex justify-end gap-2">
                             <button onclick='modalAc(${JSON.stringify(urun).replace(/"/g, "&quot;")})'
                                 class="text-xs font-bold text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition">
