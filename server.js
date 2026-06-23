@@ -2789,30 +2789,68 @@ app.post('/api/siparis/kaydet', apiYetkiGerekli(['garson', 'admin', 'superadmin'
         } 
         
         // SENARYO B: MASA BOÅSA VE Ä°LK DEFA HESAP AÃ‡ILIYORSA
-        else {
-            if (detaylar.length === 0) {
-                return res.status(400).json({ error: "Siparis icin en az bir urun gerekli." });
-            }
+       else {
+    if (detaylar.length === 0) {
+        return res.status(400).json({ error: "Siparis icin en az bir urun gerekli." });
+    }
 
-            // 1. Ana siparişi ekle ve ID'sini al
-            const { data: yeniSiparis, error: anaEkleHata } = await supabase
-                .from('siparisler')
-                .insert([{
-                    dukkan_id: dukkan_id,
-                    oge_id: Number(oge_id),
-                    toplam_tutar: Number(toplam_tutar),
-                    durum: durum || 'açık'
-                }])
-                .select()
-                .single();
+    // Önce aynı masa için açık sipariş var mı kontrol et
+    const { data: mevcutAcikSiparis, error: mevcutKontrolHata } = await supabase
+        .from('siparisler')
+        .select('id')
+        .eq('dukkan_id', Number(dukkan_id))
+        .eq('oge_id', Number(oge_id))
+        .eq('durum', 'açık')
+        .order('id', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-            if (anaEkleHata) throw anaEkleHata;
+    if (mevcutKontrolHata) throw mevcutKontrolHata;
 
-            // 2. DetaylarÄ± tek seferde tertemiz ekle
-            const detayEkleHata = await detayEkle(yeniSiparis.id);
-            if (detayEkleHata) throw detayEkleHata;
-            return res.sendStatus(200);
-        }
+    // Varsa yeni sipariş açma, mevcut olanı güncelle
+    if (mevcutAcikSiparis) {
+        const { error: anaGuncelleHata } = await supabase
+            .from('siparisler')
+            .update({
+                toplam_tutar: Number(toplam_tutar),
+                durum: 'açık'
+            })
+            .eq('id', mevcutAcikSiparis.id);
+
+        if (anaGuncelleHata) throw anaGuncelleHata;
+
+        const { error: eskiSilHata } = await supabase
+            .from('siparis_detaylari')
+            .delete()
+            .eq('siparis_id', mevcutAcikSiparis.id);
+
+        if (eskiSilHata) throw eskiSilHata;
+
+        const detayEkleHata = await detayEkle(mevcutAcikSiparis.id);
+        if (detayEkleHata) throw detayEkleHata;
+
+        return res.sendStatus(200);
+    }
+
+    // Açık sipariş yoksa yeni ana sipariş oluştur
+    const { data: yeniSiparis, error: anaEkleHata } = await supabase
+        .from('siparisler')
+        .insert([{
+            dukkan_id: Number(dukkan_id),
+            oge_id: Number(oge_id),
+            toplam_tutar: Number(toplam_tutar),
+            durum: 'açık'
+        }])
+        .select()
+        .single();
+
+    if (anaEkleHata) throw anaEkleHata;
+
+    const detayEkleHata = await detayEkle(yeniSiparis.id);
+    if (detayEkleHata) throw detayEkleHata;
+
+    return res.sendStatus(200);
+}
     } catch (err) {
         console.error("SipariÅŸ veritabanÄ± kayÄ±t hatasÄ±:", err);
         res.status(500).json({ error: err.message });
@@ -2880,7 +2918,7 @@ app.get('/api/:dukkan_adi/personel-satis-raporu', apiYetkiGerekli(['admin', 'sup
             .eq('slug', req.params.dukkan_adi)
             .single();
 
-        if (dukkanErr || !dukkan) return res.status(404).json({ error: "DÃ¼kkan bulunamadi" });
+        if (dukkanErr || !dukkan) return res.status(404).json({ error: "Dükkan bulunamadi" });
 
         const { data: siparisler, error: siparisErr } = await supabase
             .from('siparisler')

@@ -456,54 +456,65 @@
             document.getElementById('siparisModali').classList.add('hidden');
         }
 
-        async function siparisiVeritabaninaKaydet(mevcutSiparisId) {
-            let toplamTutar = 0;
-            const urunListesi = [];
+       async function siparisiVeritabaninaKaydet(mevcutSiparisId) {
+    let toplamTutar = 0;
+    const urunListesi = [];
 
-            Object.values(sepet).forEach((veri) => {
-                toplamTutar += veri.adet * veri.fiyat;
-                urunListesi.push({
-                    urun_id: veri.urun_id,
-                    urun_adi: veri.urun_adi,
-                    adet: veri.adet,
-                    fiyat: veri.fiyat
-                });
-            });
+    Object.values(sepet).forEach((veri) => {
+        toplamTutar += veri.adet * veri.fiyat;
+        urunListesi.push({
+            urun_id: veri.urun_id,
+            urun_adi: veri.urun_adi,
+            adet: veri.adet,
+            fiyat: veri.fiyat
+        });
+    });
 
-            if(urunListesi.length === 0 && !mevcutSiparisId) {
-                bildirimGoster("Lütfen önce en az 1 ürün seçin.", "uyari");
-                return;
-            }
+    if (urunListesi.length === 0 && !mevcutSiparisId) {
+        bildirimGoster("Lütfen önce en az 1 ürün seçin.", "uyari");
+        return;
+    }
 
-            const veriPaketi = {
-                dukkan_id: dukkanId,
-                oge_id: aktifSeciliMasaId,
-                masa_adi: aktifSeciliMasa,
-                toplam_tutar: toplamTutar.toFixed(2),
-                durum: 'açık',
-                urunler: urunListesi,
-                siparis_id: mevcutSiparisId 
-            };
+    const seciliMasaId = aktifSeciliMasaId;
+    const seciliMasaAdi = aktifSeciliMasa;
 
-            try {
-                const response = await fetch('/api/siparis/kaydet', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(veriPaketi)
-                });
+    const veriPaketi = {
+        dukkan_id: dukkanId,
+        oge_id: seciliMasaId,
+        masa_adi: seciliMasaAdi,
+        toplam_tutar: toplamTutar.toFixed(2),
+        durum: 'açık',
+        urunler: urunListesi,
+        siparis_id: mevcutSiparisId
+    };
 
-                if(response.ok) {
-                    modalKapat();
-                    await terminalVerileriniYukle();
-                    document.getElementById('hesapBosDurum').classList.remove('hidden');
-                    document.getElementById('hesapDoluDurum').classList.add('hidden');
-                    bildirimGoster(`Sipariş ${aktifSeciliMasa} için başarıyla kaydedildi.`, "basari");
-                }
-            } catch(err) {
-                console.error("Veritabanı kayıt hatası:", err);
-                bildirimGoster("Sipariş kaydedilirken bir hata oluştu.", "hata");
-            }
+    try {
+        const response = await fetch('/api/siparis/kaydet', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(veriPaketi)
+        });
+
+        if (response.ok) {
+            modalKapat();
+
+            await terminalVerileriniYukle();
+
+            aktifSeciliMasaId = seciliMasaId;
+            aktifSeciliMasa = seciliMasaAdi;
+
+            araciMasaDetayYukle(seciliMasaId);
+
+            bildirimGoster(`Sipariş ${seciliMasaAdi} için başarıyla kaydedildi.`, "basari");
+        } else {
+            const hata = await response.json().catch(() => ({}));
+            bildirimGoster(hata.error || "Sipariş kaydedilemedi.", "hata");
         }
+    } catch (err) {
+        console.error("Veritabanı kayıt hatası:", err);
+        bildirimGoster("Sipariş kaydedilirken bir hata oluştu.", "hata");
+    }
+}
 
         async function hesabiKapat(siparisId) {
             const onay = await onayIste(`${aktifSeciliMasa} hesabının ödemesi alındı ve kapatılacak.`, 'Hesabı kapat');
